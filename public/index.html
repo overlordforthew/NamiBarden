@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nami Barden — 心を磨き、豊かな人生を</title>
+<meta name="description" content="意識、マインドフルネス、瞑想。心を磨き、豊かな人生を送るヒントをお伝えします。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Serif+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========== CSS VARIABLES ========== */
+:root {
+  --cream: #FAF7F2;
+  --cream-dark: #F0EAE0;
+  --cream-darker: #E8DFD3;
+  --warm-beige: #D4C5B2;
+  --gold: #C4A882;
+  --gold-dark: #A8895E;
+  --text-dark: #2C2419;
+  --text-medium: #5C4F3D;
+  --text-light: #8B7E6E;
+  --text-muted: #A99E8F;
+  --white: #FFFFFF;
+  --sage: #B8C4A8;
+  --sage-light: #D4DDCA;
+  --overlay: rgba(44, 36, 25, 0.6);
+
+  --font-display: 'Playfair Display', 'Noto Serif JP', serif;
+  --font-body: 'Cormorant Garamond', 'Noto Sans JP', sans-serif;
+  --font-body-jp: 'Noto Sans JP', sans-serif;
+
+  --max-width: 1200px;
+  --section-padding: 100px 0;
+  --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-dark);
+  background: var(--cream);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[lang="ja"] body { font-family: var(--font-body-jp); font-size: 15px; }
+
+img { max-width: 100%; height: auto; display: block; }
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+ul { list-style: none; }
+
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 40px; }
+
+/* ========== TYPOGRAPHY ========== */
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 500; line-height: 1.3; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); letter-spacing: 0.02em; }
+h3 { font-size: clamp(1.2rem, 2vw, 1.5rem); }
+
+.section-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.section-title { margin-bottom: 20px; color: var(--text-dark); }
+
+.section-subtitle {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--text-light);
+  max-width: 600px;
+  line-height: 1.8;
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  display: inline-block;
+  padding: 14px 36px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border: 1.5px solid var(--text-dark);
+  background: transparent;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: var(--text-dark);
+  transition: var(--transition);
+  z-index: 0;
+}
+
+.btn:hover::before { left: 0; }
+.btn:hover { color: var(--cream); }
+.btn span { position: relative; z-index: 1; }
+
+.btn-filled {
+  background: var(--text-dark);
+  color: var(--cream);
+}
+.btn-filled::before { background: var(--gold-dark); }
+.btn-filled:hover { color: var(--white); border-color: var(--gold-dark); }
+
+/* ========== NAVIGATION ========== */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(196, 168, 130, 0.15);
+  transition: var(--transition);
+}
+
+nav.scrolled { box-shadow: 0 2px 40px rgba(44, 36, 25, 0.06); }
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-dark);
+}
+
+.nav-logo img {
+  height: 45px;
+  width: auto;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-links a {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-medium);
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0;
+  width: 0; height: 1px;
+  background: var(--gold);
+  transition: var(--transition);
+}
+
+.nav-links a:hover { color: var(--text-dark); }
+.nav-links a:hover::after { width: 100%; }
+
+.lang-toggle {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding: 6px 16px;
+  border: 1px solid var(--warm-beige);
+  border-radius: 20px;
+  cursor: pointer;
+  color: var(--text-medium);
+  background: transparent;
+  font-family: var(--font-body);
+  transition: var(--transition);
+}
+
+.lang-toggle:hover { background: var(--text-dark); color: var(--cream); border-color: var(--text-dark); }
+
+.mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+.mobile-toggle span { display: block; width: 24px; height: 1.5px; background: var(--text-dark); margin: 6px 0; transition: var(--transition); }
+
+/* ========== HERO ========== */
+.hero {
+  padding-top: 80px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 50%, var(--cream) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,168,130,0.08) 0%, transparent 70%);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; left: -100px;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,196,168,0.08) 0%, transparent 70%);
+}
+
+.hero .container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-text { animation: fadeInUp 1s ease both; }
+
+.hero-text .section-label { margin-bottom: 20px; font-size: 0.7rem; }
+
+.hero-text h1 {
+  margin-bottom: 24px;
+  line-height: 1.25;
+}
+
+.hero-text h1 em {
+  font-style: italic;
+  color: var(--gold-dark);
+}
+
+.hero-text p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  margin-bottom: 40px;
+  line-height: 1.9;
+  max-width: 480px;
+}
+
+.hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+
+.hero-image {
+  position: relative;
+  animation: fadeInRight 1s 0.3s ease both;
+}
+
+.hero-image-wrapper {
+  position: relative;
+  border-radius: 200px 200px 40px 40px;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  max-height: 600px;
+  background: var(--cream-darker);
+}
+
+.hero-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  background: linear-gradient(180deg, var(--cream-dark) 0%, var(--cream-darker) 100%);
+}
+
+.hero-image-placeholder svg { width: 48px; height: 48px; opacity: 0.4; }
+
+.hero-decoration {
+  position: absolute;
+  width: 120px; height: 120px;
+  border: 1px solid var(--warm-beige);
+  border-radius: 50%;
+  bottom: -20px; left: -40px;
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.hero-decoration-2 {
+  position: absolute;
+  width: 60px; height: 60px;
+  background: var(--sage-light);
+  opacity: 0.3;
+  border-radius: 50%;
+  top: 40px; right: -20px;
+  animation: floatSlow 5s 1s ease-in-out infinite;
+}
+
+/* ========== FEATURED / CREDENTIALS ========== */
+.featured {
+  padding: 60px 0;
+  background: var(--cream-dark);
+  border-top: 1px solid rgba(196,168,130,0.15);
+  border-bottom: 1px solid rgba(196,168,130,0.15);
+}
+
+.featured .container { text-align: center; }
+
+.featured .section-label { margin-bottom: 30px; }
+
+.featured-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  flex-wrap: wrap;
+  opacity: 0.5;
+}
+
+.featured-logos span {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-medium);
+  letter-spacing: 0.05em;
+}
+
+/* ========== ABOUT ========== */
+.about { padding: var(--section-padding); background: var(--cream); }
+
+.about .container {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.about-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.about-img {
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--cream-dark);
+  aspect-ratio: 3/4;
+}
+
+.about-img:first-child { margin-top: 40px; }
+
+.about-img img { width: 100%; height: 100%; object-fit: cover; }
+
+.about-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; color: var(--text-muted);
+  background: linear-gradient(135deg, var(--cream-dark), var(--cream-darker));
+}
+
+.about-content h2 { margin-bottom: 24px; }
+
+.about-content p {
+  color: var(--text-medium);
+  margin-bottom: 16px;
+  font-size: 1.05rem;
+  line-height: 1.9;
+}
+
+.about-content .btn { margin-top: 24px; }
+
+.about-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+  padding-top: 40px;
+  border-top: 1px solid var(--cream-darker);
+}
+
+.stat-item h3 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--gold-dark);
+  margin-bottom: 4px;
+}
+
+.stat-item p { font-size: 0.85rem; color: var(--text-light); }
+
+/* ========== SERVICES ========== */
+.services {
+  padding: var(--section-padding);
+  background: var(--white);
+}
+
+.services .container > .section-label,
+.services .container > .section-title,
+.services .container > .section-subtitle { text-align: center; margin-left: auto; margin-right: auto; }
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-top: 60px;
+}
+
+.service-card {
+  text-align: center;
+  padding: 48px 32px;
+  border-radius: 24px;
+  background: var(--cream);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--sage));
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.service-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(44,36,25,0.08); }
+.service-card:hover::before { opacity: 1; }
+
+.service-icon {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  overflow: hidden;
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+.service-icon svg { width: 36px; height: 36px; color: var(--gold-dark); }
+
+.service-card h3 { margin-bottom: 12px; color: var(--text-dark); }
+
+.service-card p {
+  font-size: 0.95rem;
+  color: var(--text-light);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.service-link {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.service-link:hover { gap: 12px; }
+
+/* ========== COURSES ========== */
+.courses {
+  padding: var(--section-padding);
+  background: var(--cream);
+}
+
+.courses .container > .section-label,
+.courses .container > .section-title { text-align: center; margin-left: auto; margin-right: auto; }
+
+.courses .section-subtitle { text-align: center; margin: 0 auto 60px; }
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+}
+
+.course-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--white);
+  border-radius: 24px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.course-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(44,36,25,0.08); }
+
+.course-image {
+  aspect-ratio: 1;
+  background: var(--cream-dark);
+  overflow: hidden;
+}
+
+.course-image img { width: 100%; height: 100%; object-fit: cover; }
+
+.course-content {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.course-content .section-label { font-size: 0.65rem; margin-bottom: 8px; }
+.course-content h3 { margin-bottom: 12px; font-size: 1.2rem; }
+.course-content p { font-size: 0.9rem; color: var(--text-light); margin-bottom: 20px; line-height: 1.7; }
+
+/* ========== BOOKS ========== */
+.books {
+  padding: var(--section-padding);
+  background: var(--text-dark);
+  color: var(--cream);
+  position: relative;
+  overflow: hidden;
+}
+
+.books::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(196,168,130,0.1) 0%, transparent 60%);
+}
+
+.books .section-label { color: var(--gold); }
+.books .section-title { color: var(--cream); }
+.books .section-subtitle { color: var(--text-muted); }
+
+.books .container {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.books-content { max-width: 500px; }
+.books-content p { color: rgba(250,247,242,0.7); font-size: 1.05rem; line-height: 1.8; margin-bottom: 32px; }
+.books-content .btn { border-color: var(--gold); color: var(--cream); }
+.books-content .btn::before { background: var(--gold-dark); }
+
+.books-showcase {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.book-item {
+  width: 180px;
+  transition: var(--transition);
+  position: relative;
+}
+
+.book-item:hover { transform: translateY(-12px); }
+
+.book-cover {
+  aspect-ratio: 2/3;
+  background: var(--cream-dark);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.book-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+.book-cover-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; color: var(--text-medium);
+  background: linear-gradient(135deg, var(--cream), var(--cream-dark));
+  padding: 20px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.book-item:nth-child(2) { margin-bottom: 30px; }
+
+/* ========== YOUTUBE / MEDIA ========== */
+.media {
+  padding: var(--section-padding);
+  background: var(--white);
+}
+
+.media .container { text-align: center; }
+
+.media .section-subtitle { margin: 0 auto 50px; }
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.media-item {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 16/9;
+  background: var(--cream-dark);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.media-item:hover { transform: scale(1.02); }
+
+.media-item img { width: 100%; height: 100%; object-fit: cover; }
+
+.media-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(44,36,25,0.3);
+  transition: var(--transition);
+}
+
+.media-item:hover .media-overlay { background: rgba(44,36,25,0.5); }
+
+.play-btn {
+  width: 60px; height: 60px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-btn svg { width: 24px; height: 24px; margin-left: 3px; color: var(--text-dark); }
+
+.media-item-title {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px;
+  background: linear-gradient(transparent, rgba(44,36,25,0.8));
+  color: var(--white);
+  font-size: 0.85rem;
+  text-align: left;
+  font-weight: 500;
+}
+
+/* ========== TESTIMONIALS ========== */
+.testimonials {
+  padding: var(--section-padding);
+  background: var(--cream);
+}
+
+.testimonials .container { text-align: center; }
+
+.testimonials .section-subtitle { margin: 0 auto 60px; }
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.testimonial-card {
+  background: var(--white);
+  padding: 40px 32px;
+  border-radius: 24px;
+  text-align: left;
+  position: relative;
+  transition: var(--transition);
+}
+
+.testimonial-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(44,36,25,0.06); }
+
+.testimonial-quote {
+  font-size: 2.5rem;
+  font-family: var(--font-display);
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.testimonial-card p {
+  font-size: 0.95rem;
+  color: var(--text-medium);
+  line-height: 1.8;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.testimonial-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.testimonial-name { font-weight: 600; font-size: 0.9rem; }
+.testimonial-role { font-size: 0.8rem; color: var(--text-light); }
+
+/* ========== FREE RESOURCES ========== */
+.resources {
+  padding: 80px 0;
+  background: linear-gradient(135deg, var(--cream-dark), var(--sage-light));
+}
+
+.resources .container {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.resources-content h2 { margin-bottom: 16px; }
+.resources-content p { color: var(--text-medium); margin-bottom: 32px; font-size: 1.05rem; }
+
+.resource-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.resource-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--text-medium);
+}
+
+.resource-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.resource-check svg { width: 14px; height: 14px; color: var(--white); }
+
+.resources-image {
+  position: relative;
+}
+
+.resources-image-wrapper {
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--cream);
+  aspect-ratio: 4/3;
+  box-shadow: 0 20px 60px rgba(44,36,25,0.1);
+}
+
+.resources-image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ========== CONTACT ========== */
+.contact {
+  padding: var(--section-padding);
+  background: var(--white);
+}
+
+.contact .container {
+  max-width: 700px;
+  text-align: center;
+}
+
+.contact .section-subtitle { margin: 0 auto 50px; }
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 16px 20px;
+  border: 1px solid var(--cream-darker);
+  border-radius: 12px;
+  background: var(--cream);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-dark);
+  transition: var(--transition);
+  outline: none;
+}
+
+html[lang="ja"] .contact-form input,
+html[lang="ja"] .contact-form textarea { font-family: var(--font-body-jp); }
+
+.contact-form input:focus,
+.contact-form textarea:focus { border-color: var(--gold); background: var(--white); }
+
+.contact-form textarea { resize: vertical; min-height: 140px; }
+
+.contact-form .btn { align-self: center; }
+
+.contact-links {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 50px;
+  padding-top: 50px;
+  border-top: 1px solid var(--cream-darker);
+}
+
+.contact-link-item {
+  text-align: center;
+}
+
+.contact-link-item svg { width: 28px; height: 28px; color: var(--gold-dark); margin-bottom: 8px; }
+.contact-link-item p { font-size: 0.85rem; color: var(--text-light); margin-bottom: 4px; }
+.contact-link-item a { color: var(--text-dark); font-weight: 500; font-size: 0.9rem; }
+.contact-link-item a:hover { color: var(--gold-dark); }
+
+/* ========== NEWSLETTER ========== */
+.newsletter {
+  padding: 80px 0;
+  background: var(--text-dark);
+  color: var(--cream);
+  text-align: center;
+}
+
+.newsletter .section-label { color: var(--gold); }
+.newsletter h2 { color: var(--cream); margin-bottom: 16px; }
+.newsletter p { color: rgba(250,247,242,0.6); max-width: 500px; margin: 0 auto 36px; }
+
+.newsletter-form {
+  display: flex;
+  gap: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.newsletter-form input {
+  flex: 1;
+  padding: 16px 24px;
+  border: 1px solid rgba(196,168,130,0.3);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+html[lang="ja"] .newsletter-form input { font-family: var(--font-body-jp); }
+
+.newsletter-form input::placeholder { color: rgba(250,247,242,0.4); }
+.newsletter-form input:focus { border-color: var(--gold); background: rgba(255,255,255,0.12); }
+
+.newsletter-form .btn {
+  border-color: var(--gold);
+  color: var(--cream);
+  white-space: nowrap;
+}
+
+.newsletter-form .btn::before { background: var(--gold-dark); }
+
+/* ========== FOOTER ========== */
+footer {
+  padding: 60px 0 40px;
+  background: var(--text-dark);
+  border-top: 1px solid rgba(196,168,130,0.1);
+}
+
+.footer-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 50px;
+}
+
+.footer-brand p { color: rgba(250,247,242,0.5); font-size: 0.9rem; line-height: 1.7; margin-top: 12px; max-width: 280px; }
+
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--cream);
+  font-weight: 600;
+}
+
+.footer-col h4 {
+  color: var(--cream);
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.footer-col a {
+  display: block;
+  color: rgba(250,247,242,0.5);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  transition: var(--transition);
+}
+
+.footer-col a:hover { color: var(--gold); }
+
+.footer-social {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.footer-social a {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(196,168,130,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.footer-social a:hover { background: var(--gold-dark); border-color: var(--gold-dark); }
+.footer-social a svg { width: 18px; height: 18px; color: var(--cream); }
+
+.footer-bottom {
+  padding-top: 30px;
+  border-top: 1px solid rgba(196,168,130,0.1);
+  text-align: center;
+  color: rgba(250,247,242,0.3);
+  font-size: 0.8rem;
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========== MOBILE MENU ========== */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--cream);
+  z-index: 999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+}
+
+.mobile-menu.active { opacity: 1; pointer-events: all; }
+
+.mobile-menu a {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text-dark);
+}
+
+.mobile-close {
+  position: absolute;
+  top: 24px; right: 24px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-dark);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .hero .container { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+  .hero-text p { margin-left: auto; margin-right: auto; }
+  .hero-buttons { justify-content: center; }
+  .hero-image-wrapper { max-height: 400px; max-width: 350px; margin: 0 auto; }
+  .about .container { grid-template-columns: 1fr; gap: 40px; }
+  .about-images { max-width: 500px; margin: 0 auto; }
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+  .courses-grid { grid-template-columns: 1fr; }
+  .course-card { grid-template-columns: 1fr 1.2fr; }
+  .books .container { grid-template-columns: 1fr; text-align: center; }
+  .books-content { margin: 0 auto; }
+  .books-showcase { margin-top: 40px; }
+  .resources .container { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  :root { --section-padding: 70px 0; }
+  .container { padding: 0 24px; }
+
+  .nav-links { display: none; }
+  .mobile-toggle { display: block; }
+  .mobile-menu { display: flex; }
+
+  .hero { min-height: auto; padding-top: 120px; padding-bottom: 60px; }
+  .hero-image-wrapper { max-height: 350px; border-radius: 100px 100px 30px 30px; }
+
+  .services-grid, .testimonials-grid, .media-grid { grid-template-columns: 1fr; }
+  .courses-grid { grid-template-columns: 1fr; }
+  .course-card { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+
+  .about-stats { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .stat-item h3 { font-size: 1.5rem; }
+
+  .books-showcase { flex-direction: row; }
+  .book-item { width: 130px; }
+
+  .footer-inner { grid-template-columns: 1fr; text-align: center; }
+  .footer-brand p { margin: 12px auto 0; }
+  .footer-social { justify-content: center; }
+
+  .newsletter-form { flex-direction: column; }
+
+  .contact-links { flex-direction: column; gap: 24px; }
+}
+
+/* ========== LANGUAGE TOGGLE ========== */
+[data-lang="en"] { display: none; }
+html[lang="en"] [data-lang="en"] { display: block; }
+html[lang="en"] [data-lang="ja"] { display: none; }
+
+/* For inline elements */
+span[data-lang="en"],
+a[data-lang="en"] { display: none; }
+html[lang="en"] span[data-lang="en"],
+html[lang="en"] a[data-lang="en"] { display: inline; }
+html[lang="en"] span[data-lang="ja"],
+html[lang="en"] a[data-lang="ja"] { display: none; }
+
+/* For flex items */
+.hero-buttons [data-lang="en"] { display: none; }
+html[lang="en"] .hero-buttons [data-lang="en"] { display: inline-block; }
+html[lang="en"] .hero-buttons [data-lang="ja"] { display: none; }
+
+/* Grid items visibility */
+div[data-lang="en"].service-card,
+div[data-lang="en"].testimonial-card,
+div[data-lang="en"].course-card,
+div[data-lang="en"].media-item { display: none; }
+
+html[lang="en"] div[data-lang="en"].service-card,
+html[lang="en"] div[data-lang="en"].testimonial-card,
+html[lang="en"] div[data-lang="en"].course-card,
+html[lang="en"] div[data-lang="en"].media-item { display: grid; }
+
+html[lang="en"] div[data-lang="ja"].service-card,
+html[lang="en"] div[data-lang="ja"].testimonial-card,
+html[lang="en"] div[data-lang="ja"].course-card,
+html[lang="en"] div[data-lang="ja"].media-item { display: none; }
+
+html[lang="en"] div[data-lang="en"].service-card,
+html[lang="en"] div[data-lang="en"].testimonial-card { display: block; }
+
+html[lang="en"] div[data-lang="en"].media-item { display: block; }
+</style>
+</head>
+
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav id="navbar">
+  <div class="container nav-inner">
+    <a href="#" class="nav-logo">Nami Barden</a>
+    <div class="nav-links">
+      <a href="#about"><span data-lang="ja">プロフィール</span><span data-lang="en">About</span></a>
+      <a href="#services"><span data-lang="ja">サービス</span><span data-lang="en">Services</span></a>
+      <a href="#courses"><span data-lang="ja">講座</span><span data-lang="en">Courses</span></a>
+      <a href="#books"><span data-lang="ja">書籍</span><span data-lang="en">Books</span></a>
+      <a href="#media"><span data-lang="ja">メディア</span><span data-lang="en">Media</span></a>
+      <a href="#contact"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
+      <button class="lang-toggle" onclick="toggleLang()">EN / 日本語</button>
+    </div>
+    <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="toggleMobile()">✕</button>
+  <a href="#about" onclick="toggleMobile()"><span data-lang="ja">プロフィール</span><span data-lang="en">About</span></a>
+  <a href="#services" onclick="toggleMobile()"><span data-lang="ja">サービス</span><span data-lang="en">Services</span></a>
+  <a href="#courses" onclick="toggleMobile()"><span data-lang="ja">講座</span><span data-lang="en">Courses</span></a>
+  <a href="#books" onclick="toggleMobile()"><span data-lang="ja">書籍</span><span data-lang="en">Books</span></a>
+  <a href="#media" onclick="toggleMobile()"><span data-lang="ja">メディア</span><span data-lang="en">Media</span></a>
+  <a href="#contact" onclick="toggleMobile()"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
+  <button class="lang-toggle" onclick="toggleLang()" style="margin-top:20px;">EN / 日本語</button>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-text">
+      <p class="section-label" data-lang="ja">コンシャスネス・コーチ＆瞑想講師</p>
+      <p class="section-label" data-lang="en">Consciousness Coach & Meditation Teacher</p>
+
+      <h1 data-lang="ja">心を磨き、<br><em>豊かな人生</em>を<br>送るお手伝い</h1>
+      <h1 data-lang="en">Helping you find<br><em>inner peace</em> and<br>live a richer life</h1>
+
+      <p data-lang="ja">意識、マインドフルネス、瞑想を通じて、あなたの心を磨き、本来の輝きを取り戻すサポートをします。一緒に、心豊かな毎日を始めましょう。</p>
+      <p data-lang="en">Through consciousness, mindfulness, and meditation, I help you polish your mind and reclaim your inner brilliance. Let's begin your journey to a fulfilling life together.</p>
+
+      <div class="hero-buttons">
+        <a href="#services" class="btn btn-filled" data-lang="ja"><span>サービスを見る</span></a>
+        <a href="#services" class="btn btn-filled" data-lang="en"><span>Explore Services</span></a>
+        <a href="#contact" class="btn" data-lang="ja"><span>無料相談</span></a>
+        <a href="#contact" class="btn" data-lang="en"><span>Free Consultation</span></a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <div class="hero-image-wrapper">
+        <!-- Replace src with your professional headshot -->
+        <div class="hero-image-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/></svg>
+          <span data-lang="ja">写真をここに配置</span>
+          <span data-lang="en">Place photo here</span>
+        </div>
+      </div>
+      <div class="hero-decoration"></div>
+      <div class="hero-decoration-2"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURED ===== -->
+<section class="featured">
+  <div class="container">
+    <p class="section-label" data-lang="ja">著書＆メディア</p>
+    <p class="section-label" data-lang="en">Author & Featured In</p>
+    <div class="featured-logos">
+      <span>YouTube</span>
+      <span>Udemy</span>
+      <span>WordPress</span>
+      <span>Amazon</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ABOUT ===== -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-images reveal">
+      <div class="about-img">
+        <div class="about-img-placeholder" data-lang="ja">写真 1</div>
+        <div class="about-img-placeholder" data-lang="en">Photo 1</div>
+      </div>
+      <div class="about-img">
+        <div class="about-img-placeholder" data-lang="ja">写真 2</div>
+        <div class="about-img-placeholder" data-lang="en">Photo 2</div>
+      </div>
+    </div>
+    <div class="about-content reveal">
+      <p class="section-label" data-lang="ja">プロフィール</p>
+      <p class="section-label" data-lang="en">About Nami</p>
+
+      <h2 class="section-title" data-lang="ja"><em>Meet</em> Nami Barden</h2>
+      <h2 class="section-title" data-lang="en"><em>Meet</em> Nami Barden</h2>
+
+      <p data-lang="ja">コンシャスネス・コーチ、瞑想講師、著者として活動しています。意識、マインドフルネス、瞑想を通じて、心を磨き、豊かな人生を送るヒントをお伝えしています。</p>
+      <p data-lang="en">As a consciousness coach, meditation teacher, and author, I share insights on refining your mind and living a fulfilling life through awareness, mindfulness, and meditation.</p>
+
+      <p data-lang="ja">オンライン講座、YouTube勉強会、個人コーチング、書籍など、さまざまな形で皆さまの心の成長をサポートしています。</p>
+      <p data-lang="en">Through online courses, YouTube study sessions, personal coaching, and published books, I support your mental and spiritual growth in many ways.</p>
+
+      <a href="#contact" class="btn" data-lang="ja"><span>詳しく見る</span></a>
+      <a href="#contact" class="btn" data-lang="en"><span>Learn More</span></a>
+
+      <div class="about-stats">
+        <div class="stat-item">
+          <h3>10+</h3>
+          <p data-lang="ja">年の経験</p>
+          <p data-lang="en">Years Experience</p>
+        </div>
+        <div class="stat-item">
+          <h3>5,000+</h3>
+          <p data-lang="ja">受講生</p>
+          <p data-lang="en">Students</p>
+        </div>
+        <div class="stat-item">
+          <h3>153+</h3>
+          <p data-lang="ja">メルマガ購読者</p>
+          <p data-lang="en">Subscribers</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section class="services" id="services">
+  <div class="container">
+    <p class="section-label" data-lang="ja">サービス内容</p>
+    <p class="section-label" data-lang="en">What I Offer</p>
+
+    <h2 class="section-title" data-lang="ja">あなたの心の成長を<em>サポート</em></h2>
+    <h2 class="section-title" data-lang="en">Supporting Your <em>Inner Growth</em></h2>
+
+    <p class="section-subtitle" data-lang="ja">瞑想、コーチング、講座を通じて、あなたの内なる輝きを引き出します</p>
+    <p class="section-subtitle" data-lang="en">Drawing out your inner brilliance through meditation, coaching, and courses</p>
+
+    <!-- Japanese Services -->
+    <div class="services-grid" data-lang="ja">
+      <div class="service-card" data-lang="ja">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
+        </div>
+        <h3>コーチング＆カウンセリング</h3>
+        <p>あなたの心の悩みに寄り添い、一対一のセッションで本来の自分を取り戻すお手伝いをします。</p>
+        <a href="#contact" class="service-link">詳しく見る →</a>
+      </div>
+      <div class="service-card" data-lang="ja">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
+        </div>
+        <h3>オンライン講座</h3>
+        <p>Udemyで「心の授業」シリーズを配信中。自分のペースで心を磨く方法を学べます。</p>
+        <a href="#courses" class="service-link">講座を見る →</a>
+      </div>
+      <div class="service-card" data-lang="ja">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+        </div>
+        <h3>瞑想・呼吸法</h3>
+        <p>初心者から上級者まで、心と体を整えるガイド付き瞑想と呼吸法をお届けします。</p>
+        <a href="#media" class="service-link">瞑想を始める →</a>
+      </div>
+      <div class="service-card" data-lang="ja">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+        </div>
+        <h3>無料勉強会</h3>
+        <p>毎月YouTubeライブで開催。瞑想と心の学びを無料で体験できます。</p>
+        <a href="#media" class="service-link">参加する →</a>
+      </div>
+      <div class="service-card" data-lang="ja">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+        </div>
+        <h3>YOUTUBEメンバーシップ</h3>
+        <p>特別なイベント、舞台裏コンテンツ、毎月のコーチングセッションなど豊富な特典。</p>
+        <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ/join" class="service-link" target="_blank">メンバーになる →</a>
+      </div>
+      <div class="service-card" data-lang="ja">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+        </div>
+        <h3>7日間内観チャレンジ</h3>
+        <p>7日間で自分と向き合い、心をクリアにする集中プログラム。</p>
+        <a href="#contact" class="service-link">チャレンジに参加 →</a>
+      </div>
+    </div>
+
+    <!-- English Services -->
+    <div class="services-grid" data-lang="en">
+      <div class="service-card" data-lang="en">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
+        </div>
+        <h3>Coaching & Counseling</h3>
+        <p>One-on-one sessions to address your concerns and help you reconnect with your true self.</p>
+        <a href="#contact" class="service-link">Learn More →</a>
+      </div>
+      <div class="service-card" data-lang="en">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/></svg>
+        </div>
+        <h3>Online Courses</h3>
+        <p>The "Lessons of the Heart" series on Udemy — learn to polish your mind at your own pace.</p>
+        <a href="#courses" class="service-link">View Courses →</a>
+      </div>
+      <div class="service-card" data-lang="en">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+        </div>
+        <h3>Meditation & Breathing</h3>
+        <p>Guided meditations and breathing exercises for beginners to advanced practitioners.</p>
+        <a href="#media" class="service-link">Start Meditating →</a>
+      </div>
+      <div class="service-card" data-lang="en">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+        </div>
+        <h3>Free Study Groups</h3>
+        <p>Monthly YouTube Live sessions for meditation and learning — completely free.</p>
+        <a href="#media" class="service-link">Join Us →</a>
+      </div>
+      <div class="service-card" data-lang="en">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+        </div>
+        <h3>YouTube Membership</h3>
+        <p>Exclusive events, behind-the-scenes content, and monthly coaching sessions.</p>
+        <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ/join" class="service-link" target="_blank">Become a Member →</a>
+      </div>
+      <div class="service-card" data-lang="en">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+        </div>
+        <h3>7-Day Introspection Challenge</h3>
+        <p>An intensive 7-day program to face yourself and clear your mind.</p>
+        <a href="#contact" class="service-link">Join the Challenge →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COURSES ===== -->
+<section class="courses" id="courses">
+  <div class="container">
+    <p class="section-label" data-lang="ja">オンライン講座</p>
+    <p class="section-label" data-lang="en">Online Courses</p>
+
+    <h2 class="section-title" data-lang="ja">自分のペースで学ぶ<em>心の授業</em></h2>
+    <h2 class="section-title" data-lang="en">Learn at Your Own Pace — <em>Lessons of the Heart</em></h2>
+
+    <p class="section-subtitle" data-lang="ja">Udemyで配信中のオンライン講座で、いつでもどこでも心の成長を</p>
+    <p class="section-subtitle" data-lang="en">Grow your mind anytime, anywhere with our Udemy courses</p>
+
+    <div class="courses-grid" data-lang="ja">
+      <div class="course-card" data-lang="ja">
+        <div class="course-image">
+          <div class="about-img-placeholder">心の授業コース</div>
+        </div>
+        <div class="course-content">
+          <p class="section-label">人気講座</p>
+          <h3>世界中の億万長者がたどりつく「心の授業」</h3>
+          <p>心のモヤモヤを解消し、本来の自分を取り戻す秘訣を学ぶ講座です。</p>
+          <a href="#" class="btn"><span>講座を見る</span></a>
+        </div>
+      </div>
+      <div class="course-card" data-lang="ja">
+        <div class="course-image">
+          <div class="about-img-placeholder">恋愛講座コース</div>
+        </div>
+        <div class="course-content">
+          <p class="section-label">新講座</p>
+          <h3>恋愛・結婚・富をマスターする心の授業</h3>
+          <p>パートナーシップと豊かさを引き寄せるための心の磨き方を学びます。</p>
+          <a href="#" class="btn"><span>講座を見る</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="courses-grid" data-lang="en">
+      <div class="course-card" data-lang="en">
+        <div class="course-image">
+          <div class="about-img-placeholder">Heart Course</div>
+        </div>
+        <div class="course-content">
+          <p class="section-label">Popular</p>
+          <h3>Lessons of the Heart — What the World's Billionaires Discover</h3>
+          <p>Learn the secrets to clearing your mind and regaining your true self.</p>
+          <a href="#" class="btn"><span>View Course</span></a>
+        </div>
+      </div>
+      <div class="course-card" data-lang="en">
+        <div class="course-image">
+          <div class="about-img-placeholder">Love Course</div>
+        </div>
+        <div class="course-content">
+          <p class="section-label">New</p>
+          <h3>Mastering Love, Marriage & Wealth — Lessons of the Heart</h3>
+          <p>Learn how to attract partnership and abundance by polishing your mind.</p>
+          <a href="#" class="btn"><span>View Course</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BOOKS ===== -->
+<section class="books" id="books">
+  <div class="container">
+    <div class="books-content">
+      <p class="section-label" data-lang="ja">書籍</p>
+      <p class="section-label" data-lang="en">Books</p>
+
+      <h2 class="section-title" data-lang="ja">心を磨く<em>11のレッスン</em></h2>
+      <h2 class="section-title" data-lang="en"><em>11 Lessons</em> to Polish Your Heart</h2>
+
+      <p data-lang="ja">世界中の億万長者がたどりつく「心の授業」。心のモヤモヤを解消し、ストレスのない生き方を手に入れるための知恵が詰まった一冊です。</p>
+      <p data-lang="en">The wisdom that the world's most successful people eventually discover. A book packed with insights for clearing mental fog and finding a stress-free way of living.</p>
+
+      <a href="#" class="btn" data-lang="ja"><span>Amazonで購入</span></a>
+      <a href="#" class="btn" data-lang="en"><span>Buy on Amazon</span></a>
+    </div>
+    <div class="books-showcase">
+      <div class="book-item">
+        <div class="book-cover">
+          <div class="book-cover-placeholder" data-lang="ja">心を磨く<br>11のレッスン</div>
+          <div class="book-cover-placeholder" data-lang="en">11 Lessons<br>of the Heart</div>
+        </div>
+      </div>
+      <div class="book-item">
+        <div class="book-cover">
+          <div class="book-cover-placeholder" data-lang="ja">心の授業<br>シリーズ</div>
+          <div class="book-cover-placeholder" data-lang="en">Lessons of<br>the Heart Series</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MEDIA / YOUTUBE ===== -->
+<section class="media" id="media">
+  <div class="container">
+    <p class="section-label" data-lang="ja">YouTubeチャンネル</p>
+    <p class="section-label" data-lang="en">YouTube Channel</p>
+
+    <h2 class="section-title" data-lang="ja">最新の<em>瞑想＆動画</em></h2>
+    <h2 class="section-title" data-lang="en">Latest <em>Meditations & Videos</em></h2>
+
+    <p class="section-subtitle" data-lang="ja">心を整える瞑想動画や、豊かな人生のヒントを配信しています</p>
+    <p class="section-subtitle" data-lang="en">Meditation videos and tips for a richer life</p>
+
+    <div class="media-grid" data-lang="ja">
+      <div class="media-item" data-lang="ja">
+        <div class="about-img-placeholder" style="aspect-ratio:16/9;">瞑想動画 1</div>
+        <div class="media-overlay">
+          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="media-item-title">朝のまどろみから覚醒！20分の深呼吸瞑想</div>
+      </div>
+      <div class="media-item" data-lang="ja">
+        <div class="about-img-placeholder" style="aspect-ratio:16/9;">瞑想動画 2</div>
+        <div class="media-overlay">
+          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="media-item-title">ランチタイム瞑想で午後の仕事が驚くほどはかどる！</div>
+      </div>
+      <div class="media-item" data-lang="ja">
+        <div class="about-img-placeholder" style="aspect-ratio:16/9;">瞑想動画 3</div>
+        <div class="media-overlay">
+          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="media-item-title">7つのチャクラを全開にする瞑想</div>
+      </div>
+    </div>
+
+    <div class="media-grid" data-lang="en">
+      <div class="media-item" data-lang="en">
+        <div class="about-img-placeholder" style="aspect-ratio:16/9;">Video 1</div>
+        <div class="media-overlay">
+          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="media-item-title">Wake Up from Drowsiness — 20-Min Deep Breathing Meditation</div>
+      </div>
+      <div class="media-item" data-lang="en">
+        <div class="about-img-placeholder" style="aspect-ratio:16/9;">Video 2</div>
+        <div class="media-overlay">
+          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="media-item-title">Lunchtime Meditation — Boost Your Afternoon Productivity</div>
+      </div>
+      <div class="media-item" data-lang="en">
+        <div class="about-img-placeholder" style="aspect-ratio:16/9;">Video 3</div>
+        <div class="media-overlay">
+          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="media-item-title">Meditation to Fully Open All 7 Chakras</div>
+      </div>
+    </div>
+
+    <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" class="btn" style="margin-top:20px;">
+      <span data-lang="ja">YouTubeチャンネルを見る</span>
+      <span data-lang="en">Visit YouTube Channel</span>
+    </a>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="testimonials" id="testimonials">
+  <div class="container">
+    <p class="section-label" data-lang="ja">受講者の声</p>
+    <p class="section-label" data-lang="en">What People Say</p>
+
+    <h2 class="section-title" data-lang="ja">心が<em>変わった</em>体験</h2>
+    <h2 class="section-title" data-lang="en">Transformative <em>Experiences</em></h2>
+
+    <p class="section-subtitle" data-lang="ja">瞑想とコーチングを通じて人生が変わった方々の声</p>
+    <p class="section-subtitle" data-lang="en">Stories from those whose lives were transformed through meditation and coaching</p>
+
+    <!-- Japanese Testimonials -->
+    <div class="testimonials-grid" data-lang="ja">
+      <div class="testimonial-card" data-lang="ja">
+        <div class="testimonial-quote">"</div>
+        <p>ナミさんの瞑想ガイドのおかげで、毎朝心穏やかにスタートできるようになりました。ストレスが減り、仕事のパフォーマンスも上がりました。</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">YS</div>
+          <div>
+            <div class="testimonial-name">Y.S. さん</div>
+            <div class="testimonial-role">会社員・40代</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card" data-lang="ja">
+        <div class="testimonial-quote">"</div>
+        <p>心の授業を受けてから、自分と向き合うことの大切さに気づきました。人間関係も改善され、毎日が楽しくなりました。</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">MK</div>
+          <div>
+            <div class="testimonial-name">M.K. さん</div>
+            <div class="testimonial-role">主婦・30代</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card" data-lang="ja">
+        <div class="testimonial-quote">"</div>
+        <p>7日間内観チャレンジで人生観が変わりました。自分の内側にこんなに豊かな世界があったなんて驚きです。</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">TN</div>
+          <div>
+            <div class="testimonial-name">T.N. さん</div>
+            <div class="testimonial-role">経営者・50代</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- English Testimonials -->
+    <div class="testimonials-grid" data-lang="en">
+      <div class="testimonial-card" data-lang="en">
+        <div class="testimonial-quote">"</div>
+        <p>Thanks to Nami's meditation guidance, I can now start each morning with a peaceful mind. My stress has decreased and my work performance has improved.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">YS</div>
+          <div>
+            <div class="testimonial-name">Y.S.</div>
+            <div class="testimonial-role">Corporate Employee, 40s</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card" data-lang="en">
+        <div class="testimonial-quote">"</div>
+        <p>After taking the Lessons of the Heart course, I realized the importance of facing myself. My relationships improved and every day became more enjoyable.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">MK</div>
+          <div>
+            <div class="testimonial-name">M.K.</div>
+            <div class="testimonial-role">Homemaker, 30s</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card" data-lang="en">
+        <div class="testimonial-quote">"</div>
+        <p>The 7-Day Introspection Challenge changed my perspective on life. I was amazed to discover such a rich world inside myself.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">TN</div>
+          <div>
+            <div class="testimonial-name">T.N.</div>
+            <div class="testimonial-role">Business Owner, 50s</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FREE RESOURCE ===== -->
+<section class="resources">
+  <div class="container">
+    <div class="resources-content reveal">
+      <p class="section-label" data-lang="ja">無料プレゼント</p>
+      <p class="section-label" data-lang="en">Free Download</p>
+
+      <h2 class="section-title" data-lang="ja">7日間内観<em>チャレンジ</em></h2>
+      <h2 class="section-title" data-lang="en">7-Day Introspection <em>Challenge</em></h2>
+
+      <p data-lang="ja">7日間で心をクリアにし、本来の自分を取り戻すチャレンジに参加しませんか？</p>
+      <p data-lang="en">Would you like to join a 7-day challenge to clear your mind and reconnect with your true self?</p>
+
+      <div class="resource-features">
+        <div class="resource-feature" data-lang="ja">
+          <div class="resource-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          毎日のガイド付き瞑想
+        </div>
+        <div class="resource-feature" data-lang="ja">
+          <div class="resource-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          内省ワークシート
+        </div>
+        <div class="resource-feature" data-lang="ja">
+          <div class="resource-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          コミュニティサポート
+        </div>
+        <div class="resource-feature" data-lang="en">
+          <div class="resource-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          Daily guided meditation
+        </div>
+        <div class="resource-feature" data-lang="en">
+          <div class="resource-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          Introspection worksheets
+        </div>
+        <div class="resource-feature" data-lang="en">
+          <div class="resource-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+          Community support
+        </div>
+      </div>
+
+      <a href="#" class="btn btn-filled" data-lang="ja"><span>無料で参加する</span></a>
+      <a href="#" class="btn btn-filled" data-lang="en"><span>Join for Free</span></a>
+    </div>
+    <div class="resources-image reveal">
+      <div class="resources-image-wrapper">
+        <div class="about-img-placeholder" data-lang="ja">チャレンジ画像</div>
+        <div class="about-img-placeholder" data-lang="en">Challenge Image</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section class="contact" id="contact">
+  <div class="container">
+    <p class="section-label" data-lang="ja">お問い合わせ</p>
+    <p class="section-label" data-lang="en">Get in Touch</p>
+
+    <h2 class="section-title" data-lang="ja">お気軽に<em>ご連絡</em>ください</h2>
+    <h2 class="section-title" data-lang="en">Let's <em>Connect</em></h2>
+
+    <p class="section-subtitle" data-lang="ja">コーチング、講座、コラボレーションなど、お気軽にお問い合わせください</p>
+    <p class="section-subtitle" data-lang="en">For coaching, courses, collaborations, or any questions — reach out anytime</p>
+
+    <form class="contact-form" onsubmit="event.preventDefault();">
+      <div class="form-row">
+        <input type="text" data-lang="ja" placeholder="お名前">
+        <input type="text" data-lang="en" placeholder="Your Name">
+        <input type="email" data-lang="ja" placeholder="メールアドレス">
+        <input type="email" data-lang="en" placeholder="Email Address">
+      </div>
+      <input type="text" data-lang="ja" placeholder="件名">
+      <input type="text" data-lang="en" placeholder="Subject">
+      <textarea data-lang="ja" placeholder="メッセージをご記入ください"></textarea>
+      <textarea data-lang="en" placeholder="Your message..."></textarea>
+      <button type="submit" class="btn btn-filled">
+        <span data-lang="ja">送信する</span>
+        <span data-lang="en">Send Message</span>
+      </button>
+    </form>
+
+    <div class="contact-links">
+      <div class="contact-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+        <p data-lang="ja">メール</p><p data-lang="en">Email</p>
+        <a href="mailto:contact@namibarden.com">contact@namibarden.com</a>
+      </div>
+      <div class="contact-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+        <p>YouTube</p>
+        <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank">Nami Barden Channel</a>
+      </div>
+      <div class="contact-link-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"/></svg>
+        <p data-lang="ja">ブログ</p><p data-lang="en">Blog</p>
+        <a href="https://namibarden.wordpress.com" target="_blank">namibarden.wordpress.com</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NEWSLETTER ===== -->
+<section class="newsletter">
+  <div class="container">
+    <p class="section-label" data-lang="ja">メルマガ</p>
+    <p class="section-label" data-lang="en">Newsletter</p>
+
+    <h2 data-lang="ja">心豊かな日々の<em>ヒント</em>をお届け</h2>
+    <h2 data-lang="en">Get <em>Tips</em> for a Fulfilling Life</h2>
+
+    <p data-lang="ja">月に一度の勉強会のお知らせや、豊かな暮らしのヒントを定期的に配信しています。</p>
+    <p data-lang="en">Receive monthly study group announcements and regular tips for living a richer life.</p>
+
+    <form class="newsletter-form" onsubmit="event.preventDefault();">
+      <input type="email" data-lang="ja" placeholder="メールアドレスを入力">
+      <input type="email" data-lang="en" placeholder="Enter your email">
+      <button type="submit" class="btn">
+        <span data-lang="ja">購読する</span>
+        <span data-lang="en">Subscribe</span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">Nami Barden</div>
+        <p data-lang="ja">意識、マインドフルネス、瞑想。心を磨き、豊かな人生を送るヒントをお伝えします。</p>
+        <p data-lang="en">Consciousness, mindfulness, meditation. Tips to refine your mind and live a richer life.</p>
+        <div class="footer-social">
+          <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+          </a>
+          <a href="https://namibarden.wordpress.com" target="_blank" aria-label="Blog">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/><path d="M11 11h2v6h-2zm0-4h2v2h-2z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4 data-lang="ja">サービス</h4>
+        <h4 data-lang="en">Services</h4>
+        <a href="#services" data-lang="ja">コーチング</a>
+        <a href="#services" data-lang="en">Coaching</a>
+        <a href="#courses" data-lang="ja">オンライン講座</a>
+        <a href="#courses" data-lang="en">Online Courses</a>
+        <a href="#media" data-lang="ja">瞑想・呼吸法</a>
+        <a href="#media" data-lang="en">Meditation</a>
+        <a href="#" data-lang="ja">勉強会</a>
+        <a href="#" data-lang="en">Study Groups</a>
+      </div>
+
+      <div class="footer-col">
+        <h4 data-lang="ja">コンテンツ</h4>
+        <h4 data-lang="en">Content</h4>
+        <a href="#books" data-lang="ja">書籍</a>
+        <a href="#books" data-lang="en">Books</a>
+        <a href="#media">YouTube</a>
+        <a href="#" data-lang="ja">メルマガ</a>
+        <a href="#" data-lang="en">Newsletter</a>
+        <a href="https://namibarden.wordpress.com" target="_blank" data-lang="ja">ブログ</a>
+        <a href="https://namibarden.wordpress.com" target="_blank" data-lang="en">Blog</a>
+      </div>
+
+      <div class="footer-col">
+        <h4 data-lang="ja">その他</h4>
+        <h4 data-lang="en">Other</h4>
+        <a href="#about" data-lang="ja">プロフィール</a>
+        <a href="#about" data-lang="en">About</a>
+        <a href="#contact" data-lang="ja">お問い合わせ</a>
+        <a href="#contact" data-lang="en">Contact</a>
+        <a href="#" data-lang="ja">プライバシーポリシー</a>
+        <a href="#" data-lang="en">Privacy Policy</a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2025 Nami Barden. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Language Toggle
+function toggleLang() {
+  const html = document.documentElement;
+  const currentLang = html.getAttribute('lang');
+  const newLang = currentLang === 'ja' ? 'en' : 'ja';
+  html.setAttribute('lang', newLang);
+  document.title = newLang === 'ja'
+    ? 'Nami Barden — 心を磨き、豊かな人生を'
+    : 'Nami Barden — Refine Your Mind, Enrich Your Life';
+}
+
+// Navbar scroll effect
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Mobile menu
+function toggleMobile() {
+  document.getElementById('mobileMenu').classList.toggle('active');
+}
+
+// Scroll reveal animation
+const revealElements = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+revealElements.forEach(el => observer.observe(el));
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
