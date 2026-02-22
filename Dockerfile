@@ -1,5 +1,6 @@
 FROM alpine:3.23
-RUN apk add --no-cache nginx nginx-mod-http-headers-more \
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.23/community" >> /etc/apk/repositories \
+    && apk add --no-cache nginx nginx-mod-http-headers-more nginx-mod-http-brotli \
     && mkdir -p /usr/share/nginx/html /run/nginx /etc/nginx/http.d \
     && rm -rf /usr/share/nginx/html/*
 COPY public/ /usr/share/nginx/html/
