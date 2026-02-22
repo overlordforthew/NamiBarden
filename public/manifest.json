@@ -1,0 +1,21 @@
+{
+  "name": "Nami Barden",
+  "short_name": "Nami Barden",
+  "description": "心を磨き、豊かな人生を — Consciousness, mindfulness & meditation guide.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#FAF7F2",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
