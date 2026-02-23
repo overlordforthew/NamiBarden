@@ -223,19 +223,36 @@ nav.scrolled { box-shadow: 0 2px 40px rgba(44, 36, 25, 0.06); }
 .nav-links a:hover::after { width: 100%; }
 
 .lang-toggle {
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  padding: 6px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
   border: 1px solid var(--warm-beige);
   border-radius: 20px;
   cursor: pointer;
-  color: var(--text-medium);
   background: transparent;
-  font-family: var(--font-body);
   transition: var(--transition);
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
-.lang-toggle:hover { background: var(--text-dark); color: var(--cream); border-color: var(--text-dark); }
+.lang-toggle .flag-divider {
+  color: var(--warm-beige);
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.lang-toggle .flag-ja,
+.lang-toggle .flag-en {
+  transition: opacity 0.3s ease;
+}
+
+html[lang="ja"] .lang-toggle .flag-ja { opacity: 1; }
+html[lang="ja"] .lang-toggle .flag-en { opacity: 0.35; }
+html[lang="en"] .lang-toggle .flag-en { opacity: 1; }
+html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
+
+.lang-toggle:hover { background: var(--cream-dark); border-color: var(--gold); }
 
 .mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
 .mobile-toggle span { display: block; width: 24px; height: 1.5px; background: var(--text-dark); margin: 6px 0; transition: var(--transition); }
@@ -1177,7 +1194,9 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       <a href="#books"><span data-lang="ja">書籍</span><span data-lang="en">Books</span></a>
       <a href="#media"><span data-lang="ja">メディア</span><span data-lang="en">Media</span></a>
       <a href="#contact"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
-      <button class="lang-toggle" onclick="toggleLang()">EN / 日本語</button>
+      <button class="lang-toggle" onclick="toggleLang()" aria-label="Toggle language / 言語切替">
+        <span class="flag-ja">🇯🇵</span><span class="flag-divider">|</span><span class="flag-en">🇬🇧</span>
+      </button>
     </div>
     <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -1194,7 +1213,9 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
   <a href="#books" onclick="toggleMobile()"><span data-lang="ja">書籍</span><span data-lang="en">Books</span></a>
   <a href="#media" onclick="toggleMobile()"><span data-lang="ja">メディア</span><span data-lang="en">Media</span></a>
   <a href="#contact" onclick="toggleMobile()"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
-  <button class="lang-toggle" onclick="toggleLang()" style="margin-top:20px;">EN / 日本語</button>
+  <button class="lang-toggle" onclick="toggleLang()" style="margin-top:20px;" aria-label="Toggle language / 言語切替">
+    <span class="flag-ja">🇯🇵</span><span class="flag-divider">|</span><span class="flag-en">🇬🇧</span>
+  </button>
 </div>
 
 <!-- ===== HERO ===== -->
@@ -1858,10 +1879,20 @@ function toggleLang() {
   const currentLang = html.getAttribute('lang');
   const newLang = currentLang === 'ja' ? 'en' : 'ja';
   html.setAttribute('lang', newLang);
+  localStorage.setItem('namibarden-lang', newLang);
   document.title = newLang === 'ja'
     ? 'Nami Barden — 心を磨き、豊かな人生を'
     : 'Nami Barden — Refine Your Mind, Enrich Your Life';
 }
+
+// Restore saved language preference
+(function() {
+  const saved = localStorage.getItem('namibarden-lang');
+  if (saved && saved !== 'ja') {
+    document.documentElement.setAttribute('lang', saved);
+    document.title = 'Nami Barden — Refine Your Mind, Enrich Your Life';
+  }
+})();
 
 // Navbar scroll effect
 const navbar = document.getElementById('navbar');
