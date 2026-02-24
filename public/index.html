@@ -684,6 +684,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 }
 
 .media-item {
+  display: block;
   border-radius: 16px;
   overflow: hidden;
   position: relative;
@@ -691,6 +692,8 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
   background: var(--cream-dark);
   cursor: pointer;
   transition: var(--transition);
+  text-decoration: none;
+  color: inherit;
 }
 
 .media-item:hover { transform: scale(1.02); }
@@ -1443,7 +1446,7 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <div class="courses-grid" data-lang="ja">
       <div class="course-card" data-lang="ja">
         <div class="course-image">
-          <div class="about-img-placeholder">心の授業コース</div>
+          <img src="/images/nami-journal.jpg" alt="心の授業コース" loading="lazy">
         </div>
         <div class="course-content">
           <p class="section-label">人気講座</p>
@@ -1454,7 +1457,7 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       </div>
       <div class="course-card" data-lang="ja">
         <div class="course-image">
-          <div class="about-img-placeholder">恋愛講座コース</div>
+          <img src="/images/nami-laptop.jpg" alt="恋愛・結婚・富をマスターする心の授業" loading="lazy">
         </div>
         <div class="course-content">
           <p class="section-label">新講座</p>
@@ -1468,7 +1471,7 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <div class="courses-grid" data-lang="en">
       <div class="course-card" data-lang="en">
         <div class="course-image">
-          <div class="about-img-placeholder">Heart Course</div>
+          <img src="/images/nami-journal.jpg" alt="Lessons of the Heart course" loading="lazy">
         </div>
         <div class="course-content">
           <p class="section-label">Popular</p>
@@ -1479,7 +1482,7 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       </div>
       <div class="course-card" data-lang="en">
         <div class="course-image">
-          <div class="about-img-placeholder">Love Course</div>
+          <img src="/images/nami-laptop.jpg" alt="Love, Marriage & Wealth course" loading="lazy">
         </div>
         <div class="course-content">
           <p class="section-label">New</p>
@@ -1510,15 +1513,21 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     </div>
     <div class="books-showcase">
       <div class="book-item">
-        <div class="book-cover">
-          <div class="book-cover-placeholder" data-lang="ja">心を磨く<br>11のレッスン</div>
-          <div class="book-cover-placeholder" data-lang="en">11 Lessons<br>of the Heart</div>
+        <div class="book-cover" style="position:relative;">
+          <img src="/images/nami-journal.jpg" alt="心を磨く11のレッスン" loading="lazy">
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(44,36,25,0.85));padding:20px 16px;color:#FAF7F2;text-align:center;line-height:1.5;font-size:0.8rem;font-weight:600;letter-spacing:0.05em;">
+            <span data-lang="ja">心を磨く<br>11のレッスン</span>
+            <span data-lang="en">11 Lessons<br>of the Heart</span>
+          </div>
         </div>
       </div>
       <div class="book-item">
-        <div class="book-cover">
-          <div class="book-cover-placeholder" data-lang="ja">心の授業<br>シリーズ</div>
-          <div class="book-cover-placeholder" data-lang="en">Lessons of<br>the Heart Series</div>
+        <div class="book-cover" style="position:relative;">
+          <img src="/images/nami-about-garden.jpg" alt="心の授業シリーズ" loading="lazy">
+          <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(44,36,25,0.85));padding:20px 16px;color:#FAF7F2;text-align:center;line-height:1.5;font-size:0.8rem;font-weight:600;letter-spacing:0.05em;">
+            <span data-lang="ja">心の授業<br>シリーズ</span>
+            <span data-lang="en">Lessons of<br>the Heart Series</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1538,51 +1547,51 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <p class="section-subtitle" data-lang="en">Meditation videos and tips for a richer life</p>
 
     <div class="media-grid" data-lang="ja">
-      <div class="media-item" data-lang="ja">
-        <div class="about-img-placeholder" style="aspect-ratio:16/9;">瞑想動画 1</div>
+      <a class="media-item" data-lang="ja" href="https://www.youtube.com/watch?v=NLcJeT-Pqfc" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/NLcJeT-Pqfc/hqdefault.jpg" alt="妄想瞑想" loading="lazy">
         <div class="media-overlay">
           <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <div class="media-item-title">朝のまどろみから覚醒！20分の深呼吸瞑想</div>
-      </div>
-      <div class="media-item" data-lang="ja">
-        <div class="about-img-placeholder" style="aspect-ratio:16/9;">瞑想動画 2</div>
+        <div class="media-item-title">【奇跡は寝て待て】40代・50代から人生が劇的に好転する「妄想瞑想」</div>
+      </a>
+      <a class="media-item" data-lang="ja" href="https://www.youtube.com/watch?v=Tm7qp3KrfsY" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/Tm7qp3KrfsY/hqdefault.jpg" alt="睡眠瞑想" loading="lazy">
         <div class="media-overlay">
           <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <div class="media-item-title">ランチタイム瞑想で午後の仕事が驚くほどはかどる！</div>
-      </div>
-      <div class="media-item" data-lang="ja">
-        <div class="about-img-placeholder" style="aspect-ratio:16/9;">瞑想動画 3</div>
+        <div class="media-item-title">【呼吸法なしで眠れる】鼻詰まり・寝苦しい夜にただ聴くだけの睡眠瞑想</div>
+      </a>
+      <a class="media-item" data-lang="ja" href="https://www.youtube.com/watch?v=rl0FcLX2ExA" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/rl0FcLX2ExA/hqdefault.jpg" alt="ヨガニードラ瞑想" loading="lazy">
         <div class="media-overlay">
           <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <div class="media-item-title">7つのチャクラを全開にする瞑想</div>
-      </div>
+        <div class="media-item-title">【寝落ち必須】考えすぎて眠れない夜専用。思考のループを断ち切る「脳洗浄」ヨガニードラ</div>
+      </a>
     </div>
 
     <div class="media-grid" data-lang="en">
-      <div class="media-item" data-lang="en">
-        <div class="about-img-placeholder" style="aspect-ratio:16/9;">Video 1</div>
+      <a class="media-item" data-lang="en" href="https://www.youtube.com/watch?v=NLcJeT-Pqfc" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/NLcJeT-Pqfc/hqdefault.jpg" alt="Dream Meditation" loading="lazy">
         <div class="media-overlay">
           <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <div class="media-item-title">Wake Up from Drowsiness — 20-Min Deep Breathing Meditation</div>
-      </div>
-      <div class="media-item" data-lang="en">
-        <div class="about-img-placeholder" style="aspect-ratio:16/9;">Video 2</div>
+        <div class="media-item-title">Miracles Come to Those Who Wait — Dream Meditation for Life Transformation</div>
+      </a>
+      <a class="media-item" data-lang="en" href="https://www.youtube.com/watch?v=Tm7qp3KrfsY" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/Tm7qp3KrfsY/hqdefault.jpg" alt="Sleep Meditation" loading="lazy">
         <div class="media-overlay">
           <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <div class="media-item-title">Lunchtime Meditation — Boost Your Afternoon Productivity</div>
-      </div>
-      <div class="media-item" data-lang="en">
-        <div class="about-img-placeholder" style="aspect-ratio:16/9;">Video 3</div>
+        <div class="media-item-title">Sleep Meditation — Just Listen for a Restful Night (No Breathing Techniques)</div>
+      </a>
+      <a class="media-item" data-lang="en" href="https://www.youtube.com/watch?v=rl0FcLX2ExA" target="_blank" rel="noopener">
+        <img src="https://img.youtube.com/vi/rl0FcLX2ExA/hqdefault.jpg" alt="Yoga Nidra" loading="lazy">
         <div class="media-overlay">
           <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <div class="media-item-title">Meditation to Fully Open All 7 Chakras</div>
-      </div>
+        <div class="media-item-title">For Overthinking Nights — Yoga Nidra to Break the Thought Loop</div>
+      </a>
     </div>
 
     <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" class="btn" style="margin-top:20px;">
