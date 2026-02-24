@@ -453,9 +453,26 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 
 .about-content .btn { margin-top: 24px; }
 
+.credential-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.credential-tag {
+  background: var(--cream-dark);
+  border: 1px solid var(--cream-darker);
+  color: var(--text-medium);
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+
 .about-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   margin-top: 40px;
   padding-top: 40px;
@@ -1128,7 +1145,7 @@ footer {
   .course-card { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
 
-  .about-stats { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .about-stats { grid-template-columns: repeat(2, 1fr); gap: 16px; }
   .stat-item h3 { font-size: 1.5rem; }
 
   .books-showcase { flex-direction: row; }
@@ -1273,40 +1290,60 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
         <img src="/images/nami-about-1.jpg" alt="Nami Barden — 日本庭園" loading="lazy">
       </div>
       <div class="about-img">
-        <img src="/images/nami-window.jpg" alt="Nami Barden — くつろぎのひとときs" loading="lazy">
+        <img src="/images/nami-window.jpg" alt="Nami Barden — くつろぎのひととき" loading="lazy">
       </div>
     </div>
     <div class="about-content reveal">
-      <p class="section-label" data-lang="ja">プロフィール</p>
-      <p class="section-label" data-lang="en">About Nami</p>
+      <p class="section-label" data-lang="ja">ナミのストーリー</p>
+      <p class="section-label" data-lang="en">Nami's Story</p>
 
-      <h2 class="section-title" data-lang="ja"><em>Meet</em> Nami Barden</h2>
-      <h2 class="section-title" data-lang="en"><em>Meet</em> Nami Barden</h2>
+      <h2 class="section-title" data-lang="ja">心を磨き、世界を舞台に<em>生き続ける</em></h2>
+      <h2 class="section-title" data-lang="en">Polishing the Mind, <em>Living</em> the World</h2>
 
-      <p data-lang="ja">コンシャスネス・コーチ、瞑想講師、著者として活動しています。意識、マインドフルネス、瞑想を通じて、心を磨き、豊かな人生を送るヒントをお伝えしています。</p>
-      <p data-lang="en">As a consciousness coach, meditation teacher, and author, I share insights on refining your mind and living a fulfilling life through awareness, mindfulness, and meditation.</p>
+      <p data-lang="ja">長崎県佐世保市生まれ。17歳でモナコのプリンセスグレースバレエアカデミーへ留学、その後パリのバレエ学校へ。20歳で人生の転換を決意し渡米。コロラド州フォートルイス大学ビジネス専攻を主席で卒業後、東京の外資系企業、ハワイのリテール企業でキャリアを積む。2018年にセミナー講師・個人カウンセラーとして独立。</p>
+      <p data-lang="en">Born in Nagasaki, Japan. At 17, I trained at the Princess Grace Ballet Academy in Monaco, then studied in Paris — before pivoting at 20 to pursue Business at Fort Lewis College, Colorado, graduating top of my class. After careers in Tokyo and Hawaii, I went independent in 2018.</p>
 
-      <p data-lang="ja">オンライン講座、YouTube勉強会、個人コーチング、書籍など、さまざまな形で皆さまの心の成長をサポートしています。</p>
-      <p data-lang="en">Through online courses, YouTube study sessions, personal coaching, and published books, I support your mental and spiritual growth in many ways.</p>
+      <p data-lang="ja">以来、企業経営者・医師・弁護士・投資家・スポーツ選手など、世界中のプロフェッショナルに「意識的（コンシャス）に生きる方法」を伝えてきました。著書「世界中の億万長者がたどりつく心の授業」はベストセラーに。ハワイ・東京・福岡・長野でのセミナー、エグゼクティブリトリート3回の開催、1,000人以上の個別カウンセリングを通じ、多くの方の心の状態を根本から変えてきました。</p>
+      <p data-lang="en">Since then, I've guided 5,000+ professionals worldwide — executives, doctors, lawyers, investors, athletes — through seminars, executive retreats, and 1,000+ one-on-one counseling sessions. My first book became a bestseller. Seminars held in Hawaii, Tokyo, Fukuoka, and Nagano.</p>
 
-      <a href="#contact" class="btn" data-lang="ja"><span>詳しく見る</span></a>
-      <a href="#contact" class="btn" data-lang="en"><span>Learn More</span></a>
+      <p data-lang="ja">そして今も、世界を舞台に生き続けています。2025年にはギリシャから地中海を渡り、大西洋横断を成功させました。家族と共に世界を巡りながら、「心の授業」の発信を続けています。</p>
+      <p data-lang="en">And still living it. In 2025, I sailed from Greece across the Mediterranean and the Atlantic. Still out there — still teaching, still learning.</p>
+
+      <div class="credential-tags" data-lang="ja">
+        <span class="credential-tag">マインドフルネスビジネスコーチ</span>
+        <span class="credential-tag">コンシャスネス・セミナー講師</span>
+        <span class="credential-tag">コンシャスネス カウンセラー</span>
+        <span class="credential-tag">ヨガアライアンス 200時間</span>
+        <span class="credential-tag">ベストセラー著者</span>
+      </div>
+      <div class="credential-tags" data-lang="en">
+        <span class="credential-tag">Mindfulness Business Coach</span>
+        <span class="credential-tag">Consciousness Seminar Instructor</span>
+        <span class="credential-tag">Consciousness Counselor</span>
+        <span class="credential-tag">Yoga Alliance 200hr</span>
+        <span class="credential-tag">Bestselling Author</span>
+      </div>
 
       <div class="about-stats">
         <div class="stat-item">
-          <h3>10+</h3>
-          <p data-lang="ja">年の経験</p>
-          <p data-lang="en">Years Experience</p>
+          <h3>1,000+</h3>
+          <p data-lang="ja">個別セッション</p>
+          <p data-lang="en">1:1 Sessions</p>
         </div>
         <div class="stat-item">
           <h3>5,000+</h3>
-          <p data-lang="ja">受講生</p>
-          <p data-lang="en">Students</p>
+          <p data-lang="ja">クライアント</p>
+          <p data-lang="en">Clients</p>
         </div>
         <div class="stat-item">
-          <h3>153+</h3>
-          <p data-lang="ja">メルマガ購読者</p>
-          <p data-lang="en">Subscribers</p>
+          <h3>2冊</h3>
+          <p data-lang="ja">ベストセラー出版</p>
+          <p data-lang="en">Bestsellers</p>
+        </div>
+        <div class="stat-item">
+          <h3>3回</h3>
+          <p data-lang="ja">エグゼクティブリトリート</p>
+          <p data-lang="en">Executive Retreats</p>
         </div>
       </div>
     </div>
