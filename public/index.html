@@ -1546,53 +1546,8 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <p class="section-subtitle" data-lang="ja">心を整える瞑想動画や、豊かな人生のヒントを配信しています</p>
     <p class="section-subtitle" data-lang="en">Meditation videos and tips for a richer life</p>
 
-    <div class="media-grid" data-lang="ja">
-      <a class="media-item" data-lang="ja" href="https://www.youtube.com/watch?v=NLcJeT-Pqfc" target="_blank" rel="noopener">
-        <img src="https://img.youtube.com/vi/NLcJeT-Pqfc/hqdefault.jpg" alt="妄想瞑想" loading="lazy">
-        <div class="media-overlay">
-          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="media-item-title">【奇跡は寝て待て】40代・50代から人生が劇的に好転する「妄想瞑想」</div>
-      </a>
-      <a class="media-item" data-lang="ja" href="https://www.youtube.com/watch?v=Tm7qp3KrfsY" target="_blank" rel="noopener">
-        <img src="https://img.youtube.com/vi/Tm7qp3KrfsY/hqdefault.jpg" alt="睡眠瞑想" loading="lazy">
-        <div class="media-overlay">
-          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="media-item-title">【呼吸法なしで眠れる】鼻詰まり・寝苦しい夜にただ聴くだけの睡眠瞑想</div>
-      </a>
-      <a class="media-item" data-lang="ja" href="https://www.youtube.com/watch?v=rl0FcLX2ExA" target="_blank" rel="noopener">
-        <img src="https://img.youtube.com/vi/rl0FcLX2ExA/hqdefault.jpg" alt="ヨガニードラ瞑想" loading="lazy">
-        <div class="media-overlay">
-          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="media-item-title">【寝落ち必須】考えすぎて眠れない夜専用。思考のループを断ち切る「脳洗浄」ヨガニードラ</div>
-      </a>
-    </div>
-
-    <div class="media-grid" data-lang="en">
-      <a class="media-item" data-lang="en" href="https://www.youtube.com/watch?v=NLcJeT-Pqfc" target="_blank" rel="noopener">
-        <img src="https://img.youtube.com/vi/NLcJeT-Pqfc/hqdefault.jpg" alt="Dream Meditation" loading="lazy">
-        <div class="media-overlay">
-          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="media-item-title">Miracles Come to Those Who Wait — Dream Meditation for Life Transformation</div>
-      </a>
-      <a class="media-item" data-lang="en" href="https://www.youtube.com/watch?v=Tm7qp3KrfsY" target="_blank" rel="noopener">
-        <img src="https://img.youtube.com/vi/Tm7qp3KrfsY/hqdefault.jpg" alt="Sleep Meditation" loading="lazy">
-        <div class="media-overlay">
-          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="media-item-title">Sleep Meditation — Just Listen for a Restful Night (No Breathing Techniques)</div>
-      </a>
-      <a class="media-item" data-lang="en" href="https://www.youtube.com/watch?v=rl0FcLX2ExA" target="_blank" rel="noopener">
-        <img src="https://img.youtube.com/vi/rl0FcLX2ExA/hqdefault.jpg" alt="Yoga Nidra" loading="lazy">
-        <div class="media-overlay">
-          <div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="media-item-title">For Overthinking Nights — Yoga Nidra to Break the Thought Loop</div>
-      </a>
-    </div>
+    <div class="media-grid" id="yt-grid-ja" data-lang="ja"></div>
+    <div class="media-grid" id="yt-grid-en" data-lang="en"></div>
 
     <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" class="btn" style="margin-top:20px;">
       <span data-lang="ja">YouTubeチャンネルを見る</span>
@@ -1928,6 +1883,47 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     }
   });
 });
+
+// YouTube RSS — fetch latest 3 videos
+(function() {
+  var fallback = [
+    { id: 'NLcJeT-Pqfc', title: '【奇跡は寝て待て】40代・50代から人生が劇的に好転する「妄想瞑想」', titleEn: 'Miracles Come to Those Who Wait — Dream Meditation for Life Transformation' },
+    { id: 'Tm7qp3KrfsY', title: '【呼吸法なしで眠れる】鼻詰まり・寝苦しい夜にただ聴くだけの睡眠瞑想', titleEn: 'Sleep Meditation — Just Listen for a Restful Night (No Breathing Techniques)' },
+    { id: 'rl0FcLX2ExA', title: '【寝落ち必須】考えすぎて眠れない夜専用。思考のループを断ち切る「脳洗浄」ヨガニードラ', titleEn: 'For Overthinking Nights — Yoga Nidra to Break the Thought Loop' }
+  ];
+
+  function renderVideos(videos) {
+    var playBtn = '<div class="media-overlay"><div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div></div>';
+    ['ja', 'en'].forEach(function(lang) {
+      var grid = document.getElementById('yt-grid-' + lang);
+      if (!grid) return;
+      grid.innerHTML = videos.map(function(v) {
+        var title = lang === 'en' ? (v.titleEn || v.title) : v.title;
+        return '<a class="media-item" data-lang="' + lang + '" href="https://www.youtube.com/watch?v=' + v.id + '" target="_blank" rel="noopener">' +
+          '<img src="https://img.youtube.com/vi/' + v.id + '/hqdefault.jpg" alt="' + title.replace(/"/g, '&quot;') + '" loading="lazy">' +
+          playBtn +
+          '<div class="media-item-title">' + title + '</div></a>';
+      }).join('');
+    });
+  }
+
+  fetch('/api/youtube-feed')
+    .then(function(r) { return r.text(); })
+    .then(function(xml) {
+      var doc = new DOMParser().parseFromString(xml, 'text/xml');
+      var entries = doc.querySelectorAll('entry');
+      var videos = [];
+      for (var i = 0; i < Math.min(3, entries.length); i++) {
+        var e = entries[i];
+        var videoId = e.querySelector('videoId') ? e.querySelector('videoId').textContent : '';
+        var title = e.querySelector('title') ? e.querySelector('title').textContent : '';
+        if (videoId) videos.push({ id: videoId, title: title, titleEn: title });
+      }
+      if (videos.length > 0) renderVideos(videos);
+      else renderVideos(fallback);
+    })
+    .catch(function() { renderVideos(fallback); });
+})();
 </script>
 
 </body>
