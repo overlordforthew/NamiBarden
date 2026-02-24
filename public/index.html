@@ -312,6 +312,15 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 .hero-text .hero-h1 em {
   font-style: italic;
   color: var(--gold-dark);
+  display: block;
+}
+
+.hero-copy-subtitle {
+  font-size: 1.05rem;
+  color: var(--gold-dark);
+  font-style: italic;
+  margin-bottom: 20px !important;
+  letter-spacing: 0.04em;
 }
 
 .hero-text p {
@@ -487,6 +496,52 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 }
 
 .stat-item p { font-size: 0.85rem; color: var(--text-light); }
+
+.about-content strong { color: var(--text-dark); font-weight: 600; }
+
+/* ========== ABOUT TIMELINE ========== */
+.about-timeline {
+  background: var(--cream-dark);
+  padding: 60px 0;
+  margin-top: 80px;
+  border-top: 1px solid rgba(196,168,130,0.2);
+}
+
+.timeline-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+
+.timeline-item {
+  padding: 24px;
+  background: var(--cream);
+  border-radius: 16px;
+  border-top: 3px solid var(--gold);
+}
+
+.timeline-year {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  color: var(--gold-dark);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.timeline-item h4 {
+  font-size: 0.93rem;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.timeline-item p {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  line-height: 1.65;
+}
 
 /* ========== SERVICES ========== */
 .services {
@@ -1242,18 +1297,21 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
 <section class="hero" id="hero">
   <div class="container">
     <div class="hero-text">
-      <p class="section-label" data-lang="ja">コンシャスネス・コーチ＆瞑想講師</p>
-      <p class="section-label" data-lang="en">Consciousness Coach & Meditation Teacher</p>
+      <p class="section-label" data-lang="ja">マインドフルネスビジネスコーチ｜コンシャスネス・カウンセラー</p>
+      <p class="section-label" data-lang="en">Mindfulness Business Coach & Consciousness Counselor</p>
 
-      <h1 data-lang="ja">心を磨き、<br><em>豊かな人生</em>を<br>送るお手伝い</h1>
-      <p class="hero-h1" role="heading" aria-level="1" data-lang="en">Helping you find<br><em>inner peace</em> and<br>live a richer life</p>
+      <h1 data-lang="ja">結果を出してきた。でも、<em>なぜか満たされない。</em></h1>
+      <p class="hero-h1" role="heading" aria-level="1" data-lang="en">You've achieved so much.<br>So why does something still<br><em>feel missing?</em></p>
 
-      <p data-lang="ja">意識、マインドフルネス、瞑想を通じて、あなたの心を磨き、本来の輝きを取り戻すサポートをします。一緒に、心豊かな毎日を始めましょう。</p>
-      <p data-lang="en">Through consciousness, mindfulness, and meditation, I help you polish your mind and reclaim your inner brilliance. Let's begin your journey to a fulfilling life together.</p>
+      <p class="hero-copy-subtitle" data-lang="ja">〜本当の自分を取り戻すコーチング〜</p>
+      <p class="hero-copy-subtitle" data-lang="en">— Coaching to reclaim your true self —</p>
+
+      <p data-lang="ja">10年・5,000人以上の経営者・ビジネスオーナーに寄り添ってきたコーチ、ナミ・バーデンが、あなたの心の奥にある本当の答えを引き出します。</p>
+      <p data-lang="en">Nami Barden — coach to 5,000+ executives and business owners over 10+ years — will help you uncover the real answers that lie within.</p>
 
       <div class="hero-buttons">
-        <a href="#services" class="btn btn-filled" data-lang="ja"><span>サービスを見る</span></a>
-        <a href="#services" class="btn btn-filled" data-lang="en"><span>Explore Services</span></a>
+        <a href="#services" class="btn btn-filled" data-lang="ja"><span>コーチングを見る</span></a>
+        <a href="#services" class="btn btn-filled" data-lang="en"><span>Explore Coaching</span></a>
         <a href="#contact" class="btn" data-lang="ja"><span>無料相談</span></a>
         <a href="#contact" class="btn" data-lang="en"><span>Free Consultation</span></a>
       </div>
@@ -1294,11 +1352,11 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       </div>
     </div>
     <div class="about-content reveal">
-      <p class="section-label" data-lang="ja">ナミのストーリー</p>
-      <p class="section-label" data-lang="en">Nami's Story</p>
+      <p class="section-label" data-lang="ja">ストーリーと実績</p>
+      <p class="section-label" data-lang="en">Story & Credentials</p>
 
-      <h2 class="section-title" data-lang="ja">心を磨き、世界を舞台に<em>生き続ける</em></h2>
-      <h2 class="section-title" data-lang="en">Polishing the Mind, <em>Living</em> the World</h2>
+      <h2 class="section-title" data-lang="ja">世界を旅しながら、<em>1,000人以上</em>の心と向き合ってきた。</h2>
+      <h2 class="section-title" data-lang="en">A Life in Motion.<br><em>1,000+ Lives</em> Transformed.</h2>
 
       <p data-lang="ja">長崎県佐世保市生まれ。17歳でモナコのプリンセスグレースバレエアカデミーへ留学、その後パリのバレエ学校へ。20歳で人生の転換を決意し渡米。コロラド州フォートルイス大学ビジネス専攻を主席で卒業後、東京の外資系企業、ハワイのリテール企業でキャリアを積む。2018年にセミナー講師・個人カウンセラーとして独立。</p>
       <p data-lang="en">Born in Nagasaki, Japan. At 17, I trained at the Princess Grace Ballet Academy in Monaco, then studied in Paris — before pivoting at 20 to pursue Business at Fort Lewis College, Colorado, graduating top of my class. After careers in Tokyo and Hawaii, I went independent in 2018.</p>
