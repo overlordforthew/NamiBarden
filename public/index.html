@@ -256,6 +256,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 
 .mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
 .mobile-toggle span { display: block; width: 24px; height: 1.5px; background: var(--text-dark); margin: 6px 0; transition: var(--transition); }
+.lang-toggle-mobile { display: none; }
 
 /* ========== HERO ========== */
 .hero {
@@ -1202,6 +1203,7 @@ footer {
   .nav-links { display: none; }
   .mobile-toggle { display: block; }
   .mobile-menu { display: flex; }
+  .lang-toggle-mobile { display: flex; }
 
   .hero { min-height: auto; padding-top: 120px; padding-bottom: 60px; }
   .hero-image-wrapper { max-height: 350px; border-radius: 100px 100px 30px 30px; }
@@ -1286,6 +1288,9 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
         <span class="flag-ja">🇯🇵</span><span class="flag-divider">|</span><span class="flag-en">🇺🇸</span>
       </button>
     </div>
+    <button class="lang-toggle lang-toggle-mobile" onclick="toggleLang()" aria-label="Toggle language / 言語切替">
+      <span class="flag-ja">🇯🇵</span><span class="flag-divider">|</span><span class="flag-en">🇺🇸</span>
+    </button>
     <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
