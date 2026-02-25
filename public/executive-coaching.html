@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>エグゼクティブ・コーチング — Nami Barden</title>
+<meta name="description" content="成功した経営者・ビジネスオーナーのための、在り方から変わるコーチング。ナミ・バーデンが本質的な変容をサポートします。">
+<link rel="canonical" href="https://namibarden.com/executive-coaching">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/x-icon" sizes="48x48 32x32 16x16" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#FAF7F2">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://namibarden.com/executive-coaching">
+<meta property="og:title" content="エグゼクティブ・コーチング — Nami Barden">
+<meta property="og:description" content="成功した経営者・ビジネスオーナーのための、在り方から変わるコーチング。">
+<meta property="og:image" content="https://namibarden.com/og-image.png">
+<meta property="og:site_name" content="Nami Barden">
+<meta property="og:locale" content="ja_JP">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap"></noscript>
+
+<style>
+/* ========== CSS VARIABLES ========== */
+:root {
+  --cream: #FAF7F2;
+  --cream-dark: #F0EAE0;
+  --cream-darker: #E8DFD3;
+  --warm-beige: #D4C5B2;
+  --gold: #C4A882;
+  --gold-dark: #A8895E;
+  --text-dark: #2C2419;
+  --text-medium: #5C4F3D;
+  --text-light: #8B7E6E;
+  --text-muted: #A99E8F;
+  --white: #FFFFFF;
+  --sage: #B8C4A8;
+  --sage-light: #D4DDCA;
+  --brown-deep: #2A1C10;
+
+  --font-display: 'Playfair Display', 'Noto Serif JP', serif;
+  --font-body: 'Cormorant Garamond', 'Noto Sans JP', sans-serif;
+  --font-body-jp: 'Noto Sans JP', sans-serif;
+
+  --max-width: 1200px;
+  --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--font-body-jp);
+  color: var(--text-dark);
+  background: var(--cream);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+ul { list-style: none; }
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 40px; }
+
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 500; line-height: 1.3; }
+h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); }
+h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: 0.02em; }
+h3 { font-size: clamp(1.1rem, 2vw, 1.4rem); }
+
+.section-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.section-title { margin-bottom: 20px; color: var(--text-dark); }
+.section-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-light);
+  max-width: 600px;
+  line-height: 1.8;
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  display: inline-block;
+  padding: 14px 36px;
+  font-family: var(--font-body-jp);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  border: 1.5px solid var(--text-dark);
+  background: transparent;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: var(--text-dark);
+  transition: var(--transition);
+  z-index: 0;
+}
+.btn:hover::before { left: 0; }
+.btn:hover { color: var(--cream); }
+.btn span { position: relative; z-index: 1; }
+
+.btn-filled {
+  background: var(--text-dark);
+  color: var(--cream);
+}
+.btn-filled::before { background: var(--gold-dark); }
+.btn-filled:hover { color: var(--white); border-color: var(--gold-dark); }
+
+.btn-gold {
+  background: var(--gold-dark);
+  color: var(--white);
+  border-color: var(--gold-dark);
+}
+.btn-gold::before { background: var(--brown-deep); }
+.btn-gold:hover { color: var(--white); border-color: var(--brown-deep); }
+
+/* ========== NAVIGATION ========== */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(196, 168, 130, 0.15);
+  transition: var(--transition);
+}
+nav.scrolled { box-shadow: 0 2px 40px rgba(44, 36, 25, 0.06); }
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-dark);
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.nav-links a {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-medium);
+  font-weight: 500;
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0;
+  width: 0; height: 1px;
+  background: var(--gold);
+  transition: var(--transition);
+}
+.nav-links a:hover { color: var(--text-dark); }
+.nav-links a:hover::after { width: 100%; }
+
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid var(--warm-beige);
+  border-radius: 20px;
+  cursor: pointer;
+  background: transparent;
+  transition: var(--transition);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.lang-toggle .flag-divider { color: var(--warm-beige); font-size: 0.7rem; line-height: 1; }
+.lang-toggle:hover { background: var(--cream-dark); border-color: var(--gold); }
+
+.mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+.mobile-toggle span { display: block; width: 24px; height: 1.5px; background: var(--text-dark); margin: 6px 0; transition: var(--transition); }
+.nav-right-mobile { display: none; align-items: center; gap: 2px; }
+
+/* Mobile Menu */
+.mobile-menu {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--cream);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  transform: translateX(100%);
+  transition: transform 0.4s ease;
+}
+.mobile-menu.active { transform: translateX(0); }
+.mobile-menu a {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--text-dark);
+  letter-spacing: 0.05em;
+}
+.mobile-close {
+  position: absolute;
+  top: 24px; right: 24px;
+  background: none; border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-medium);
+}
+
+/* ========== PAGE HERO ========== */
+.page-hero {
+  padding-top: 80px;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 50%, var(--cream) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.page-hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,168,130,0.08) 0%, transparent 70%);
+}
+.page-hero .container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+.page-hero-text h1 { margin-bottom: 20px; }
+.page-hero-text h1 em {
+  font-style: italic;
+  color: var(--gold-dark);
+}
+.page-hero-text p { color: var(--text-medium); line-height: 1.9; margin-bottom: 16px; }
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+.hero-badge {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 1px solid var(--gold);
+  color: var(--gold-dark);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  border-radius: 20px;
+}
+.page-hero-image {
+  position: relative;
+}
+.page-hero-image img {
+  width: 100%;
+  height: 480px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+.hero-img-decoration {
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 80%;
+  height: 80%;
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  z-index: -1;
+}
+
+/* ========== SECTIONS ========== */
+section { padding: 100px 0; }
+section:nth-child(even) { background: var(--cream-dark); }
+
+.section-header {
+  margin-bottom: 60px;
+}
+.section-header.centered {
+  text-align: center;
+}
+.section-header.centered .section-subtitle {
+  margin: 0 auto;
+}
+
+/* ========== INTRO QUOTE ========== */
+.intro-quote {
+  padding: 80px 0;
+  background: var(--cream);
+}
+.quote-block {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 60px 40px;
+  position: relative;
+}
+.quote-block::before {
+  content: '「';
+  font-family: var(--font-display);
+  font-size: 8rem;
+  color: var(--gold);
+  opacity: 0.15;
+  position: absolute;
+  top: -10px; left: 20px;
+  line-height: 1;
+}
+.quote-block blockquote {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 1.9rem);
+  font-weight: 500;
+  color: var(--text-dark);
+  line-height: 1.7;
+  margin-bottom: 32px;
+  font-style: italic;
+}
+.quote-description {
+  color: var(--text-medium);
+  font-size: 1rem;
+  line-height: 1.9;
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+/* ========== PHOTO GALLERY ========== */
+.photo-section {
+  padding: 80px 0;
+  background: var(--cream-dark);
+}
+.photo-grid {
+  display: grid;
+  gap: 24px;
+}
+.photo-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.photo-grid-2 { grid-template-columns: 1fr 1fr; }
+.photo-grid-asymmetric { grid-template-columns: 1.4fr 1fr 1fr; }
+
+.photo-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+}
+.photo-frame img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.photo-frame:hover img { transform: scale(1.03); }
+
+.photo-placeholder {
+  width: 100%;
+  height: 320px;
+  background: linear-gradient(135deg, var(--cream-darker) 0%, var(--warm-beige) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 2px;
+  border: 2px dashed var(--gold);
+}
+.photo-placeholder-icon {
+  width: 48px; height: 48px;
+  opacity: 0.4;
+  color: var(--gold-dark);
+}
+.photo-placeholder span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+.photo-frame.tall img,
+.photo-frame.tall .photo-placeholder { height: 480px; }
+
+/* ========== FOR WHO ========== */
+.for-who { padding: 100px 0; background: var(--cream); }
+.for-who-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+.check-list { display: flex; flex-direction: column; gap: 20px; margin-top: 32px; }
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.check-icon {
+  width: 28px; height: 28px;
+  background: var(--cream-dark);
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.check-icon svg { width: 14px; height: 14px; color: var(--gold-dark); }
+.check-item p { color: var(--text-medium); line-height: 1.7; }
+
+.for-who-image img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+.for-who-image .photo-placeholder { height: 500px; }
+
+/* ========== WHAT'S INCLUDED ========== */
+.whats-included { padding: 100px 0; background: var(--cream-dark); }
+.included-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-top: 50px;
+}
+.included-card {
+  background: var(--cream);
+  padding: 40px 32px;
+  border-radius: 2px;
+  border: 1px solid var(--cream-darker);
+  transition: var(--transition);
+}
+.included-card:hover { transform: translateY(-6px); box-shadow: 0 16px 50px rgba(44,36,25,0.07); }
+.included-card-icon {
+  width: 48px; height: 48px;
+  background: var(--cream-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.included-card-icon svg { width: 22px; height: 22px; color: var(--gold-dark); }
+.included-card h3 { margin-bottom: 12px; font-size: 1rem; color: var(--text-dark); }
+.included-card p { color: var(--text-light); font-size: 0.95rem; line-height: 1.8; }
+
+/* ========== PROCESS ========== */
+.process { padding: 100px 0; background: var(--cream); }
+.process-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  margin-top: 50px;
+  position: relative;
+}
+.process-steps::before {
+  content: '';
+  position: absolute;
+  top: 32px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.process-step {
+  text-align: center;
+  position: relative;
+}
+.step-number {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 1px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--gold-dark);
+  position: relative;
+  z-index: 1;
+}
+.process-step h3 { font-size: 0.95rem; margin-bottom: 10px; }
+.process-step p { font-size: 0.88rem; color: var(--text-light); line-height: 1.7; }
+
+/* ========== TESTIMONIAL ========== */
+.testimonials { padding: 100px 0; background: var(--cream-dark); }
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  margin-top: 50px;
+}
+.testimonial-card {
+  background: var(--cream);
+  padding: 40px;
+  border-radius: 2px;
+  border-left: 3px solid var(--gold);
+  position: relative;
+}
+.testimonial-card::before {
+  content: '"';
+  font-family: var(--font-display);
+  font-size: 5rem;
+  color: var(--gold);
+  opacity: 0.15;
+  position: absolute;
+  top: 10px; left: 24px;
+  line-height: 1;
+}
+.testimonial-card blockquote {
+  font-size: 0.95rem;
+  color: var(--text-medium);
+  line-height: 1.9;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+.testimonial-author {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+/* ========== PRICING ========== */
+.pricing { padding: 100px 0; background: var(--cream); }
+.pricing-card {
+  max-width: 680px;
+  margin: 0 auto;
+  background: var(--cream-dark);
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  padding: 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-dark));
+}
+.pricing-badge {
+  display: inline-block;
+  padding: 5px 18px;
+  background: var(--gold-dark);
+  color: var(--white);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+.pricing-amount {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+.pricing-amount span { font-size: 1rem; color: var(--text-light); }
+.pricing-note { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 36px; }
+.pricing-includes {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 40px;
+}
+.pricing-include-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.92rem;
+  color: var(--text-medium);
+}
+.pricing-include-item svg { width: 16px; height: 16px; color: var(--gold-dark); flex-shrink: 0; }
+.pricing-divider {
+  height: 1px;
+  background: var(--warm-beige);
+  margin: 36px 0;
+}
+.pricing-limited {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  padding: 12px 20px;
+  background: var(--cream);
+  border-radius: 2px;
+  border: 1px solid var(--cream-darker);
+}
+
+/* ========== CTA SECTION ========== */
+.cta-section {
+  padding: 100px 0;
+  background: var(--brown-deep);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(196,168,130,0.06) 0%, transparent 70%);
+}
+.cta-section .section-label { color: var(--gold); }
+.cta-section h2 { color: var(--cream); margin-bottom: 20px; }
+.cta-section p { color: rgba(250,247,242,0.65); max-width: 540px; margin: 0 auto 40px; line-height: 1.9; }
+.cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.btn-cream {
+  background: var(--cream);
+  color: var(--text-dark);
+  border-color: var(--cream);
+}
+.btn-cream::before { background: var(--gold-dark); }
+.btn-cream:hover { color: var(--white); border-color: var(--gold-dark); }
+.btn-outline-cream {
+  background: transparent;
+  color: var(--cream);
+  border-color: rgba(250,247,242,0.4);
+}
+.btn-outline-cream::before { background: rgba(250,247,242,0.1); }
+.btn-outline-cream:hover { color: var(--cream); }
+
+/* ========== FOOTER ========== */
+footer {
+  background: var(--brown-deep);
+  padding: 80px 0 40px;
+  color: var(--cream);
+  border-top: 1px solid rgba(196,168,130,0.1);
+}
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 60px;
+  margin-bottom: 60px;
+}
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+.footer-brand p { font-size: 0.88rem; color: rgba(250,247,242,0.5); line-height: 1.8; }
+.footer-social { display: flex; gap: 16px; margin-top: 24px; }
+.footer-social a {
+  width: 36px; height: 36px;
+  border: 1px solid rgba(250,247,242,0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(250,247,242,0.5);
+  transition: var(--transition);
+}
+.footer-social a svg { width: 16px; height: 16px; }
+.footer-social a:hover { border-color: var(--gold); color: var(--gold); }
+.footer-col h4 { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; font-family: var(--font-body); }
+.footer-col a { display: block; font-size: 0.88rem; color: rgba(250,247,242,0.5); margin-bottom: 10px; transition: var(--transition); }
+.footer-col a:hover { color: var(--cream); }
+.footer-bottom { border-top: 1px solid rgba(250,247,242,0.08); padding-top: 32px; text-align: center; }
+.footer-bottom p { font-size: 0.78rem; color: rgba(250,247,242,0.3); letter-spacing: 0.05em; }
+
+/* ========== REVEAL ANIMATION ========== */
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ========== BACK LINK ========== */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  margin-bottom: 24px;
+  transition: var(--transition);
+}
+.back-link:hover { color: var(--gold-dark); gap: 12px; }
+.back-link svg { width: 14px; height: 14px; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .included-grid { grid-template-columns: repeat(2, 1fr); }
+  .process-steps { grid-template-columns: repeat(2, 1fr); }
+  .process-steps::before { display: none; }
+  .photo-grid-3 { grid-template-columns: 1fr 1fr; }
+  .photo-grid-asymmetric { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .container { padding: 0 24px; }
+  section { padding: 70px 0; }
+
+  .nav-links { display: none; }
+  .nav-right-mobile { display: flex; }
+  .mobile-toggle { display: block; }
+
+  .page-hero .container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .page-hero-image { display: none; }
+  .page-hero { min-height: auto; padding-bottom: 20px; }
+
+  .for-who-grid { grid-template-columns: 1fr; }
+  .for-who-image { display: none; }
+
+  .included-grid { grid-template-columns: 1fr; }
+  .process-steps { grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .testimonials-grid { grid-template-columns: 1fr; }
+
+  .pricing-card { padding: 40px 28px; }
+
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 40px; }
+  .footer-col:nth-child(4) { display: none; }
+
+  .photo-grid-3 { grid-template-columns: 1fr; }
+  .photo-grid-2 { grid-template-columns: 1fr; }
+  .photo-grid-asymmetric { grid-template-columns: 1fr; }
+  .photo-frame img, .photo-placeholder { height: 260px !important; }
+
+  .quote-block { padding: 40px 20px; }
+  .quote-block::before { font-size: 5rem; }
+}
+
+@media (max-width: 480px) {
+  .footer-inner { grid-template-columns: 1fr; }
+  .process-steps { grid-template-columns: 1fr; }
+  .cta-buttons { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav id="navbar">
+  <div class="container nav-inner">
+    <a href="/" class="nav-logo">Nami Barden</a>
+    <div class="nav-links">
+      <a href="/#about">プロフィール</a>
+      <a href="/#services">サービス</a>
+      <a href="/#courses">講座</a>
+      <a href="/#books">書籍</a>
+      <a href="/#media">メディア</a>
+      <a href="/#contact">お問い合わせ</a>
+      <button class="lang-toggle" onclick="toggleLang()" aria-label="Toggle language / 言語切替">
+        <span>🇯🇵</span><span class="flag-divider">|</span><span>🇺🇸</span>
+      </button>
+    </div>
+    <div class="nav-right-mobile">
+      <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="toggleMobile()">✕</button>
+  <a href="/" onclick="toggleMobile()">ホーム</a>
+  <a href="/#about" onclick="toggleMobile()">プロフィール</a>
+  <a href="/#services" onclick="toggleMobile()">サービス</a>
+  <a href="/#courses" onclick="toggleMobile()">講座</a>
+  <a href="/#contact" onclick="toggleMobile()">お問い合わせ</a>
+</div>
+
+<!-- ===== PAGE HERO ===== -->
+<section class="page-hero">
+  <div class="container">
+    <div class="page-hero-text reveal">
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+        トップに戻る
+      </a>
+      <p class="section-label">Executive Coaching</p>
+      <h1>エグゼクティブ・<br><em>コーチング</em></h1>
+      <p style="margin-top: 24px; margin-bottom: 12px; color: var(--text-medium);">成功した経営者が、次のステージへ。</p>
+      <p style="color: var(--text-light); line-height: 1.9;">成果ではなく「在り方」から変わることで、ビジネスも人生も本質的に深まります。意識の根本から変容することで、初めて「本当の自分」で生きられるようになる。</p>
+      <div class="hero-badges">
+        <span class="hero-badge">月1回 90分 Zoom</span>
+        <span class="hero-badge">テキストサポート付き</span>
+        <span class="hero-badge">完全個別対応</span>
+      </div>
+    </div>
+    <div class="page-hero-image reveal reveal-delay-2">
+      <img src="/images/nami-suit.jpg?v=20260225" alt="ナミ・バーデン — エグゼクティブコーチ">
+      <div class="hero-img-decoration"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== INTRO QUOTE ===== -->
+<div class="intro-quote">
+  <div class="container">
+    <div class="quote-block reveal">
+      <blockquote>
+        「結果を出してきた。でも、なぜか満たされない。」<br>
+        その感覚の正体に、気づいていますか？
+      </blockquote>
+      <p class="quote-description">
+        ビジネスで成果を上げ、リーダーとして組織を率いてきた。<br>
+        でも、ある日ふと思う。「これが本当にやりたかったことなのか？」<br><br>
+        エグゼクティブ・コーチングは、外側の「やり方」ではなく、内側の「在り方」にアプローチします。<br>
+        意識の深いところから変わることで、ビジネスも人間関係も、自分自身も、本質的に変容していきます。
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PHOTO SECTION 1 ===== -->
+<div class="photo-section">
+  <div class="container">
+    <div class="photo-grid photo-grid-asymmetric reveal">
+      <div class="photo-frame tall">
+        <img src="/images/nami-white-blazer.jpg?v=20260225" alt="ナミ・バーデン コーチングセッション" loading="lazy">
+      </div>
+      <div class="photo-frame">
+        <img src="/images/nami-notebook.jpg?v=20260225" alt="セッションの様子" loading="lazy">
+      </div>
+      <div class="photo-frame">
+        <div class="photo-placeholder">
+          <svg class="photo-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+          </svg>
+          <span>写真をここに配置</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FOR WHO ===== -->
+<section class="for-who">
+  <div class="container">
+    <div class="for-who-grid">
+      <div class="reveal">
+        <p class="section-label">こんな方へ</p>
+        <h2>このコーチングが<br>向いている人</h2>
+        <div class="check-list">
+          <div class="check-item">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <p>ビジネスで成功を収めてきたが、どこか満たされない感覚がある</p>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <p>次のステージに進みたいが、何かが変わらないといけないと感じている</p>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <p>組織のリーダーとして、在り方そのものを磨きたい</p>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <p>家族・パートナーとの関係に変化をもたらしたい</p>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <p>思考・感情・意識のレベルから根本的に変容したい</p>
+          </div>
+          <div class="check-item">
+            <div class="check-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <p>本当の自分の軸で、ビジネスも人生も生きていきたい</p>
+          </div>
+        </div>
+      </div>
+      <div class="for-who-image reveal reveal-delay-2">
+        <img src="/images/nami-window.jpg?v=20260225" alt="ナミ・バーデン コーチングの在り方" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHAT'S INCLUDED ===== -->
+<section class="whats-included">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <p class="section-label">What's Included</p>
+      <h2>コーチングに含まれるもの</h2>
+    </div>
+    <div class="included-grid">
+      <div class="included-card reveal">
+        <div class="included-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+        </div>
+        <h3>月1回 個別セッション（90分）</h3>
+        <p>Zoomにて、完全マンツーマンでのコーチングセッション。あなたのペースと深さに合わせた、本質的な対話を行います。</p>
+      </div>
+      <div class="included-card reveal reveal-delay-1">
+        <div class="included-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+        </div>
+        <h3>テキストサポート（月間）</h3>
+        <p>セッションとセッションの間も、気づきや疑問をテキストでシェアできます。日常の変容をリアルタイムでサポートします。</p>
+      </div>
+      <div class="included-card reveal reveal-delay-2">
+        <div class="included-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
+        </div>
+        <h3>パーソナル意識マップ</h3>
+        <p>あなたの思考・感情・行動のパターンを可視化。セッション開始時に作成し、変容のロードマップとして活用します。</p>
+      </div>
+      <div class="included-card reveal">
+        <div class="included-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+        </div>
+        <h3>推薦リーディング・実践ワーク</h3>
+        <p>あなたの成長フェーズに合わせた書籍・瞑想・マインドフルネス実践を提供。日常からの変容を促します。</p>
+      </div>
+      <div class="included-card reveal reveal-delay-1">
+        <div class="included-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+        </div>
+        <h3>セッション録音データ</h3>
+        <p>毎回のセッションを録音し、ご希望の方にはデータをお渡しします。気づきを後から振り返り、深めることができます。</p>
+      </div>
+      <div class="included-card reveal reveal-delay-2">
+        <div class="included-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+        </div>
+        <h3>コミュニティアクセス（予定）</h3>
+        <p>同じ志を持つエグゼクティブとのプライベートコミュニティへのアクセス。共に高め合う場を提供します。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROCESS ===== -->
+<section class="process">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <p class="section-label">How It Works</p>
+      <h2>コーチングの流れ</h2>
+    </div>
+    <div class="process-steps">
+      <div class="process-step reveal">
+        <div class="step-number">01</div>
+        <h3>無料相談（30分）</h3>
+        <p>まずはZoomで30分の無料相談。現在の状況や、コーチングへの期待をお聞きします。</p>
+      </div>
+      <div class="process-step reveal reveal-delay-1">
+        <div class="step-number">02</div>
+        <h3>意識マップの作成</h3>
+        <p>初回セッション前に、あなたの思考・感情・行動パターンを丁寧に分析します。</p>
+      </div>
+      <div class="process-step reveal reveal-delay-2">
+        <div class="step-number">03</div>
+        <h3>月次セッション開始</h3>
+        <p>月1回90分のZoomセッション。テキストサポートと実践ワークで変容を加速します。</p>
+      </div>
+      <div class="process-step reveal reveal-delay-3">
+        <div class="step-number">04</div>
+        <h3>継続的な変容</h3>
+        <p>3ヶ月・6ヶ月と続けることで、意識の深い変容が日常とビジネスに現れてきます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PHOTO SECTION 2 ===== -->
+<div class="photo-section" style="background: var(--cream);">
+  <div class="container">
+    <div class="photo-grid photo-grid-2 reveal">
+      <div class="photo-frame">
+        <img src="/images/nami-about-tea.jpg?v=20260225" alt="ナミ・バーデン セッションの雰囲気" loading="lazy">
+      </div>
+      <div class="photo-frame">
+        <div class="photo-placeholder">
+          <svg class="photo-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+          </svg>
+          <span>写真をここに配置</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <p class="section-label">Testimonials</p>
+      <h2>クライアントの声</h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal">
+        <blockquote>コーチングを通じて、自分がずっと「結果」で自分の価値を証明しようとしていたことに気づきました。その気づきから、組織との関わり方が根本から変わりました。今は結果を追いかけるのではなく、在り方を大切にすることで、むしろビジネスが広がっています。</blockquote>
+        <p class="testimonial-author">— 40代 経営者・男性（IT業界）</p>
+      </div>
+      <div class="testimonial-card reveal reveal-delay-1">
+        <blockquote>以前は「忙しいこと」が自分のアイデンティティでした。ナミさんとのセッションで、その奥にある恐れに気づき、少しずつ手放すことができました。今は余白を持てるようになり、判断の質もチームとの信頼関係も、明らかに変わっています。</blockquote>
+        <p class="testimonial-author">— 50代 会社代表・女性（コンサルティング）</p>
+      </div>
+      <div class="testimonial-card reveal">
+        <div class="photo-placeholder" style="height: 180px; border: 1px dashed var(--gold); background: var(--cream-dark);">
+          <svg class="photo-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+          </svg>
+          <span>お客様の声を追加</span>
+        </div>
+      </div>
+      <div class="testimonial-card reveal reveal-delay-1">
+        <div class="photo-placeholder" style="height: 180px; border: 1px dashed var(--gold); background: var(--cream-dark);">
+          <svg class="photo-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+          </svg>
+          <span>お客様の声を追加</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NAMI SECTION ===== -->
+<section style="padding: 100px 0; background: var(--cream);">
+  <div class="container">
+    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: center;">
+      <div class="reveal" style="position: relative;">
+        <img src="/images/nami-about-1.jpg?v=20260225" alt="ナミ・バーデン" loading="lazy" style="width: 100%; height: 500px; object-fit: cover; border-radius: 2px;">
+        <div style="position: absolute; bottom: -16px; right: -16px; width: 70%; height: 70%; border: 1px solid var(--gold); border-radius: 2px; z-index: -1;"></div>
+      </div>
+      <div class="reveal reveal-delay-1">
+        <p class="section-label">About Nami</p>
+        <h2>コーチについて</h2>
+        <p style="margin-top: 24px; color: var(--text-medium); line-height: 2; margin-bottom: 20px;">
+          長崎県佐世保生まれ。モナコ・パリでバレエを学んだ後、米国の大学を首席で卒業。東京の外資系企業を経て、ハワイへ移住。
+        </p>
+        <p style="color: var(--text-medium); line-height: 2; margin-bottom: 20px;">
+          2018年に独立し、10年間で5,000人以上の経営者・医師・弁護士・投資家・アスリートに「意識的（コンシャス）に生きる方法」を伝えてきました。著書「世界中の億万長者がたどりつく心の授業」はベストセラーに。
+        </p>
+        <p style="color: var(--text-medium); line-height: 2; margin-bottom: 32px;">
+          東京・福岡・長野・ハワイでのセミナー開催、エグゼクティブリトリート3回、1,000人以上の個別カウンセリングを通じて、多くの方の人生を根本から変えてきました。
+        </p>
+        <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+          <div>
+            <div style="font-family: var(--font-display); font-size: 2rem; color: var(--gold-dark);">5,000+</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">指導人数</div>
+          </div>
+          <div>
+            <div style="font-family: var(--font-display); font-size: 2rem; color: var(--gold-dark);">10年+</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">活動歴</div>
+          </div>
+          <div>
+            <div style="font-family: var(--font-display); font-size: 2rem; color: var(--gold-dark);">1,000+</div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">個別セッション</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section class="pricing">
+  <div class="container">
+    <div class="section-header centered reveal" style="margin-bottom: 50px;">
+      <p class="section-label">Investment</p>
+      <h2>料金</h2>
+    </div>
+    <div class="pricing-card reveal">
+      <span class="pricing-badge">月額プラン</span>
+      <div class="pricing-amount">¥49,800<span>/月（税込）</span></div>
+      <p class="pricing-note">※ 最低3ヶ月からのご契約をお願いしています</p>
+      <div class="pricing-divider"></div>
+      <div class="pricing-includes">
+        <div class="pricing-include-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          月1回・個別コーチングセッション（90分 Zoom）
+        </div>
+        <div class="pricing-include-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          月間テキストサポート付き
+        </div>
+        <div class="pricing-include-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          パーソナル意識マップ作成
+        </div>
+        <div class="pricing-include-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          セッション録音データ提供
+        </div>
+        <div class="pricing-include-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          推薦リーディング・実践ワーク
+        </div>
+      </div>
+      <p class="pricing-limited">現在受け付け可能なクライアント数：<strong>残り数名</strong><br>ご興味のある方はお早めにご連絡ください</p>
+      <a href="/#contact" class="btn btn-filled"><span>無料相談を申し込む</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+  <div class="container" style="position: relative; z-index: 1;">
+    <p class="section-label">Next Step</p>
+    <h2>まず、話してみませんか。</h2>
+    <p>変わりたい気持ちがあるなら、それだけで十分です。<br>30分の無料相談から、一緒に始めましょう。</p>
+    <div class="cta-buttons">
+      <a href="/#contact" class="btn btn-cream"><span>無料相談を申し込む</span></a>
+      <a href="/" class="btn btn-outline-cream"><span>トップページへ戻る</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">Nami Barden</div>
+        <p>意識、マインドフルネス、瞑想。心を磨き、豊かな人生を送るヒントをお伝えします。</p>
+        <div class="footer-social">
+          <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>サービス</h4>
+        <a href="/executive-coaching">エグゼクティブコーチング</a>
+        <a href="/#services">コーチング一覧</a>
+        <a href="/#courses">オンライン講座</a>
+      </div>
+      <div class="footer-col">
+        <h4>コンテンツ</h4>
+        <a href="/#books">書籍</a>
+        <a href="/#media">YouTube</a>
+      </div>
+      <div class="footer-col">
+        <h4>その他</h4>
+        <a href="/#about">プロフィール</a>
+        <a href="/#contact">お問い合わせ</a>
+        <a href="/">トップページ</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 Nami Barden. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Navbar scroll effect
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Mobile menu
+function toggleMobile() {
+  document.getElementById('mobileMenu').classList.toggle('active');
+}
+
+function toggleLang() {
+  // On subpage: redirect to main with lang param
+  window.location.href = '/';
+}
+
+// Scroll reveal animation
+const revealElements = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+revealElements.forEach(el => observer.observe(el));
+
+// Mobile layout fix for about section
+function fixMobileLayout() {
+  const aboutGrid = document.querySelector('section:last-of-type .container > div[style*="grid-template-columns"]');
+  if (window.innerWidth <= 768 && aboutGrid) {
+    aboutGrid.style.gridTemplateColumns = '1fr';
+  }
+}
+fixMobileLayout();
+window.addEventListener('resize', fixMobileLayout);
+</script>
+
+</body>
+</html>
