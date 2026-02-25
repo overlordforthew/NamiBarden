@@ -583,6 +583,15 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 .service-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(44,36,25,0.08); }
 .service-card:hover::before { opacity: 1; }
 
+.service-card--featured {
+  border: 1.5px solid var(--gold);
+  background: linear-gradient(145deg, var(--cream) 0%, rgba(196,168,130,0.07) 100%);
+  grid-column: span 2;
+}
+.service-card--featured h3 { color: var(--gold-dark); font-size: 1.25rem; }
+.service-card--featured .service-icon svg { color: var(--gold-dark); width: 44px; height: 44px; }
+@media (max-width: 768px) { .service-card--featured { grid-column: span 1; } }
+
 .service-icon {
   width: 90px; height: 90px;
   border-radius: 50%;
@@ -1427,21 +1436,21 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <p class="section-label" data-lang="ja">サービス内容</p>
     <p class="section-label" data-lang="en">What I Offer</p>
 
-    <h2 class="section-title" data-lang="ja">あなたの心の成長を<em>サポート</em></h2>
-    <h2 class="section-title" data-lang="en">Supporting Your <em>Inner Growth</em></h2>
+    <h2 class="section-title" data-lang="ja">成果を出してきたあなたの、<em>次のステージへ</em></h2>
+    <h2 class="section-title" data-lang="en">Your Next Stage, <em>After Success</em></h2>
 
-    <p class="section-subtitle" data-lang="ja">瞑想、コーチング、講座を通じて、あなたの内なる輝きを引き出します</p>
-    <p class="section-subtitle" data-lang="en">Drawing out your inner brilliance through meditation, coaching, and courses</p>
+    <p class="section-subtitle" data-lang="ja">経営者・ビジネスオーナーのための、意識とマインドから本質的に変わるアプローチ</p>
+    <p class="section-subtitle" data-lang="en">A fundamental approach to transformation — from within — for executives and business owners</p>
 
     <!-- Japanese Services -->
     <div class="services-grid" data-lang="ja">
-      <div class="service-card" data-lang="ja">
+      <div class="service-card service-card--featured" data-lang="ja">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
         </div>
-        <h3>コーチング＆カウンセリング</h3>
-        <p>あなたの心の悩みに寄り添い、一対一のセッションで本来の自分を取り戻すお手伝いをします。</p>
-        <a href="#contact" class="service-link">詳しく見る →</a>
+        <h3>エグゼクティブ・コーチング</h3>
+        <p>成功した経営者が、次のステージに踏み出すためのコーチング。成果ではなく「在り方」から変わることで、ビジネスも人生も本質的に深まります。</p>
+        <a href="#contact" class="service-link">詳しくはこちら →</a>
       </div>
       <div class="service-card" data-lang="ja">
         <div class="service-icon">
@@ -1487,12 +1496,12 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
 
     <!-- English Services -->
     <div class="services-grid" data-lang="en">
-      <div class="service-card" data-lang="en">
+      <div class="service-card service-card--featured" data-lang="en">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
         </div>
-        <h3>Coaching & Counseling</h3>
-        <p>One-on-one sessions to address your concerns and help you reconnect with your true self.</p>
+        <h3>Executive Coaching</h3>
+        <p>Coaching for leaders who've achieved success but are ready for what's next. Change from within — and your business and life will follow.</p>
         <a href="#contact" class="service-link">Learn More →</a>
       </div>
       <div class="service-card" data-lang="en">
