@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Preview — NamiBarden Meditation</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d0a1a; color: #e0d8f0; font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic', sans-serif; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+  h1 { font-size: 1.1rem; color: #9b7fd4; margin-bottom: 24px; letter-spacing: 1px; text-transform: uppercase; }
+  .grid { display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+  .video-wrap { background: #000; border-radius: 12px; overflow: hidden; }
+  video { width: 100%; display: block; }
+
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+  .card { background: #1a1428; border: 1px solid #2d2040; border-radius: 10px; padding: 18px; }
+  .card h2 { font-size: 0.85rem; color: #7c5cbf; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+  .thumb-wrap { border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+  .thumb-wrap img { width: 100%; display: block; }
+
+  .title-jp { font-size: 1.15rem; font-weight: 700; line-height: 1.5; margin-bottom: 8px; }
+  .title-en { font-size: 0.85rem; color: #8a7fa0; margin-bottom: 14px; }
+
+  .meta-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2d2040; font-size: 0.82rem; }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-label { color: #7c5cbf; }
+  .meta-value { color: #c8b8e8; text-align: right; }
+
+  .desc { font-size: 0.82rem; line-height: 1.7; color: #b0a8c0; white-space: pre-line; max-height: 300px; overflow-y: auto; }
+  .desc::-webkit-scrollbar { width: 4px; }
+  .desc::-webkit-scrollbar-thumb { background: #3d2a5c; border-radius: 2px; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { background: #2d1a4a; color: #b0a0d0; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; }
+
+  .status { display: inline-block; background: #1a3a1e; color: #6aaa6e; padding: 4px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+  .status.pending { background: #3a2a1a; color: #c9a84c; }
+
+  .note { background: #1a1a28; border-left: 3px solid #c9a84c; padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 0.8rem; color: #b0a8c0; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Video Preview</h1>
+
+  <div class="grid">
+    <div>
+      <div class="video-wrap">
+        <video controls preload="metadata" poster="thumbnail.png">
+          <source src="video.mp4" type="video/mp4">
+        </video>
+      </div>
+
+      <div class="card" style="margin-top: 20px;">
+        <h2>Description</h2>
+        <div class="desc">不安で眠れない夜に。やさしい声のガイドが、あなたの心と体を深いやすらぎへ導きます。
+
+約5分の誘導瞑想の後、55分間の自然音が静かにあなたを包み込みます。
+布団に入って、目を閉じて、ただ聴くだけ。
+
+📖 内容：
+0:00 - はじめに
+0:20 - 深呼吸
+1:00 - ボディスキャン（足～腰）
+1:30 - ボディスキャン（お腹～胸）
+2:00 - ボディスキャン（肩～頭）
+2:35 - 森のビジュアライゼーション
+3:10 - 川に心配を流す
+3:50 - 星空を見上げる
+4:30 - 手放しのワーク
+5:05 - おやすみなさい
+5:30 - 自然音（55分間）
+
+🌙 こんな方におすすめ：
+・考えすぎて眠れない
+・不安や心配が頭から離れない
+・リラックスしたいけど方法がわからない
+・寝る前の習慣を作りたい
+
+💜 NamiBarden — 心と体を整える瞑想チャンネル</div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card">
+        <h2>Thumbnail</h2>
+        <div class="thumb-wrap">
+          <img src="thumbnail.png" alt="Thumbnail">
+        </div>
+        <div class="title-jp">【不安を手放す】眠れない夜に聴く、心を静める瞑想ガイド｜60分 睡眠瞑想</div>
+        <div class="title-en">Release Anxiety — A Calming Sleep Meditation Guide for Restless Nights</div>
+      </div>
+
+      <div class="card">
+        <h2>Metadata</h2>
+        <div class="meta-row"><span class="meta-label">Duration</span><span class="meta-value">59 min</span></div>
+        <div class="meta-row"><span class="meta-label">Resolution</span><span class="meta-value">1920 x 1080</span></div>
+        <div class="meta-row"><span class="meta-label">Size</span><span class="meta-value">97 MB</span></div>
+        <div class="meta-row"><span class="meta-label">Language</span><span class="meta-value">Japanese</span></div>
+        <div class="meta-row"><span class="meta-label">Category</span><span class="meta-value">Education</span></div>
+        <div class="meta-row"><span class="meta-label">Voice</span><span class="meta-value">Nanami (edge-tts)</span></div>
+        <div class="meta-row"><span class="meta-label">Visuals</span><span class="meta-value status pending">Gradient (Veo pending)</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Tags</h2>
+        <div class="tags">
+          <span class="tag">#瞑想</span>
+          <span class="tag">#睡眠</span>
+          <span class="tag">#不安解消</span>
+          <span class="tag">#眠れない</span>
+          <span class="tag">#リラックス</span>
+          <span class="tag">#ヨガニードラ</span>
+          <span class="tag">#マインドフルネス</span>
+          <span class="tag">#睡眠瞑想</span>
+          <span class="tag">#ボディスキャン</span>
+          <span class="tag">#自然音</span>
+          <span class="tag">#ASMR睡眠</span>
+          <span class="tag">#瞑想ガイド</span>
+          <span class="tag">#おやすみ瞑想</span>
+          <span class="tag">#NamiBarden</span>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>TODO:</strong> Visuals are placeholder gradients. When Veo daily quota resets, regenerate with nature footage (twilight forest, calm lake, cherry blossoms, forest stream, night sky, moonlit clearing) and re-assemble.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

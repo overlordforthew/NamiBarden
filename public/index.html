@@ -1994,19 +1994,19 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // YouTube RSS — fetch latest 3 videos
 (function() {
-  var fallback = [
+  const fallback = [
     { id: 'NLcJeT-Pqfc', title: '【奇跡は寝て待て】40代・50代から人生が劇的に好転する「妄想瞑想」', titleEn: 'Miracles Come to Those Who Wait — Dream Meditation for Life Transformation' },
     { id: 'Tm7qp3KrfsY', title: '【呼吸法なしで眠れる】鼻詰まり・寝苦しい夜にただ聴くだけの睡眠瞑想', titleEn: 'Sleep Meditation — Just Listen for a Restful Night (No Breathing Techniques)' },
     { id: 'rl0FcLX2ExA', title: '【寝落ち必須】考えすぎて眠れない夜専用。思考のループを断ち切る「脳洗浄」ヨガニードラ', titleEn: 'For Overthinking Nights — Yoga Nidra to Break the Thought Loop' }
   ];
 
   function renderVideos(videos) {
-    var playBtn = '<div class="media-overlay"><div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div></div>';
+    const playBtn = '<div class="media-overlay"><div class="play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div></div>';
     ['ja', 'en'].forEach(function(lang) {
-      var grid = document.getElementById('yt-grid-' + lang);
+      const grid = document.getElementById('yt-grid-' + lang);
       if (!grid) return;
       grid.innerHTML = videos.map(function(v) {
-        var title = lang === 'en' ? (v.titleEn || v.title) : v.title;
+        const title = lang === 'en' ? (v.titleEn || v.title) : v.title;
         return '<a class="media-item" data-lang="' + lang + '" href="https://www.youtube.com/watch?v=' + v.id + '" target="_blank" rel="noopener">' +
           '<img src="https://img.youtube.com/vi/' + v.id + '/hqdefault.jpg" alt="' + title.replace(/"/g, '&quot;') + '" loading="lazy">' +
           playBtn +
@@ -2018,13 +2018,13 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   fetch('/api/youtube-feed')
     .then(function(r) { return r.text(); })
     .then(function(xml) {
-      var doc = new DOMParser().parseFromString(xml, 'text/xml');
-      var entries = doc.querySelectorAll('entry');
-      var videos = [];
-      for (var i = 0; i < Math.min(3, entries.length); i++) {
-        var e = entries[i];
-        var videoId = e.querySelector('videoId') ? e.querySelector('videoId').textContent : '';
-        var title = e.querySelector('title') ? e.querySelector('title').textContent : '';
+      const doc = new DOMParser().parseFromString(xml, 'text/xml');
+      const entries = doc.querySelectorAll('entry');
+      const videos = [];
+      for (let i = 0; i < Math.min(3, entries.length); i++) {
+        const e = entries[i];
+        const videoId = e.querySelector('videoId') ? e.querySelector('videoId').textContent : '';
+        const title = e.querySelector('title') ? e.querySelector('title').textContent : '';
         if (videoId) videos.push({ id: videoId, title: title, titleEn: title });
       }
       if (videos.length > 0) renderVideos(videos);
