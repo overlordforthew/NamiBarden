@@ -1843,21 +1843,22 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <p class="section-subtitle" data-lang="ja">コーチング、講座、コラボレーションなど、お気軽にお問い合わせください</p>
     <p class="section-subtitle" data-lang="en">For coaching, courses, collaborations, or any questions — reach out anytime</p>
 
-    <form class="contact-form" onsubmit="event.preventDefault();">
+    <form class="contact-form" id="contactForm">
       <div class="form-row">
-        <input type="text" data-lang="ja" placeholder="お名前">
-        <input type="text" data-lang="en" placeholder="Your Name">
-        <input type="email" data-lang="ja" placeholder="メールアドレス">
-        <input type="email" data-lang="en" placeholder="Email Address">
+        <input type="text" name="name" data-lang="ja" placeholder="お名前" required>
+        <input type="text" name="name" data-lang="en" placeholder="Your Name" required>
+        <input type="email" name="email" data-lang="ja" placeholder="メールアドレス" required>
+        <input type="email" name="email" data-lang="en" placeholder="Email Address" required>
       </div>
-      <input type="text" data-lang="ja" placeholder="件名">
-      <input type="text" data-lang="en" placeholder="Subject">
-      <textarea data-lang="ja" placeholder="メッセージをご記入ください"></textarea>
-      <textarea data-lang="en" placeholder="Your message..."></textarea>
-      <button type="submit" class="btn btn-filled">
+      <input type="text" name="subject" data-lang="ja" placeholder="件名">
+      <input type="text" name="subject" data-lang="en" placeholder="Subject">
+      <textarea name="message" data-lang="ja" placeholder="メッセージをご記入ください" required></textarea>
+      <textarea name="message" data-lang="en" placeholder="Your message..." required></textarea>
+      <button type="submit" class="btn btn-filled" id="contactSubmitBtn">
         <span data-lang="ja">送信する</span>
         <span data-lang="en">Send Message</span>
       </button>
+      <p id="contactStatus" style="text-align:center; margin-top:12px; display:none;"></p>
     </form>
 
     <div class="contact-links">
@@ -2049,6 +2050,57 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       else renderVideos(fallback);
     })
     .catch(function() { renderVideos(fallback); });
+})();
+
+// ─── CONTACT FORM SUBMISSION ───
+(function() {
+  var form = document.getElementById('contactForm');
+  if (!form) return;
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var lang = document.documentElement.lang || 'ja';
+    var visible = form.querySelectorAll('[data-lang="' + lang + '"]');
+    var data = {};
+    visible.forEach(function(el) {
+      if (el.name) data[el.name] = el.value;
+    });
+    if (!data.name || !data.email || !data.message) {
+      showStatus(lang === 'ja' ? '全ての必須項目を入力してください' : 'Please fill in all required fields', 'error');
+      return;
+    }
+    var btn = document.getElementById('contactSubmitBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    showStatus(lang === 'ja' ? '送信中...' : 'Sending...', 'info');
+    fetch('https://lumina.namibarden.com/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.ok) {
+        showStatus(lang === 'ja' ? '送信しました！ありがとうございます。' : 'Message sent! Thank you.', 'success');
+        form.reset();
+      } else {
+        showStatus(res.data.error || (lang === 'ja' ? '送信に失敗しました' : 'Failed to send'), 'error');
+      }
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    })
+    .catch(function() {
+      showStatus(lang === 'ja' ? '送信に失敗しました。もう一度お試しください。' : 'Failed to send. Please try again.', 'error');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+  });
+  function showStatus(msg, type) {
+    var el = document.getElementById('contactStatus');
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.color = type === 'error' ? '#c44' : type === 'success' ? '#4a7' : '#888';
+    if (type === 'success') setTimeout(function() { el.style.display = 'none'; }, 5000);
+  }
 })();
 </script>
 
