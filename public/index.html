@@ -2072,7 +2072,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     btn.disabled = true;
     btn.style.opacity = '0.6';
     showStatus(lang === 'ja' ? '送信中...' : 'Sending...', 'info');
-    fetch('https://lumina.namibarden.com/api/contact', {
+    fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
