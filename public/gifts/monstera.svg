@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="240" viewBox="0 0 200 240" fill="none">
+  <!-- Stem -->
+  <path d="M90,235 C88,218 84,200 86,185 C88,172 92,160 98,148" stroke="#b8a07a" stroke-width="2" stroke-linecap="round"/>
+  <!-- Central vein -->
+  <path d="M98,148 C100,128 101,105 100,80 C99,60 96,42 92,25" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Leaf outline - left side bottom lobe -->
+  <path d="M98,148 C78,152 55,148 38,136 C22,124 14,106 18,90 C22,76 34,70 46,75 C56,79 58,90 52,96" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Left side middle lobe -->
+  <path d="M46,75 C38,62 36,46 42,34 C48,22 60,20 66,30 C70,38 66,48 58,48" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Left side top lobe -->
+  <path d="M42,34 C44,20 54,10 68,8 C78,6 84,14 82,24" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Top -->
+  <path d="M68,8 C80,4 92,6 100,14 C104,18 100,28 96,28" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Leaf outline - right side top -->
+  <path d="M100,14 C112,8 126,10 136,20 C142,28 138,40 130,38 C124,36 122,28 126,24" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Right side middle lobe -->
+  <path d="M136,20 C148,30 156,46 154,62 C152,76 142,82 134,76 C128,72 128,62 134,58" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Right side bottom lobe -->
+  <path d="M154,62 C162,78 164,98 156,114 C148,128 134,136 120,138 C110,140 104,148 98,148" stroke="#b8a07a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Inner vein lines -->
+  <path d="M98,130 C80,128 64,120 52,108" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M100,105 C84,100 68,88 58,72" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M100,78 C88,70 76,56 68,40" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M98,55 C88,44 80,30 78,18" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M100,130 C116,130 134,124 148,112" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M100,105 C116,100 132,90 142,76" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M100,78 C112,72 124,58 132,42" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+  <path d="M100,55 C110,44 120,30 126,20" stroke="#b8a07a" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+</svg>
