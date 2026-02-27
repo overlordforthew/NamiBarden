@@ -2040,14 +2040,15 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <p data-lang="ja">セミナー・イベントの先行案内や、心を整えるヒントを定期的にお届けします。</p>
     <p data-lang="en">Get early access to seminars & events, plus tips for cultivating a fulfilling life.</p>
 
-    <form class="newsletter-form" onsubmit="event.preventDefault();">
-      <input type="email" data-lang="ja" placeholder="メールアドレスを入力">
-      <input type="email" data-lang="en" placeholder="Enter your email">
-      <button type="submit" class="btn">
+    <form class="newsletter-form" id="newsletterForm">
+      <input type="email" data-lang="ja" placeholder="メールアドレスを入力" required>
+      <input type="email" data-lang="en" placeholder="Enter your email" required>
+      <button type="submit" class="btn" id="newsletterSubmitBtn">
         <span data-lang="ja">購読する</span>
         <span data-lang="en">Subscribe</span>
       </button>
     </form>
+    <p id="newsletterStatus" style="text-align:center; margin-top:12px; display:none;"></p>
   </div>
 </section>
 
@@ -2202,6 +2203,62 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       else renderVideos(fallback);
     })
     .catch(function() { renderVideos(fallback); });
+})();
+
+// ─── NEWSLETTER FORM SUBMISSION ───
+(function() {
+  var form = document.getElementById('newsletterForm');
+  if (!form) return;
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var lang = document.documentElement.lang || 'ja';
+    var emailInput = form.querySelector('input[type="email"][data-lang="' + lang + '"]');
+    var email = emailInput ? emailInput.value : '';
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showNlStatus(lang === 'ja' ? '正しいメールアドレスを入力してください' : 'Please enter a valid email address', 'error');
+      return;
+    }
+    var btn = document.getElementById('newsletterSubmitBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    showNlStatus(lang === 'ja' ? '登録中...' : 'Subscribing...', 'info');
+    fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.ok) {
+        form.reset();
+        showNlStatus(lang === 'ja' ? '登録ありがとうございます！' : 'Thank you for subscribing!', 'success');
+      } else {
+        var errMsg = res.data.error || '';
+        if (lang === 'ja') {
+          if (/email/i.test(errMsg)) errMsg = '正しいメールアドレスを入力してください';
+          else if (/too many|rate/i.test(errMsg)) errMsg = '送信回数が多すぎます。しばらくしてからお試しください';
+          else errMsg = errMsg || '登録に失敗しました';
+        } else {
+          errMsg = errMsg || 'Failed to subscribe';
+        }
+        showNlStatus(errMsg, 'error');
+      }
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    })
+    .catch(function() {
+      showNlStatus(lang === 'ja' ? '登録に失敗しました。もう一度お試しください。' : 'Failed to subscribe. Please try again.', 'error');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+  });
+  function showNlStatus(msg, type) {
+    var el = document.getElementById('newsletterStatus');
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.color = type === 'error' ? '#c44' : type === 'success' ? '#4a7' : '#888';
+    if (type === 'success') setTimeout(function() { el.style.display = 'none'; }, 5000);
+  }
 })();
 
 // ─── CONTACT FORM SUBMISSION ───
