@@ -2191,6 +2191,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     .then(function(res) {
       if (res.ok) {
         form.reset();
+        document.getElementById('contactStatus').style.display = 'none';
         openModal();
       } else {
         showStatus(res.data.error || (lang === 'ja' ? '送信に失敗しました' : 'Failed to send'), 'error');
