@@ -1854,6 +1854,11 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       <input type="text" name="subject" data-lang="en" placeholder="Subject">
       <textarea name="message" data-lang="ja" placeholder="メッセージをご記入ください" required></textarea>
       <textarea name="message" data-lang="en" placeholder="Your message..." required></textarea>
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem; color:var(--text-light); margin:4px 0 8px;">
+        <input type="checkbox" name="subscribe" style="width:18px; height:18px; accent-color:var(--gold-dark); cursor:pointer;">
+        <span data-lang="ja">メールマガジンも受け取る</span>
+        <span data-lang="en">Also subscribe to newsletter</span>
+      </label>
       <button type="submit" class="btn btn-filled" id="contactSubmitBtn">
         <span data-lang="ja">送信する</span>
         <span data-lang="en">Send Message</span>
@@ -2064,6 +2069,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     visible.forEach(function(el) {
       if (el.name) data[el.name] = el.value;
     });
+    var checkbox = form.querySelector('input[name="subscribe"]');
+    if (checkbox) data.subscribe = checkbox.checked;
     if (!data.name || !data.email || !data.message) {
       showStatus(lang === 'ja' ? '全ての必須項目を入力してください' : 'Please fill in all required fields', 'error');
       return;
