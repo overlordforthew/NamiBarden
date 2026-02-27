@@ -45,8 +45,8 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap"></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap"></noscript>
 <style>
 /* ========== CSS VARIABLES ========== */
 :root {
@@ -184,11 +184,34 @@ nav.scrolled { box-shadow: 0 2px 40px rgba(44, 36, 25, 0.06); }
 }
 
 .nav-logo {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-decoration: none;
+  gap: 0;
+}
+.nav-logo .logo-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  font-weight: 400;
   letter-spacing: 0.05em;
   color: var(--text-dark);
+  line-height: 1;
+}
+.nav-logo .logo-line {
+  width: 24px;
+  height: 1px;
+  background: #b8a07a;
+  margin: 5px 0;
+  align-self: center;
+}
+.nav-logo .logo-sub {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  color: #8b7355;
+  line-height: 1;
 }
 
 .nav-logo img {
@@ -1235,6 +1258,8 @@ footer {
   .mobile-menu { display: flex; }
   .lang-toggle-mobile { display: flex; }
   .nav-right-mobile { display: flex; }
+  .nav-logo .logo-name { font-size: 1.3rem; }
+  .nav-logo .logo-sub { font-size: 0.42rem; letter-spacing: 0.3em; }
 
   .hero { min-height: auto; padding-top: 120px; padding-bottom: 60px; }
   .hero-image-wrapper { max-height: 350px; border-radius: 100px 100px 30px 30px; }
@@ -1412,7 +1437,11 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
 <!-- ===== NAVIGATION ===== -->
 <nav id="navbar">
   <div class="container nav-inner">
-    <a href="#" class="nav-logo">Nami Barden</a>
+    <a href="#" class="nav-logo">
+      <span class="logo-name">Nami Barden</span>
+      <span class="logo-line"></span>
+      <span class="logo-sub">意識学ビジネスコーチ</span>
+    </a>
     <div class="nav-links">
       <a href="#about"><span data-lang="ja">プロフィール</span><span data-lang="en">About</span></a>
       <a href="#services"><span data-lang="ja">サービス</span><span data-lang="en">Services</span></a>
