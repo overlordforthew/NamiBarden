@@ -765,6 +765,25 @@ footer {
   .process-steps { grid-template-columns: 1fr; }
   .cta-buttons { flex-direction: column; align-items: center; }
 }
+
+/* ========== LARGE DESKTOP ========== */
+@media (min-width: 1400px) {
+  :root { --max-width: 1400px; }
+  .container { padding: 0 60px; }
+  .page-hero .container { gap: 100px; }
+  .page-hero::before { width: 800px; height: 800px; }
+  .for-who-grid { gap: 80px; }
+  .footer-inner { gap: 60px; }
+}
+
+@media (min-width: 1800px) {
+  :root { --max-width: 1600px; }
+  .container { padding: 0 80px; }
+  .page-hero .container { gap: 120px; }
+  .included-grid { gap: 32px; }
+  .process-steps { gap: 32px; }
+  .testimonials-grid { gap: 40px; }
+}
 </style>
 </head>
 

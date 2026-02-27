@@ -1438,6 +1438,46 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
   text-underline-offset: 3px;
 }
 .modal-skip:hover { color: var(--text-dark); }
+
+/* ========== LARGE DESKTOP ========== */
+@media (min-width: 1400px) {
+  :root { --max-width: 1400px; }
+  .container { padding: 0 60px; }
+
+  .hero .container { gap: 100px; }
+  .hero-image-wrapper { max-height: 700px; }
+  .hero::before { width: 800px; height: 800px; }
+  .hero::after { width: 600px; height: 600px; }
+
+  .about .container { gap: 100px; }
+  .about-content p { max-width: 600px; }
+
+  .books .container { gap: 80px; }
+  .book-item { width: 260px; }
+
+  .resources .container { gap: 80px; }
+
+  .footer-inner { gap: 60px; }
+}
+
+@media (min-width: 1800px) {
+  :root { --max-width: 1600px; --section-padding: 120px 0; }
+  .container { padding: 0 80px; }
+
+  .hero .container { gap: 120px; }
+  .hero-image-wrapper { max-height: 800px; }
+
+  .about .container { gap: 120px; }
+  .about-content p { max-width: 680px; }
+
+  .services-grid { gap: 40px; }
+  .courses-grid { gap: 40px; }
+  .testimonials-grid { gap: 40px; }
+  .media-grid { gap: 32px; }
+
+  .books .container { gap: 100px; }
+  .book-item { width: 280px; }
+}
 </style>
 </head>
 
