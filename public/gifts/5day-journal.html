@@ -8,380 +8,101 @@
 <style>
   @page { size: A4; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-weight: 300;
-    color: #2c2c2c;
-    background: #fff;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .page {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 0 auto;
-    padding: 0;
-    page-break-after: always;
-    position: relative;
-    overflow: hidden;
-  }
+  body { font-family: 'Noto Sans JP', sans-serif; font-weight: 300; color: #2c2c2c; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 0; page-break-after: always; position: relative; overflow: hidden; }
   .page:last-child { page-break-after: auto; }
+  .line-art { position: absolute; pointer-events: none; z-index: 0; }
 
-  /* ===== COVER PAGE ===== */
-  .cover {
-    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: #f0ebe3;
-  }
-  .cover-ornament-top, .cover-ornament-bottom {
-    position: absolute;
-    width: 120px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #b8a07a, transparent);
-  }
-  .cover-ornament-top { top: 60px; }
-  .cover-ornament-bottom { bottom: 60px; }
-  .cover-icon {
-    font-size: 3rem;
-    margin-bottom: 32px;
-    opacity: 0.7;
-  }
-  .cover-pretitle {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-weight: 300;
-    font-size: 0.85rem;
-    letter-spacing: 0.4em;
-    color: #b8a07a;
-    margin-bottom: 24px;
-    text-transform: uppercase;
-  }
-  .cover h1 {
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 500;
-    font-size: 2.4rem;
-    letter-spacing: 0.08em;
-    line-height: 1.5;
-    margin-bottom: 16px;
-  }
-  .cover-line {
-    width: 60px;
-    height: 1px;
-    background: #b8a07a;
-    margin: 24px auto;
-  }
-  .cover-subtitle {
-    font-size: 1rem;
-    font-weight: 300;
-    letter-spacing: 0.15em;
-    color: #c8bfb0;
-    margin-bottom: 48px;
-  }
-  .cover-author {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem;
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    color: #f0ebe3;
-    margin-bottom: 6px;
-  }
-  .cover-author-title {
-    font-size: 0.7rem;
-    font-weight: 300;
-    letter-spacing: 0.35em;
-    color: #b8a07a;
-  }
+  /* COVER */
+  .cover { background: linear-gradient(160deg, #faf8f5 0%, #f0ebe3 50%, #e8e0d4 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #2c2c2c; }
+  .cover-pretitle { font-weight: 300; font-size: 0.8rem; letter-spacing: 0.4em; color: #b8a07a; margin-bottom: 24px; }
+  .cover h1 { font-family: 'Noto Serif JP', serif; font-weight: 500; font-size: 2.4rem; letter-spacing: 0.08em; line-height: 1.5; color: #3a3a3a; margin-bottom: 16px; }
+  .cover-line { width: 60px; height: 1px; background: #b8a07a; margin: 24px auto; }
+  .cover-subtitle { font-size: 1rem; font-weight: 300; letter-spacing: 0.15em; color: #8b7355; margin-bottom: 48px; }
+  .cover-author { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 400; letter-spacing: 0.1em; color: #3a3a3a; margin-bottom: 6px; }
+  .cover-author-title { font-size: 0.7rem; font-weight: 300; letter-spacing: 0.35em; color: #8b7355; }
 
-  /* ===== INTRO PAGE ===== */
-  .intro {
-    background: #faf8f5;
-    padding: 50mm 25mm 40mm 25mm;
-  }
-  .intro-header {
-    text-align: center;
-    margin-bottom: 36px;
-  }
-  .intro-header h2 {
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 500;
-    font-size: 1.5rem;
-    letter-spacing: 0.08em;
-    color: #1a1a2e;
-    margin-bottom: 12px;
-  }
-  .intro-line {
-    width: 40px;
-    height: 1px;
-    background: #b8a07a;
-    margin: 0 auto 32px;
-  }
-  .intro p {
-    font-size: 0.88rem;
-    line-height: 2;
-    color: #444;
-    margin-bottom: 18px;
-    text-align: justify;
-  }
-  .intro-how {
-    background: #fff;
-    border-left: 3px solid #b8a07a;
-    padding: 20px 24px;
-    margin: 28px 0;
-    border-radius: 0 8px 8px 0;
-  }
-  .intro-how h3 {
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 500;
-    font-size: 1rem;
-    color: #1a1a2e;
-    margin-bottom: 12px;
-  }
-  .intro-how ul {
-    list-style: none;
-    padding: 0;
-  }
-  .intro-how li {
-    font-size: 0.85rem;
-    line-height: 1.8;
-    color: #555;
-    padding-left: 20px;
-    position: relative;
-    margin-bottom: 4px;
-  }
-  .intro-how li::before {
-    content: '○';
-    position: absolute;
-    left: 0;
-    color: #b8a07a;
-    font-size: 0.7rem;
-    top: 2px;
-  }
+  /* INTRO */
+  .intro { background: #faf8f5; padding: 50mm 25mm 40mm 25mm; }
+  .intro-header { text-align: center; margin-bottom: 36px; }
+  .intro-header h2 { font-family: 'Noto Serif JP', serif; font-weight: 500; font-size: 1.5rem; letter-spacing: 0.08em; color: #3a3a3a; margin-bottom: 12px; }
+  .intro-line { width: 40px; height: 1px; background: #b8a07a; margin: 0 auto 32px; }
+  .intro p { font-size: 0.88rem; line-height: 2; color: #444; margin-bottom: 18px; text-align: justify; }
+  .intro-how { background: #fff; border-left: 3px solid #b8a07a; padding: 20px 24px; margin: 28px 0; border-radius: 0 8px 8px 0; }
+  .intro-how h3 { font-family: 'Noto Serif JP', serif; font-weight: 500; font-size: 1rem; color: #3a3a3a; margin-bottom: 12px; }
+  .intro-how ul { list-style: none; padding: 0; }
+  .intro-how li { font-size: 0.85rem; line-height: 1.8; color: #555; padding-left: 20px; position: relative; margin-bottom: 4px; }
+  .intro-how li::before { content: '○'; position: absolute; left: 0; color: #b8a07a; font-size: 0.7rem; top: 2px; }
 
-  /* ===== DAY PAGES ===== */
-  .day-page {
-    background: #fff;
-    padding: 40mm 25mm 30mm 25mm;
-    display: flex;
-    flex-direction: column;
-  }
-  .day-header {
-    text-align: center;
-    margin-bottom: 28px;
-  }
-  .day-number {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.8rem;
-    letter-spacing: 0.4em;
-    color: #b8a07a;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .day-title {
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 500;
-    font-size: 1.6rem;
-    letter-spacing: 0.06em;
-    color: #1a1a2e;
-    margin-bottom: 10px;
-  }
-  .day-line {
-    width: 40px;
-    height: 1px;
-    background: #b8a07a;
-    margin: 0 auto;
-  }
-  .day-intro {
-    font-size: 0.88rem;
-    line-height: 2;
-    color: #555;
-    text-align: center;
-    margin: 20px 0 28px;
-    padding: 0 10mm;
-  }
-  .day-quote {
-    background: #faf8f5;
-    border-radius: 8px;
-    padding: 18px 24px;
-    text-align: center;
-    margin-bottom: 28px;
-  }
-  .day-quote p {
-    font-family: 'Noto Serif JP', serif;
-    font-size: 0.9rem;
-    font-weight: 400;
-    font-style: italic;
-    color: #666;
-    line-height: 1.8;
-  }
-  .prompts-label {
-    font-size: 0.75rem;
-    letter-spacing: 0.3em;
-    color: #b8a07a;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    text-align: center;
-  }
-  .prompt-block {
-    margin-bottom: 20px;
-  }
-  .prompt-question {
-    font-size: 0.9rem;
-    font-weight: 400;
-    color: #1a1a2e;
-    margin-bottom: 10px;
-    padding-left: 4px;
-  }
-  .prompt-question span {
-    color: #b8a07a;
-    margin-right: 6px;
-  }
-  .writing-lines {
-    border-bottom: 1px solid #e8e4de;
-    height: 28px;
-    margin-left: 4px;
-  }
-  .writing-lines:last-child {
-    margin-bottom: 0;
-  }
-  .day-tip {
-    margin-top: auto;
-    background: #f8f6f2;
-    border-radius: 8px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .day-tip-icon {
-    color: #b8a07a;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .day-tip p {
-    font-size: 0.78rem;
-    line-height: 1.7;
-    color: #777;
-  }
+  /* DAY PAGES */
+  .day-page { background: #faf8f5; padding: 40mm 25mm 30mm 25mm; display: flex; flex-direction: column; }
+  .day-header { text-align: center; margin-bottom: 28px; position: relative; z-index: 1; }
+  .day-number { font-family: 'Cormorant Garamond', serif; font-size: 0.8rem; letter-spacing: 0.4em; color: #b8a07a; text-transform: uppercase; margin-bottom: 10px; }
+  .day-title { font-family: 'Noto Serif JP', serif; font-weight: 500; font-size: 1.6rem; letter-spacing: 0.06em; color: #3a3a3a; margin-bottom: 10px; }
+  .day-line { width: 40px; height: 1px; background: #b8a07a; margin: 0 auto; }
+  .day-intro { font-size: 0.88rem; line-height: 2; color: #555; text-align: center; margin: 20px 0 28px; padding: 0 10mm; position: relative; z-index: 1; }
+  .day-quote { background: #fff; border-radius: 8px; padding: 18px 24px; text-align: center; margin-bottom: 28px; position: relative; z-index: 1; }
+  .day-quote p { font-family: 'Noto Serif JP', serif; font-size: 0.9rem; font-weight: 400; font-style: italic; color: #666; line-height: 1.8; }
+  .prompts-label { font-size: 0.75rem; letter-spacing: 0.3em; color: #b8a07a; text-transform: uppercase; margin-bottom: 16px; text-align: center; position: relative; z-index: 1; }
+  .prompt-block { margin-bottom: 20px; position: relative; z-index: 1; }
+  .prompt-question { font-size: 0.9rem; font-weight: 400; color: #3a3a3a; margin-bottom: 10px; padding-left: 4px; }
+  .prompt-question span { color: #b8a07a; margin-right: 6px; }
+  .writing-lines { border-bottom: 1px solid #ddd5c8; height: 28px; margin-left: 4px; }
+  .day-tip { margin-top: auto; background: #f0ebe3; border-radius: 8px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 10px; position: relative; z-index: 1; }
+  .day-tip-icon { color: #b8a07a; font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
+  .day-tip p { font-size: 0.78rem; line-height: 1.7; color: #777; }
 
-  /* ===== CLOSING PAGE ===== */
-  .closing {
-    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: #f0ebe3;
-    padding: 50mm 30mm;
-  }
-  .closing h2 {
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 500;
-    font-size: 1.6rem;
-    letter-spacing: 0.08em;
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
-  .closing-line {
-    width: 50px;
-    height: 1px;
-    background: #b8a07a;
-    margin: 0 auto 28px;
-  }
-  .closing p {
-    font-size: 0.88rem;
-    line-height: 2;
-    color: #c8bfb0;
-    margin-bottom: 16px;
-    max-width: 400px;
-  }
-  .closing-cta {
-    margin-top: 36px;
-    background: rgba(184, 160, 122, 0.15);
-    border: 1px solid rgba(184, 160, 122, 0.3);
-    border-radius: 12px;
-    padding: 28px 32px;
-    max-width: 380px;
-  }
-  .closing-cta h3 {
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 500;
-    font-size: 1rem;
-    color: #f0ebe3;
-    margin-bottom: 12px;
-  }
-  .closing-cta p {
-    font-size: 0.8rem;
-    line-height: 1.8;
-    color: #a09888;
-    margin-bottom: 8px;
-  }
-  .closing-url {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    color: #b8a07a;
-    letter-spacing: 0.05em;
-    margin-top: 8px;
-  }
-  .closing-copyright {
-    position: absolute;
-    bottom: 30px;
-    font-size: 0.65rem;
-    color: #666;
-    letter-spacing: 0.1em;
-  }
+  /* CLOSING */
+  .closing { background: linear-gradient(160deg, #f0ebe3 0%, #e8e0d4 50%, #ddd5c8 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #3a3a3a; padding: 50mm 30mm; }
+  .closing h2 { font-family: 'Noto Serif JP', serif; font-weight: 500; font-size: 1.6rem; letter-spacing: 0.08em; line-height: 1.6; margin-bottom: 20px; }
+  .closing-line { width: 50px; height: 1px; background: #b8a07a; margin: 0 auto 28px; }
+  .closing p { font-size: 0.88rem; line-height: 2; color: #555; margin-bottom: 16px; max-width: 400px; }
+  .closing-cta { margin-top: 36px; background: rgba(184,160,122,0.12); border: 1px solid rgba(184,160,122,0.3); border-radius: 12px; padding: 28px 32px; max-width: 380px; }
+  .closing-cta h3 { font-family: 'Noto Serif JP', serif; font-weight: 500; font-size: 1rem; color: #3a3a3a; margin-bottom: 12px; }
+  .closing-cta p { font-size: 0.8rem; line-height: 1.8; color: #777; margin-bottom: 8px; }
+  .closing-url { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: #b8a07a; letter-spacing: 0.05em; margin-top: 8px; }
+  .closing-copyright { position: absolute; bottom: 30px; font-size: 0.65rem; color: #999; letter-spacing: 0.1em; }
 
-  /* ===== PRINT ===== */
-  @media print {
-    body { background: none; }
-    .page { margin: 0; box-shadow: none; }
-  }
-
-  /* ===== SCREEN PREVIEW ===== */
-  @media screen {
-    body { background: #e0ddd8; padding: 20px 0; }
-    .page { box-shadow: 0 4px 24px rgba(0,0,0,0.15); margin-bottom: 20px; }
-  }
+  @media print { body { background: none; } .page { margin: 0; box-shadow: none; } }
+  @media screen { body { background: #e0ddd8; padding: 20px 0; } .page { box-shadow: 0 4px 24px rgba(0,0,0,0.15); margin-bottom: 20px; } }
 </style>
 </head>
 <body>
 
-<!-- ========== COVER ========== -->
+<!-- COVER -->
 <div class="page cover">
-  <div class="cover-ornament-top"></div>
-  <div class="cover-icon">🪷</div>
-  <div class="cover-pretitle">FREE JOURNALING GUIDE</div>
-  <h1>5日間<br>内観ジャーナリング</h1>
-  <div class="cover-line"></div>
-  <div class="cover-subtitle">忙しい毎日の中で、自分と向き合う5つの問い</div>
-  <div style="margin-top: 48px;">
+  <svg class="line-art" style="bottom:40px;right:30px;width:180px;height:180px;opacity:0.15" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.8">
+    <path d="M100,180 C100,180 100,100 100,80 C100,60 85,40 70,40 C55,40 45,55 50,70 C55,85 70,85 75,75 M100,80 C100,60 115,40 130,40 C145,40 155,55 150,70 C145,85 130,85 125,75 M100,100 C90,110 70,120 55,115 M100,100 C110,110 130,120 145,115 M100,140 C95,135 80,130 70,135 M100,140 C105,135 120,130 130,135"/>
+  </svg>
+  <svg class="line-art" style="top:40px;left:30px;width:100px;height:100px;opacity:0.12" viewBox="0 0 100 100" fill="none" stroke="#b8a07a" stroke-width="0.6">
+    <path d="M20,80 Q30,30 80,20 M25,75 Q35,40 70,30 M15,70 Q25,45 60,40"/>
+  </svg>
+  <div class="cover-pretitle" style="position:relative;z-index:1">FREE JOURNALING GUIDE</div>
+  <svg style="width:60px;height:60px;margin-bottom:28px;position:relative;z-index:1" viewBox="0 0 100 100" fill="none" stroke="#b8a07a" stroke-width="1.2">
+    <path d="M50,85 C50,85 50,55 50,45 M50,45 C50,30 35,15 25,20 C15,25 15,40 25,45 C35,50 45,45 50,45 M50,45 C50,30 65,15 75,20 C85,25 85,40 75,45 C65,50 55,45 50,45 M50,55 C42,60 28,65 20,60 M50,55 C58,60 72,65 80,60 M35,25 C30,35 30,42 35,42 M65,25 C70,35 70,42 65,42" opacity="0.6"/>
+  </svg>
+  <h1 style="position:relative;z-index:1">5日間<br>内観ジャーナリング</h1>
+  <div class="cover-line" style="position:relative;z-index:1"></div>
+  <div class="cover-subtitle" style="position:relative;z-index:1">自分と静かに向き合う、5つの問い</div>
+  <div style="margin-top:48px;position:relative;z-index:1">
     <div class="cover-author">Nami Barden</div>
-    <div class="cover-author-title">意識学ビジネスコーチ</div>
+    <div class="cover-author-title">意識学コーチ</div>
   </div>
-  <div class="cover-ornament-bottom"></div>
 </div>
 
-<!-- ========== INTRO ========== -->
+<!-- INTRO -->
 <div class="page intro">
+  <svg class="line-art" style="bottom:30px;right:25px;width:160px;height:160px;opacity:0.1" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.7">
+    <path d="M160,180 C140,160 130,120 140,80 C150,40 170,30 180,40 M140,80 C130,70 110,75 105,90 C100,105 110,120 125,115 M140,120 C130,130 110,140 95,135 C80,130 78,115 88,108"/>
+  </svg>
   <div class="intro-header">
     <h2>はじめに</h2>
     <div class="intro-line"></div>
   </div>
-
   <p>このジャーナリングガイドを手にとっていただき、ありがとうございます。</p>
-
-  <p>ビジネスの世界では、常に「外側」に意識を向けることが求められます。売上、戦略、チーム、クライアント — 成果を出すために、私たちは外の世界に全エネルギーを注ぎます。</p>
-
-  <p>しかし、本当に持続的な成果を生み出すリーダーは、「内側」にも目を向けています。自分の感情、信念、パターンに気づき、意識的に選択する力。それが内観です。</p>
-
-  <p>この5日間のジャーナリングでは、毎日ひとつのテーマに沿って自分の内面を観察します。正解も不正解もありません。浮かんでくる言葉を、ただそのまま書いてください。</p>
-
+  <p>日々の暮らしの中で、私たちはつい「外側」に意識を向けがちです。仕事、人間関係、やるべきこと — 気がつくと、自分自身の内側に目を向ける時間がほとんどなくなっていることに気づきます。</p>
+  <p>でも、心の奥には、あなたが本当に感じていること、本当に望んでいることが静かに存在しています。それに気づくための時間が「内観」です。</p>
+  <p>この5日間のジャーナリングでは、毎日ひとつのテーマに沿って自分の内面をやさしく観察します。正解も不正解もありません。浮かんでくる言葉を、ただそのまま書いてみてください。</p>
   <div class="intro-how">
     <h3>使い方</h3>
     <ul>
@@ -391,269 +112,182 @@
       <li>書いた後は、深呼吸をひとつ。それだけで十分です</li>
     </ul>
   </div>
-
-  <p style="text-align: center; color: #999; font-size: 0.82rem; margin-top: 24px;">「意識が変われば、行動が変わる。行動が変われば、人生が変わる。」</p>
+  <p style="text-align:center;color:#999;font-size:0.82rem;margin-top:24px;">「意識が変われば、見える世界が変わる。見える世界が変われば、人生が変わる。」</p>
 </div>
 
-<!-- ========== DAY 1 ========== -->
+<!-- DAY 1 -->
 <div class="page day-page">
+  <svg class="line-art" style="bottom:20px;right:20px;width:200px;height:200px;opacity:0.08" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.8">
+    <circle cx="150" cy="150" r="30" /><circle cx="150" cy="150" r="20" /><circle cx="150" cy="150" r="10" />
+    <path d="M150,120 C155,105 165,95 175,93 M150,120 C135,110 125,100 122,90 M120,150 C105,145 95,135 93,125 M150,180 C145,195 135,205 125,207 M180,150 C195,155 205,165 207,175"/>
+  </svg>
   <div class="day-header">
     <div class="day-number">Day 1</div>
     <div class="day-title">今の自分に気づく</div>
     <div class="day-line"></div>
   </div>
-
-  <div class="day-intro">
-    まずは今、この瞬間の自分自身を観察することから始めます。<br>
-    普段忙しさの中で見過ごしている「今の状態」に、意識を向けてみましょう。
-  </div>
-
-  <div class="day-quote">
-    <p>「観察するだけで、すでに変化は始まっている。」</p>
-  </div>
-
+  <div class="day-intro">まずは今、この瞬間の自分自身を観察することから始めましょう。<br>普段の忙しさの中で見過ごしている「今の状態」に、そっと意識を向けてみてください。</div>
+  <div class="day-quote"><p>「観察するだけで、すでに変化は始まっている。」</p></div>
   <div class="prompts-label">Today's Prompts</div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>01</span> 今、心の中にどんな感情がありますか？名前をつけるなら何ですか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>02</span> 最近、頭の中で繰り返している「考え」はどんなことですか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>03</span> 身体はどんな感覚を感じていますか？緊張、軽さ、疲れ…どこに何を感じますか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
-  <div class="day-tip">
-    <div class="day-tip-icon">💡</div>
-    <p>ヒント：「良い・悪い」のジャッジをせずに、ただ観察してみてください。感情や思考を天気のように眺める感覚です。</p>
-  </div>
+  <div class="day-tip"><div class="day-tip-icon">✦</div><p>ヒント：「良い・悪い」のジャッジをせずに、ただ観察してみてください。感情や思考を空の雲のように眺める感覚です。</p></div>
 </div>
 
-<!-- ========== DAY 2 ========== -->
+<!-- DAY 2 -->
 <div class="page day-page">
+  <svg class="line-art" style="bottom:25px;left:20px;width:180px;height:180px;opacity:0.08" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.7">
+    <path d="M30,170 C40,140 50,100 45,70 C42,50 50,35 60,30 C70,25 80,30 80,45 C80,60 70,70 60,65"/>
+    <path d="M50,130 C60,125 75,130 80,145 C85,160 75,170 65,165"/>
+    <path d="M35,150 C25,140 20,125 28,115 C36,105 48,110 48,120"/>
+  </svg>
   <div class="day-header">
     <div class="day-number">Day 2</div>
     <div class="day-title">心の奥の声を聴く</div>
     <div class="day-line"></div>
   </div>
-
-  <div class="day-intro">
-    私たちの頭は常に忙しく思考しています。<br>
-    でもその奥に、もっと静かで確かな「本音」があります。今日はその声に耳を傾けます。
-  </div>
-
-  <div class="day-quote">
-    <p>「頭が語ることと、心が知っていることは、しばしば違う。」</p>
-  </div>
-
+  <div class="day-intro">私たちの頭は常に忙しく思考しています。<br>でもその奥に、もっと静かで確かな「本音」があります。今日はその声に耳を傾けましょう。</div>
+  <div class="day-quote"><p>「頭が語ることと、心が知っていることは、しばしば違う。」</p></div>
   <div class="prompts-label">Today's Prompts</div>
-
   <div class="prompt-block">
-    <div class="prompt-question"><span>01</span> 今の仕事や人生で「本当はこうしたい」と感じていることはありますか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="prompt-question"><span>01</span> 今の暮らしや人生で「本当はこうしたい」と感じていることはありますか？</div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>02</span> それを行動に移せていないとしたら、何がブレーキになっていますか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>03</span> もし誰にも評価されなくても、あなたが心からやりたいことは何ですか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
-  <div class="day-tip">
-    <div class="day-tip-icon">💡</div>
-    <p>ヒント：「〜すべき」「〜しなければ」という言葉が出てきたら、それは頭の声かもしれません。「〜したい」「〜が好き」という感覚に意識を向けてみてください。</p>
-  </div>
+  <div class="day-tip"><div class="day-tip-icon">✦</div><p>ヒント：「〜すべき」「〜しなければ」という言葉が浮かんだら、それは頭の声かもしれません。「〜したい」「〜が好き」という感覚に意識を向けてみてください。</p></div>
 </div>
 
-<!-- ========== DAY 3 ========== -->
+<!-- DAY 3 -->
 <div class="page day-page">
+  <svg class="line-art" style="bottom:20px;right:25px;width:190px;height:190px;opacity:0.08" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.7">
+    <path d="M180,180 C160,170 140,175 130,160 C120,145 130,130 145,130 C160,130 165,145 158,155"/>
+    <path d="M145,130 C145,110 155,90 170,85 C185,80 190,95 182,105 C174,115 160,112 155,100"/>
+    <path d="M130,160 C115,165 95,160 90,145 C85,130 95,120 108,125"/>
+  </svg>
   <div class="day-header">
     <div class="day-number">Day 3</div>
     <div class="day-title">手放すべきもの</div>
     <div class="day-line"></div>
   </div>
-
-  <div class="day-intro">
-    新しいものを受け取るためには、スペースが必要です。<br>
-    今日は、もう役目を終えた信念や習慣を見つめてみましょう。
-  </div>
-
-  <div class="day-quote">
-    <p>「握りしめているものを手放した時、もっと大きなものが入ってくる。」</p>
-  </div>
-
+  <div class="day-intro">新しいものを受け取るためには、スペースが必要です。<br>今日は、もう役目を終えた思い込みや習慣をやさしく見つめてみましょう。</div>
+  <div class="day-quote"><p>「握りしめているものを手放した時、もっと大きなものが入ってくる。」</p></div>
   <div class="prompts-label">Today's Prompts</div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>01</span> 「もうこれは自分に必要ない」と感じている考え方や習慣はありますか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>02</span> 恐れや不安から続けていることはありますか？それは何ですか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>03</span> もしそれを手放したら、どんな自分になれると思いますか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
-  <div class="day-tip">
-    <div class="day-tip-icon">💡</div>
-    <p>ヒント：手放すことは「失う」ことではありません。自分を守るために作った鎧を、もう安全だから外してもいいと自分に許可することです。</p>
-  </div>
+  <div class="day-tip"><div class="day-tip-icon">✦</div><p>ヒント：手放すことは「失う」ことではありません。自分を守るために作った鎧を、もう安全だから外してもいいと自分に許可してあげることです。</p></div>
 </div>
 
-<!-- ========== DAY 4 ========== -->
+<!-- DAY 4 -->
 <div class="page day-page">
+  <svg class="line-art" style="bottom:30px;left:25px;width:170px;height:170px;opacity:0.08" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.7">
+    <path d="M40,180 C45,160 40,140 50,120 C60,100 80,95 90,105 C100,115 90,130 78,128"/>
+    <path d="M50,120 C35,115 20,100 25,85 C30,70 45,68 50,80"/>
+    <path d="M40,155 C55,150 70,155 75,170 C80,185 68,192 58,185"/>
+    <path d="M70,105 C75,90 90,80 100,85 M55,165 C45,175 30,178 25,170"/>
+  </svg>
   <div class="day-header">
     <div class="day-number">Day 4</div>
     <div class="day-title">感謝と豊かさに目を向ける</div>
     <div class="day-line"></div>
   </div>
-
-  <div class="day-intro">
-    「足りない」に目を向けると不安が生まれ、「すでにある」に目を向けると安心が生まれます。<br>
-    今日は、あなたの人生にすでにある豊かさを感じてみましょう。
-  </div>
-
-  <div class="day-quote">
-    <p>「感謝は、今あるものの価値を最大にする魔法。」</p>
-  </div>
-
+  <div class="day-intro">「足りない」に目を向けると不安が生まれ、「すでにある」に目を向けると安心が生まれます。<br>今日は、あなたの人生にすでにある豊かさを感じてみましょう。</div>
+  <div class="day-quote"><p>「感謝は、今あるものの価値を最大にしてくれる。」</p></div>
   <div class="prompts-label">Today's Prompts</div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>01</span> 今の人生で、心から「ありがたい」と感じるものを3つ挙げてください。</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>02</span> 最近あなたを支えてくれた人は誰ですか？その人に何を伝えたいですか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
-    <div class="prompt-question"><span>03</span> 過去の困難な経験の中に、今振り返ると「あれがあったから今がある」と思えることはありますか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="prompt-question"><span>03</span> 過去のつらい経験の中に、今振り返ると「あれがあったから今がある」と思えることはありますか？</div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
-  <div class="day-tip">
-    <div class="day-tip-icon">💡</div>
-    <p>ヒント：感謝を書く時、頭で考えるだけでなく、胸のあたりに温かさを感じてみてください。その「感覚」が大切です。</p>
-  </div>
+  <div class="day-tip"><div class="day-tip-icon">✦</div><p>ヒント：感謝を書く時、頭で考えるだけでなく、胸のあたりに温かさを感じてみてください。その「感覚」が大切です。</p></div>
 </div>
 
-<!-- ========== DAY 5 ========== -->
+<!-- DAY 5 -->
 <div class="page day-page">
+  <svg class="line-art" style="bottom:25px;right:20px;width:200px;height:200px;opacity:0.08" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.7">
+    <path d="M140,190 C140,190 145,150 148,130 C150,110 145,90 155,75 C165,60 180,58 185,70 C190,82 178,90 168,85"/>
+    <path d="M148,130 C135,125 120,130 118,145 C116,160 128,168 138,160"/>
+    <path d="M155,100 C168,95 182,100 185,115 C188,130 175,138 165,130"/>
+    <path d="M148,160 C140,168 128,180 115,178 M155,75 C148,65 140,55 130,55"/>
+  </svg>
   <div class="day-header">
     <div class="day-number">Day 5</div>
     <div class="day-title">本来の自分に還る</div>
     <div class="day-line"></div>
   </div>
-
-  <div class="day-intro">
-    5日間の内観、お疲れさまでした。最終日は統合の日です。<br>
-    役職や肩書きを外した「本来の自分」に還り、これからの意図を設定しましょう。
-  </div>
-
-  <div class="day-quote">
-    <p>「あなたが本来の自分でいる時、周りの世界も変わり始める。」</p>
-  </div>
-
+  <div class="day-intro">5日間の内観、お疲れさまでした。最終日は統合の日です。<br>肩書きや役割を外した「本来の自分」に還り、これからの意図を静かに設定しましょう。</div>
+  <div class="day-quote"><p>「あなたが本来の自分でいる時、周りの世界も変わり始める。」</p></div>
   <div class="prompts-label">Today's Prompts</div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>01</span> この5日間で、自分について最も大きな気づきは何でしたか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>02</span> 「こんな自分でありたい」という理想の在り方を、自由に描いてください。</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
   <div class="prompt-block">
     <div class="prompt-question"><span>03</span> 明日から始められる、小さな一歩は何ですか？</div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
-    <div class="writing-lines"></div>
+    <div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div><div class="writing-lines"></div>
   </div>
-
-  <div class="day-tip">
-    <div class="day-tip-icon">💡</div>
-    <p>ヒント：内観は5日間で終わりではなく、ここからが始まりです。毎日5分でも、自分に問いかける時間を持ち続けてみてください。</p>
-  </div>
+  <div class="day-tip"><div class="day-tip-icon">✦</div><p>ヒント：内観は5日間で終わりではなく、ここからが始まりです。毎日5分でも、自分にやさしく問いかける時間を持ち続けてみてください。</p></div>
 </div>
 
-<!-- ========== CLOSING ========== -->
+<!-- CLOSING -->
 <div class="page closing">
-  <h2>5日間の内観を<br>終えたあなたへ</h2>
-  <div class="closing-line"></div>
-  <p>おめでとうございます。忙しい日々の中で、自分と向き合う時間を選んだあなたは、すでに変化の第一歩を踏み出しています。</p>
-  <p>ジャーナリングで見えてきた気づきは、これからの日々の中で少しずつ花開いていきます。</p>
-  <p>もっと深く自分を知りたい、意識から人生を変えていきたいと感じたら、ぜひつながってください。</p>
-
-  <div class="closing-cta">
+  <svg class="line-art" style="top:40px;right:30px;width:150px;height:150px;opacity:0.1" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.7">
+    <path d="M160,40 C150,60 135,70 120,65 C105,60 100,45 110,35 C120,25 135,30 135,42"/>
+    <path d="M120,65 C115,80 100,90 85,85 C70,80 68,65 78,58 C88,51 100,58 98,68"/>
+    <path d="M160,40 C170,55 175,75 165,85"/>
+  </svg>
+  <svg class="line-art" style="bottom:40px;left:30px;width:140px;height:140px;opacity:0.1" viewBox="0 0 200 200" fill="none" stroke="#b8a07a" stroke-width="0.7">
+    <path d="M30,160 C40,140 55,135 65,145 C75,155 68,170 55,168"/>
+    <path d="M40,140 C35,125 45,110 60,112 C75,114 78,130 68,135"/>
+    <path d="M60,160 C70,168 85,172 95,165"/>
+  </svg>
+  <h2 style="position:relative;z-index:1">5日間の内観を<br>終えたあなたへ</h2>
+  <div class="closing-line" style="position:relative;z-index:1"></div>
+  <p style="position:relative;z-index:1">おめでとうございます。忙しい日々の中で、自分と向き合う時間を選んだあなたは、すでに変化の第一歩を踏み出しています。</p>
+  <p style="position:relative;z-index:1">ジャーナリングで見えてきた気づきは、これからの日々の中で少しずつ花開いていきます。焦らず、自分のペースで歩んでいってください。</p>
+  <p style="position:relative;z-index:1">もっと深く自分を知りたい、意識から人生を変えていきたいと感じたら、ぜひつながってください。</p>
+  <div class="closing-cta" style="position:relative;z-index:1">
     <h3>さらに深く学びたい方へ</h3>
-    <p>無料の瞑想動画、意識学のヒント、最新情報をお届けしています。</p>
+    <p>無料の瞑想動画、心を整えるヒント、最新情報をお届けしています。</p>
     <div class="closing-url">namibarden.com</div>
   </div>
-
   <div class="closing-copyright">© 2026 Nami Barden. All rights reserved.</div>
 </div>
 
