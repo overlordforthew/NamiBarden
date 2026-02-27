@@ -2478,33 +2478,29 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     })
     .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
     .then(function(res) {
-      triggerDownload();
       if (res.ok) {
         statusEl.textContent = lang === 'ja' ? 'ダウンロードが始まります！' : 'Your download is starting!';
         statusEl.style.color = '#4a7';
+        var a = document.createElement('a');
+        a.href = '/gifts/5day-journal.pdf';
+        a.download = '5day-journal.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         emailInput.value = '';
       } else {
-        statusEl.textContent = lang === 'ja' ? 'ダウンロードが始まります！' : 'Your download is starting!';
-        statusEl.style.color = '#4a7';
+        statusEl.textContent = lang === 'ja' ? '送信に失敗しました。もう一度お試しください。' : 'Failed. Please try again.';
+        statusEl.style.color = '#c44';
       }
       btn.disabled = false;
       btn.style.opacity = '1';
     })
     .catch(function() {
-      triggerDownload();
-      statusEl.textContent = lang === 'ja' ? 'ダウンロードが始まります！' : 'Your download is starting!';
-      statusEl.style.color = '#4a7';
+      statusEl.textContent = lang === 'ja' ? '送信に失敗しました。もう一度お試しください。' : 'Failed. Please try again.';
+      statusEl.style.color = '#c44';
       btn.disabled = false;
       btn.style.opacity = '1';
     });
-    function triggerDownload() {
-      var a = document.createElement('a');
-      a.href = '/gifts/5day-journal.pdf';
-      a.download = '5day-journal.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
   });
 })();
 </script>
