@@ -11,8 +11,6 @@
   body { font-family: 'Noto Sans JP', sans-serif; font-weight: 300; color: #2c2c2c; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 0; page-break-after: always; position: relative; overflow: hidden; }
   .page:last-child { page-break-after: auto; }
-  .line-art { position: absolute; pointer-events: none; z-index: 0; }
-
   /* COVER */
   .cover { background: linear-gradient(160deg, #faf8f5 0%, #f0ebe3 50%, #e8e0d4 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #2c2c2c; }
   .cover-pretitle { font-weight: 300; font-size: 0.8rem; letter-spacing: 0.4em; color: #b8a07a; margin-bottom: 24px; }
@@ -71,20 +69,6 @@
 
 <!-- COVER -->
 <div class="page cover">
-  <!-- Bottom-right: large flowing branch with leaves -->
-  <svg class="line-art" style="bottom:30px;right:20px;width:320px;height:400px" viewBox="0 0 320 400" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M300,380 C280,340 260,280 250,230 C240,180 245,130 260,90 C270,60 285,40 295,25" opacity="0.8"/>
-    <path d="M250,230 C230,225 210,235 200,255 C190,275 200,295 220,290" opacity="0.65" />
-    <path d="M260,170 C275,160 295,165 300,185 C305,205 290,215 275,205" opacity="0.65" />
-    <path d="M255,300 C240,310 220,315 205,305 C190,295 192,275 205,272" opacity="0.6" />
-    <path d="M265,120 C250,110 235,115 230,130 C225,145 235,155 248,148" opacity="0.6" />
-  </svg>
-  <!-- Top-left: delicate small branch -->
-  <svg class="line-art" style="top:35px;left:25px;width:200px;height:200px" viewBox="0 0 200 200" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M10,180 C30,140 60,100 100,70 C130,48 160,35 185,28" opacity="0.65"/>
-    <path d="M60,130 C50,115 55,98 70,95 C85,92 90,105 82,115" opacity="0.6"/>
-    <path d="M110,65 C120,50 138,48 145,60 C152,72 142,82 130,76" opacity="0.6"/>
-  </svg>
   <div class="cover-pretitle" style="position:relative;z-index:1">FREE JOURNALING GUIDE</div>
   <div style="height:28px"></div>
   <h1 style="position:relative;z-index:1">5日間<br>内観ジャーナリング</h1>
@@ -98,12 +82,6 @@
 
 <!-- INTRO -->
 <div class="page intro">
-  <svg class="line-art" style="bottom:25px;right:20px;width:250px;height:300px" viewBox="0 0 250 300" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M230,280 C215,250 200,200 205,150 C210,100 225,70 235,45" opacity="0.8"/>
-    <path d="M205,150 C190,145 172,155 170,175 C168,195 180,205 195,195" opacity="0.65"/>
-    <path d="M215,100 C228,90 242,98 240,115 C238,132 222,135 218,120" opacity="0.6"/>
-    <path d="M210,220 C195,228 178,222 175,208 C172,194 185,185 195,192" opacity="0.6"/>
-  </svg>
   <div class="intro-header">
     <h2>はじめに</h2>
     <div class="intro-line"></div>
@@ -126,14 +104,6 @@
 
 <!-- DAY 1 -->
 <div class="page day-page">
-  <!-- Day 1: Single flower bloom -->
-  <svg class="line-art" style="bottom:25px;right:20px;width:240px;height:280px" viewBox="0 0 240 280" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M200,260 C195,220 185,170 180,140 C175,110 178,80 190,55" opacity="0.8"/>
-    <path d="M190,55 C180,42 165,38 155,48 C145,58 150,75 163,72" opacity="0.65"/>
-    <path d="M190,55 C200,42 215,40 220,52 C225,64 215,76 203,70" opacity="0.65"/>
-    <path d="M180,140 C165,135 150,142 148,158 C146,174 160,180 170,172" opacity="0.6"/>
-    <path d="M185,200 C175,210 160,212 152,200 C144,188 155,178 163,185" opacity="0.6"/>
-  </svg>
   <div class="day-header">
     <div class="day-number">Day 1</div>
     <div class="day-title">今の自分に気づく</div>
@@ -159,14 +129,6 @@
 
 <!-- DAY 2 -->
 <div class="page day-page">
-  <!-- Day 2: Leaves on left side -->
-  <svg class="line-art" style="bottom:30px;left:15px;width:220px;height:320px" viewBox="0 0 220 320" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M30,300 C35,260 40,200 35,150 C30,100 35,60 50,30" opacity="0.8"/>
-    <path d="M35,150 C20,140 8,148 10,165 C12,182 28,185 32,170" opacity="0.65"/>
-    <path d="M40,100 C55,92 68,100 65,118 C62,136 48,138 42,122" opacity="0.65"/>
-    <path d="M33,220 C18,215 8,225 12,242 C16,259 32,258 34,242" opacity="0.6"/>
-    <path d="M42,70 C30,60 18,65 18,80 C18,95 30,98 36,86" opacity="0.6"/>
-  </svg>
   <div class="day-header">
     <div class="day-number">Day 2</div>
     <div class="day-title">心の奥の声を聴く</div>
@@ -192,14 +154,6 @@
 
 <!-- DAY 3 -->
 <div class="page day-page">
-  <!-- Day 3: Curving vine with small flowers -->
-  <svg class="line-art" style="bottom:20px;right:15px;width:260px;height:300px" viewBox="0 0 260 300" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M240,280 C220,240 200,180 210,130 C220,80 240,50 250,25" opacity="0.8"/>
-    <path d="M210,130 C195,120 178,128 176,148 C174,168 190,175 200,162" opacity="0.65"/>
-    <path d="M225,70 C238,58 252,62 252,80 C252,98 238,100 230,88" opacity="0.65"/>
-    <path d="M220,200 C205,195 192,205 195,222 C198,239 215,238 218,222" opacity="0.6"/>
-    <circle cx="210" cy="130" r="3" opacity="0.45"/><circle cx="225" cy="70" r="3" opacity="0.45"/><circle cx="220" cy="200" r="3" opacity="0.45"/>
-  </svg>
   <div class="day-header">
     <div class="day-number">Day 3</div>
     <div class="day-title">手放すべきもの</div>
@@ -225,14 +179,6 @@
 
 <!-- DAY 4 -->
 <div class="page day-page">
-  <!-- Day 4: Gentle fern fronds on left -->
-  <svg class="line-art" style="bottom:25px;left:15px;width:230px;height:300px" viewBox="0 0 230 300" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M25,280 C30,240 38,180 35,130 C32,80 40,45 55,20" opacity="0.8"/>
-    <path d="M35,130 C48,122 62,130 58,148 C54,166 38,165 35,148" opacity="0.65"/>
-    <path d="M38,80 C22,72 12,80 15,98 C18,116 34,115 36,98" opacity="0.65"/>
-    <path d="M30,195 C45,188 58,198 52,215 C46,232 30,228 28,212" opacity="0.6"/>
-    <path d="M48,48 C38,38 25,42 26,58 C27,74 40,75 44,62" opacity="0.6"/>
-  </svg>
   <div class="day-header">
     <div class="day-number">Day 4</div>
     <div class="day-title">感謝と豊かさに目を向ける</div>
@@ -258,15 +204,6 @@
 
 <!-- DAY 5 -->
 <div class="page day-page">
-  <!-- Day 5: Flowering branch -->
-  <svg class="line-art" style="bottom:20px;right:15px;width:260px;height:320px" viewBox="0 0 260 320" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M230,300 C225,260 215,200 218,150 C221,100 230,60 245,30" opacity="0.8"/>
-    <path d="M218,150 C202,142 188,152 190,170 C192,188 208,190 214,175" opacity="0.65"/>
-    <path d="M225,90 C238,78 252,85 250,102 C248,119 232,120 228,105" opacity="0.65"/>
-    <path d="M222,220 C208,225 195,215 198,198 C201,181 218,180 220,198" opacity="0.6"/>
-    <path d="M240,50 C230,38 218,42 218,58 C218,74 232,76 238,62" opacity="0.6"/>
-    <circle cx="245" cy="30" r="5" opacity="0.4"/><circle cx="245" cy="30" r="9" opacity="0.3"/>
-  </svg>
   <div class="day-header">
     <div class="day-number">Day 5</div>
     <div class="day-title">本来の自分に還る</div>
@@ -292,19 +229,6 @@
 
 <!-- CLOSING -->
 <div class="page closing">
-  <!-- Top-right: cascading leaves -->
-  <svg class="line-art" style="top:30px;right:20px;width:220px;height:260px" viewBox="0 0 220 260" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M200,240 C190,200 180,150 185,100 C190,60 200,35 210,15" opacity="0.8"/>
-    <path d="M185,100 C170,92 155,100 158,118 C161,136 178,138 182,120" opacity="0.65"/>
-    <path d="M195,55 C205,42 218,48 215,65 C212,82 198,80 196,65" opacity="0.65"/>
-    <path d="M188,170 C175,178 160,172 162,155 C164,138 180,135 184,152" opacity="0.6"/>
-  </svg>
-  <!-- Bottom-left: small branch -->
-  <svg class="line-art" style="bottom:30px;left:20px;width:200px;height:220px" viewBox="0 0 200 220" fill="none" stroke="#5e7a52" stroke-width="2" stroke-linecap="round">
-    <path d="M20,200 C25,170 35,120 40,80 C45,50 55,30 70,15" opacity="0.8"/>
-    <path d="M40,80 C28,72 18,80 20,95 C22,110 35,112 38,98" opacity="0.65"/>
-    <path d="M45,140 C58,135 68,145 62,160 C56,175 42,172 42,158" opacity="0.6"/>
-  </svg>
   <h2 style="position:relative;z-index:1">5日間の内観を<br>終えたあなたへ</h2>
   <div class="closing-line" style="position:relative;z-index:1"></div>
   <p style="position:relative;z-index:1">おめでとうございます。忙しい日々の中で、自分と向き合う時間を選んだあなたは、すでに変化の第一歩を踏み出しています。</p>
