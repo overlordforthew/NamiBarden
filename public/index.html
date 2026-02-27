@@ -684,40 +684,29 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 
 .courses-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 40px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
 }
 
 .course-card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   background: var(--white);
   border-radius: 24px;
   overflow: hidden;
   transition: var(--transition);
 }
 
+.course-card .course-image { position: relative; overflow: hidden; }
+.course-card .course-image img { width: 100%; height: 220px; object-fit: cover; display: block; }
+.course-card .course-content { padding: 28px 24px; display: flex; flex-direction: column; flex: 1; }
+.course-card .course-content h3 { font-size: 1.05rem; line-height: 1.5; margin-bottom: 12px; }
+.course-card .course-content p:not(.section-label) { font-size: 0.92rem; line-height: 1.7; color: var(--text-light); flex: 1; }
+.course-card .course-content .btn { margin-top: 20px; align-self: flex-start; }
+
 .course-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(44,36,25,0.08); }
 
-.course-image {
-  aspect-ratio: 1;
-  background: var(--cream-dark);
-  overflow: hidden;
-}
-
-.course-image img { width: 100%; height: 100%; object-fit: cover; }
-
-.course-content {
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
 .course-content .section-label { font-size: 0.65rem; margin-bottom: 8px; }
-.course-content h3 { margin-bottom: 12px; font-size: 1.2rem; }
-.course-content p { font-size: 0.9rem; color: var(--text-light); margin-bottom: 20px; line-height: 1.7; }
-.course-content .btn { align-self: center; }
 
 /* ========== BOOKS ========== */
 .books {
@@ -1228,8 +1217,8 @@ footer {
   .about-images { max-width: 500px; margin: 0 auto; }
   .timeline-grid { grid-template-columns: repeat(2, 1fr); }
   .services-grid { grid-template-columns: repeat(2, 1fr); }
-  .courses-grid { grid-template-columns: 1fr; }
-  .course-card { grid-template-columns: 1fr 1.2fr; }
+  .courses-grid { grid-template-columns: repeat(2, 1fr); }
+  .course-card .course-image img { height: 180px; }
   .books .container { grid-template-columns: 1fr; text-align: center; }
   .books-content { margin: 0 auto; }
   .books-showcase { margin-top: 40px; }
@@ -1252,7 +1241,7 @@ footer {
 
   .services-grid, .testimonials-grid, .media-grid { grid-template-columns: 1fr; }
   .courses-grid { grid-template-columns: 1fr; }
-  .course-card { grid-template-columns: 1fr; }
+  .course-card .course-image img { height: 200px; }
   .course-stats { gap: 24px; }
   .course-stat .stat-number { font-size: 1.4rem; }
   .form-row { grid-template-columns: 1fr; }
@@ -1733,24 +1722,35 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <div class="courses-grid" data-lang="ja">
       <div class="course-card" data-lang="ja">
         <div class="course-image">
-          <img src="/images/nami-journal.jpg?v=20260225" alt="心の授業コース" loading="lazy">
+          <img src="/images/course-partnership.jpg?v=20260227" alt="恋愛・結婚・富をマスターする心の授業" loading="lazy">
         </div>
         <div class="course-content">
           <p class="section-label">人気講座</p>
-          <h3>世界中の億万長者がたどりつく「心の授業」</h3>
-          <p>心のモヤモヤを解消し、本来の自分を取り戻す秘訣を学ぶ講座です。</p>
+          <h3>恋愛・結婚・富をマスターする心の授業</h3>
+          <p>理想のパートナーとの出会い方、結婚生活の充実法、心のつながりの深め方を学ぶ講座。恋愛・結婚で生まれるモヤモヤを解消し、幸せな関係を築く知恵をお伝えします。</p>
           <a href="https://www.udemy.com/course/namibarden/?referralCode=B23EEA5A0D882BC16D58" class="btn" target="_blank" rel="noopener"><span>講座を見る</span></a>
         </div>
       </div>
       <div class="course-card" data-lang="ja">
         <div class="course-image">
-          <img src="/images/course-partnership.jpg?v=20260225" alt="恋愛・結婚・富をマスターする心の授業" loading="lazy">
+          <img src="/images/course-meditation.jpg?v=20260227" alt="マインドフルネス瞑想チャレンジ" loading="lazy">
         </div>
         <div class="course-content">
-          <p class="section-label">新講座</p>
-          <h3>恋愛・結婚・富をマスターする心の授業</h3>
-          <p>パートナーシップと豊かさを引き寄せるための心の磨き方を学びます。</p>
-          <a href="https://www.udemy.com/course/namibarden/?referralCode=B23EEA5A0D882BC16D58" class="btn" target="_blank" rel="noopener"><span>講座を見る</span></a>
+          <p class="section-label">瞑想</p>
+          <h3>2週間で心を整えるマインドフルネス瞑想チャレンジ</h3>
+          <p>2週間のガイド付き瞑想プログラムで心を整え、内なる静けさを取り戻す。忙しい日常の中でも実践できるマインドフルネス瞑想チャレンジです。</p>
+          <a href="#" class="btn" target="_blank" rel="noopener"><span>講座を見る</span></a>
+        </div>
+      </div>
+      <div class="course-card" data-lang="ja">
+        <div class="course-image">
+          <img src="/images/course-beautifulstate.jpg?v=20260227" alt="4つのステップ マスタークラス" loading="lazy">
+        </div>
+        <div class="course-content">
+          <p class="section-label">入門</p>
+          <h3>「4つのステップ」マスタークラス</h3>
+          <p>心のモヤモヤやイライラを「4つのステップ」で解消。全12セッション・150分以上の実践型講座。瞑想とワークを通じて、飛躍する人生への第一歩を踏み出しましょう。</p>
+          <a href="#" class="btn" target="_blank" rel="noopener"><span>講座を見る</span></a>
         </div>
       </div>
     </div>
@@ -1758,24 +1758,35 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     <div class="courses-grid" data-lang="en">
       <div class="course-card" data-lang="en">
         <div class="course-image">
-          <img src="/images/nami-journal.jpg?v=20260225" alt="Lessons of the Heart course" loading="lazy">
+          <img src="/images/course-partnership.jpg?v=20260227" alt="Mastering Love, Marriage & Wealth" loading="lazy">
         </div>
         <div class="course-content">
           <p class="section-label">Popular</p>
-          <h3>Lessons of the Heart — What the World's Billionaires Discover</h3>
-          <p>Learn the secrets to clearing your mind and regaining your true self.</p>
+          <h3>Mastering Love, Marriage & Wealth</h3>
+          <p>Discover the secrets to finding your ideal partner, enriching your marriage, and deepening your heart connection — through the wisdom of "Lessons of the Heart."</p>
           <a href="https://www.udemy.com/course/namibarden/?referralCode=B23EEA5A0D882BC16D58" class="btn" target="_blank" rel="noopener"><span>View Course</span></a>
         </div>
       </div>
       <div class="course-card" data-lang="en">
         <div class="course-image">
-          <img src="/images/course-partnership.jpg?v=20260225" alt="Love, Marriage & Wealth course" loading="lazy">
+          <img src="/images/course-meditation.jpg?v=20260227" alt="Mindfulness Meditation Challenge" loading="lazy">
         </div>
         <div class="course-content">
-          <p class="section-label">New</p>
-          <h3>Mastering Love, Marriage & Wealth — Lessons of the Heart</h3>
-          <p>Learn how to attract partnership and abundance by polishing your mind.</p>
-          <a href="https://www.udemy.com/course/namibarden/?referralCode=B23EEA5A0D882BC16D58" class="btn" target="_blank" rel="noopener"><span>View Course</span></a>
+          <p class="section-label">Meditation</p>
+          <h3>2-Week Mindfulness Meditation Challenge</h3>
+          <p>A guided meditation program to calm your mind and restore inner peace. A practical mindfulness challenge you can do even in a busy daily life.</p>
+          <a href="#" class="btn" target="_blank" rel="noopener"><span>View Course</span></a>
+        </div>
+      </div>
+      <div class="course-card" data-lang="en">
+        <div class="course-image">
+          <img src="/images/course-beautifulstate.jpg?v=20260227" alt="4 Steps Masterclass" loading="lazy">
+        </div>
+        <div class="course-content">
+          <p class="section-label">Beginner</p>
+          <h3>The "4 Steps" Masterclass</h3>
+          <p>Clear away stress and frustration with 4 simple steps. 12 sessions, 150+ minutes of guided meditation and exercises to transform your life.</p>
+          <a href="#" class="btn" target="_blank" rel="noopener"><span>View Course</span></a>
         </div>
       </div>
     </div>
