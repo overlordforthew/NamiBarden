@@ -598,6 +598,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
   transition: var(--transition);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .service-card::before {
@@ -622,7 +623,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 .service-card--featured h3 { color: var(--gold-dark); font-size: 1.25rem; }
 .service-card--featured .service-icon svg { color: var(--gold-dark); width: 44px; height: 44px; }
 @media (max-width: 768px) { .service-card--featured { grid-column: span 1; } }
-.service-card--featured .service-link::after {
+.service-card .service-link::after {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
