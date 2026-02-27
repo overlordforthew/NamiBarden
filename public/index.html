@@ -652,7 +652,35 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 .courses .container > .section-label,
 .courses .container > .section-title { text-align: center; margin-left: auto; margin-right: auto; }
 
-.courses .section-subtitle { text-align: center; margin: 0 auto 60px; }
+.courses .section-subtitle { text-align: center; margin: 0 auto 40px; }
+
+.course-stats {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin-bottom: 48px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(44,36,25,0.08);
+  border-bottom: 1px solid rgba(44,36,25,0.08);
+}
+.course-stat {
+  text-align: center;
+}
+.course-stat .stat-number {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  color: var(--gold-dark);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.course-stat .stat-number .star {
+  color: #f4b400;
+}
+.course-stat .stat-label {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 4px;
+}
 
 .courses-grid {
   display: grid;
@@ -1225,6 +1253,8 @@ footer {
   .services-grid, .testimonials-grid, .media-grid { grid-template-columns: 1fr; }
   .courses-grid { grid-template-columns: 1fr; }
   .course-card { grid-template-columns: 1fr; }
+  .course-stats { gap: 24px; }
+  .course-stat .stat-number { font-size: 1.4rem; }
   .form-row { grid-template-columns: 1fr; }
 
   .about-stats { grid-template-columns: repeat(2, 1fr); gap: 16px; }
@@ -1681,6 +1711,24 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
 
     <p class="section-subtitle" data-lang="ja">Udemyで配信中のオンライン講座で、いつでもどこでも心の成長を</p>
     <p class="section-subtitle" data-lang="en">Grow your mind anytime, anywhere with our Udemy courses</p>
+
+    <div class="course-stats">
+      <div class="course-stat">
+        <div class="stat-number">7,474</div>
+        <p class="stat-label" data-lang="ja">受講者数</p>
+        <p class="stat-label" data-lang="en">Students</p>
+      </div>
+      <div class="course-stat">
+        <div class="stat-number"><span class="star">&#9733;</span> 4.4</div>
+        <p class="stat-label" data-lang="ja">平均評価</p>
+        <p class="stat-label" data-lang="en">Avg. Rating</p>
+      </div>
+      <div class="course-stat">
+        <div class="stat-number">1,999</div>
+        <p class="stat-label" data-lang="ja">レビュー数</p>
+        <p class="stat-label" data-lang="en">Reviews</p>
+      </div>
+    </div>
 
     <div class="courses-grid" data-lang="ja">
       <div class="course-card" data-lang="ja">
