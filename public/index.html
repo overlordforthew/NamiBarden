@@ -1282,6 +1282,109 @@ html[lang="en"] div[data-lang="en"].service-card,
 html[lang="en"] div[data-lang="en"].testimonial-card { display: block; }
 
 html[lang="en"] div[data-lang="en"].media-item { display: block; }
+
+/* ========== THANK YOU MODAL ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,25,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay.active { display: flex; opacity: 1; }
+
+.modal-box {
+  background: var(--cream);
+  border-radius: 24px;
+  max-width: 440px;
+  width: 100%;
+  padding: 48px 36px 36px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(44,36,25,0.15);
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-light);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+.modal-close:hover { background: rgba(44,36,25,0.06); color: var(--text-dark); }
+
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+.modal-icon svg { width: 32px; height: 32px; color: white; }
+
+.modal-box h3 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.modal-box p {
+  color: var(--text-light);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.modal-yt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #FF0000;
+  color: white;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+}
+.modal-yt-btn:hover { background: #cc0000; transform: translateY(-2px); }
+.modal-yt-btn svg { width: 22px; height: 22px; fill: white; }
+
+.modal-skip {
+  display: block;
+  margin-top: 14px;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.modal-skip:hover { color: var(--text-dark); }
 </style>
 </head>
 
@@ -2087,8 +2190,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
     .then(function(res) {
       if (res.ok) {
-        showStatus(lang === 'ja' ? '送信しました！ありがとうございます。' : 'Message sent! Thank you.', 'success');
         form.reset();
+        openModal();
       } else {
         showStatus(res.data.error || (lang === 'ja' ? '送信に失敗しました' : 'Failed to send'), 'error');
       }
@@ -2109,6 +2212,44 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     if (type === 'success') setTimeout(function() { el.style.display = 'none'; }, 5000);
   }
 })();
+</script>
+
+<!-- Thank You Modal -->
+<div class="modal-overlay" id="thankYouModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <h3 data-lang="ja">ありがとうございます！</h3>
+    <h3 data-lang="en">Thank you!</h3>
+    <p data-lang="ja">メッセージを受け取りました。できるだけ早くご返信いたします。<br>よろしければ、YouTubeチャンネルもぜひご覧ください。</p>
+    <p data-lang="en">Your message has been received. I'll get back to you soon!<br>In the meantime, check out my YouTube channel.</p>
+    <a href="https://www.youtube.com/@namibarden?sub_confirmation=1" target="_blank" rel="noopener" class="modal-yt-btn">
+      <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      <span data-lang="ja">YouTubeをチェック</span>
+      <span data-lang="en">Subscribe on YouTube</span>
+    </a>
+    <button class="modal-skip" onclick="closeModal()">
+      <span data-lang="ja">閉じる</span>
+      <span data-lang="en">Close</span>
+    </button>
+  </div>
+</div>
+<script>
+function openModal() {
+  var m = document.getElementById('thankYouModal');
+  m.style.display = 'flex';
+  setTimeout(function() { m.classList.add('active'); }, 10);
+}
+function closeModal() {
+  var m = document.getElementById('thankYouModal');
+  m.classList.remove('active');
+  setTimeout(function() { m.style.display = 'none'; }, 300);
+}
+document.getElementById('thankYouModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 </script>
 
 </body>
