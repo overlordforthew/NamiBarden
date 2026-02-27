@@ -2178,6 +2178,10 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       showStatus(lang === 'ja' ? '全ての必須項目を入力してください' : 'Please fill in all required fields', 'error');
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      showStatus(lang === 'ja' ? '正しいメールアドレスを入力してください' : 'Please enter a valid email address', 'error');
+      return;
+    }
     var btn = document.getElementById('contactSubmitBtn');
     btn.disabled = true;
     btn.style.opacity = '0.6';
@@ -2194,7 +2198,15 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         document.getElementById('contactStatus').style.display = 'none';
         openModal();
       } else {
-        showStatus(res.data.error || (lang === 'ja' ? '送信に失敗しました' : 'Failed to send'), 'error');
+        var errMsg = res.data.error || '';
+        if (lang === 'ja') {
+          if (/email/i.test(errMsg)) errMsg = '正しいメールアドレスを入力してください';
+          else if (/too many|rate/i.test(errMsg)) errMsg = '送信回数が多すぎます。しばらくしてからお試しください';
+          else errMsg = errMsg || '送信に失敗しました';
+        } else {
+          errMsg = errMsg || 'Failed to send';
+        }
+        showStatus(errMsg, 'error');
       }
       btn.disabled = false;
       btn.style.opacity = '1';
