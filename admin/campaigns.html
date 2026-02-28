@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campaigns — Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <div class="sidebar-logout">
+      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1 id="pageTitle">Campaigns</h1>
+      <a href="/admin/compose.html" class="btn btn-primary">New Campaign</a>
+    </div>
+
+    <!-- Campaign List View -->
+    <div id="listView">
+      <div class="card">
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Segment</th>
+                <th>Sent</th>
+                <th>Opens</th>
+                <th>Clicks</th>
+                <th>Bounced</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="campaignsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campaign Detail View -->
+    <div id="detailView" style="display:none;">
+      <button class="btn" onclick="showList()" style="margin-bottom:16px">&larr; Back to list</button>
+
+      <div class="stat-grid" id="detailStats"></div>
+
+      <div class="card">
+        <div class="card-header"><h3>Recipients</h3></div>
+        <div class="card-body" style="padding:0; overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Opened</th>
+                <th>Clicked</th>
+              </tr>
+            </thead>
+            <tbody id="recipientsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    // Check if viewing specific campaign
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) {
+      loadCampaignDetail(params.get('id'));
+    } else {
+      loadCampaigns();
+    }
+
+    async function loadCampaigns() {
+      try {
+        const data = await api('/campaigns');
+        const tb = document.getElementById('campaignsTable');
+        if (data.campaigns.length === 0) {
+          tb.innerHTML = '<tr><td colspan="9" class="empty">No campaigns yet. <a href="/admin/compose.html" style="color:var(--gold-dark)">Create one</a></td></tr>';
+          return;
+        }
+        tb.innerHTML = data.campaigns.map(c => {
+          const openRate = c.sent_count > 0 ? Math.round(c.open_count / c.sent_count * 100) : 0;
+          const clickRate = c.sent_count > 0 ? Math.round(c.click_count / c.sent_count * 100) : 0;
+          return `<tr>
+            <td><a href="?id=${c.id}" style="color:var(--gold-dark)">${escapeHtml(c.subject)}</a></td>
+            <td>${statusBadge(c.status)}</td>
+            <td>${escapeHtml(c.segment || 'all')}</td>
+            <td>${c.sent_count}/${c.total_count}</td>
+            <td>${c.open_count} (${openRate}%)</td>
+            <td>${c.click_count} (${clickRate}%)</td>
+            <td>${c.bounce_count}</td>
+            <td>${formatDate(c.sent_at || c.created_at)}</td>
+            <td>${c.status === 'draft' ? `<a href="/admin/compose.html?id=${c.id}" class="btn btn-sm">Edit</a>` : ''}</td>
+          </tr>`;
+        }).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function loadCampaignDetail(id) {
+      document.getElementById('listView').style.display = 'none';
+      document.getElementById('detailView').style.display = 'block';
+      try {
+        const data = await api(`/campaigns/${id}`);
+        const c = data.campaign;
+        document.getElementById('pageTitle').textContent = c.subject;
+
+        const openRate = c.sent_count > 0 ? Math.round(c.open_count / c.sent_count * 100) : 0;
+        const clickRate = c.sent_count > 0 ? Math.round(c.click_count / c.sent_count * 100) : 0;
+
+        document.getElementById('detailStats').innerHTML = `
+          <div class="stat-card"><div class="label">Status</div><div class="value">${statusBadge(c.status)}</div></div>
+          <div class="stat-card"><div class="label">Sent</div><div class="value">${c.sent_count}/${c.total_count}</div></div>
+          <div class="stat-card"><div class="label">Open Rate</div><div class="value gold">${openRate}%</div></div>
+          <div class="stat-card"><div class="label">Click Rate</div><div class="value">${clickRate}%</div></div>
+          <div class="stat-card"><div class="label">Bounced</div><div class="value">${c.bounce_count}</div></div>
+          <div class="stat-card"><div class="label">Unsubscribed</div><div class="value">${c.unsub_count}</div></div>
+        `;
+
+        const rt = document.getElementById('recipientsTable');
+        if (data.recipients.length === 0) {
+          rt.innerHTML = '<tr><td colspan="4" class="empty">No recipients yet</td></tr>';
+        } else {
+          rt.innerHTML = data.recipients.map(r => `<tr>
+            <td>${escapeHtml(r.email)}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${formatDateTime(r.opened_at)}</td>
+            <td>${formatDateTime(r.clicked_at)}</td>
+          </tr>`).join('');
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function showList() {
+      window.history.pushState({}, '', '/admin/campaigns.html');
+      document.getElementById('listView').style.display = 'block';
+      document.getElementById('detailView').style.display = 'none';
+      document.getElementById('pageTitle').textContent = 'Campaigns';
+      loadCampaigns();
+    }
+  </script>
+</body>
+</html>

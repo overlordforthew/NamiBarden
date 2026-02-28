@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <div class="sidebar-logout">
+      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+    </div>
+
+    <div class="stat-grid" id="statsGrid">
+      <div class="stat-card"><div class="label">Active Subscribers</div><div class="value gold" id="statActive">—</div></div>
+      <div class="stat-card"><div class="label">Total Contacts</div><div class="value" id="statContacts">—</div></div>
+      <div class="stat-card"><div class="label">Campaigns Sent</div><div class="value" id="statCampaigns">—</div></div>
+      <div class="stat-card"><div class="label">Total Opens</div><div class="value" id="statOpens">—</div></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:2fr 1fr; gap:24px;">
+      <div class="card">
+        <div class="card-header"><h3>Subscriber Growth (30 days)</h3></div>
+        <div class="card-body">
+          <div class="chart-container" id="growthChart"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Sources</h3></div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Source</th><th>Count</th></tr></thead>
+            <tbody id="sourcesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Recent Campaigns</h3></div>
+      <div class="card-body">
+        <table>
+          <thead><tr><th>Subject</th><th>Status</th><th>Sent</th><th>Opens</th><th>Clicks</th><th>Date</th></tr></thead>
+          <tbody id="campaignsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    (async function() {
+      try {
+        const data = await api('/stats');
+        document.getElementById('statActive').textContent = data.subscribers.active;
+        document.getElementById('statContacts').textContent = data.contacts.total;
+        document.getElementById('statCampaigns').textContent = data.campaigns.sent;
+        document.getElementById('statOpens').textContent = data.campaigns.total_opens;
+
+        // Growth chart
+        const chart = document.getElementById('growthChart');
+        if (data.growth.length > 0) {
+          const max = Math.max(...data.growth.map(g => parseInt(g.count)), 1);
+          data.growth.forEach(g => {
+            const bar = document.createElement('div');
+            bar.className = 'chart-bar';
+            bar.style.height = (parseInt(g.count) / max * 100) + '%';
+            bar.setAttribute('data-tooltip', `${g.date.slice(5)}: ${g.count}`);
+            chart.appendChild(bar);
+          });
+        } else {
+          chart.innerHTML = '<div class="empty" style="width:100%"><p>No data yet</p></div>';
+        }
+
+        // Sources
+        const st = document.getElementById('sourcesTable');
+        if (data.sources.length > 0) {
+          st.innerHTML = data.sources.map(s => `<tr><td>${escapeHtml(s.source)}</td><td>${s.count}</td></tr>`).join('');
+        } else {
+          st.innerHTML = '<tr><td colspan="2" style="text-align:center; color:var(--text-light)">No subscribers yet</td></tr>';
+        }
+
+        // Recent campaigns
+        const ct = document.getElementById('campaignsTable');
+        if (data.recentCampaigns.length > 0) {
+          ct.innerHTML = data.recentCampaigns.map(c => `<tr>
+            <td><a href="/admin/campaigns.html?id=${c.id}" style="color:var(--gold-dark)">${escapeHtml(c.subject)}</a></td>
+            <td>${statusBadge(c.status)}</td>
+            <td>${c.sent_count || 0}</td>
+            <td>${c.open_count || 0}</td>
+            <td>${c.click_count || 0}</td>
+            <td>${formatDate(c.sent_at)}</td>
+          </tr>`).join('');
+        } else {
+          ct.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-light)">No campaigns yet</td></tr>';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>

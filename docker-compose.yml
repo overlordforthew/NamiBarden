@@ -1,8 +1,59 @@
 version: "3.8"
 
 services:
-  web:
+  namibarden:
     build: .
+    container_name: namibarden
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:3457:80"
+    depends_on:
+      namibarden-db:
+        condition: service_healthy
+    env_file: .env
+    networks:
+      - coolify
+      - namibarden-internal
+    labels:
+      - "traefik.enable=true"
+      # HTTP → HTTPS redirect
+      - "traefik.http.routers.namibarden-http.rule=Host(`namibarden.com`) || Host(`www.namibarden.com`)"
+      - "traefik.http.routers.namibarden-http.entryPoints=http"
+      - "traefik.http.routers.namibarden-http.middlewares=redirect-to-https@file"
+      # HTTPS
+      - "traefik.http.routers.namibarden-https.rule=Host(`namibarden.com`) || Host(`www.namibarden.com`)"
+      - "traefik.http.routers.namibarden-https.entryPoints=https"
+      - "traefik.http.routers.namibarden-https.tls=true"
+      - "traefik.http.routers.namibarden-https.tls.certresolver=letsencrypt"
+      # www redirect
+      - "traefik.http.routers.namibarden-https.middlewares=redirect-to-non-www@file"
+      # Service
+      - "traefik.http.services.namibarden.loadbalancer.server.port=80"
+      # Coolify label (for finding container)
+      - "coolify.name=ock0wowgsgwwww8w00400k00"
+
+  namibarden-db:
+    image: postgres:17-alpine
+    container_name: namibarden-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: namibarden
+      POSTGRES_USER: namibarden
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - namibarden-pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - namibarden-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U namibarden"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  namibarden-pgdata:
+
+networks:
+  coolify:
+    external: true
+  namibarden-internal:
+    driver: bridge

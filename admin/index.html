@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Nami Barden</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body class="login-page">
+  <div class="login-box">
+    <h1>Nami Barden</h1>
+    <p>Admin Dashboard</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <input type="password" id="password" placeholder="Password" required autofocus>
+      </div>
+      <p id="error" style="color:var(--danger); font-size:0.85rem; margin-bottom:12px; display:none;"></p>
+      <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
+    </form>
+  </div>
+  <script>
+    // If already logged in, go to dashboard
+    if (localStorage.getItem('nb_token')) window.location.href = '/admin/dashboard.html';
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const err = document.getElementById('error');
+      err.style.display = 'none';
+      const btn = this.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: document.getElementById('password').value })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+        localStorage.setItem('nb_token', data.token);
+        window.location.href = '/admin/dashboard.html';
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

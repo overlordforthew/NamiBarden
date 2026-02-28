@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Subscribers — Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <div class="sidebar-logout">
+      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Subscribers</h1>
+      <div class="btn-group">
+        <button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Export CSV</button>
+        <button class="btn" onclick="document.getElementById('importModal').classList.add('show')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg> Import CSV</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Search email or name..." style="min-width:250px">
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="unsubscribed">Unsubscribed</option>
+        <option value="bounced">Bounced</option>
+      </select>
+      <select id="sourceFilter">
+        <option value="">All sources</option>
+        <option value="contact_form">Contact form</option>
+        <option value="pdf_download">PDF download</option>
+        <option value="newsletter">Newsletter</option>
+        <option value="import">Import</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Source</th>
+              <th>Status</th>
+              <th>Tags</th>
+              <th>Subscribed</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="subscribersTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="importModal">
+      <div class="modal">
+        <h3>Import Subscribers</h3>
+        <p style="color:var(--text-light); font-size:0.85rem; margin-bottom:16px;">CSV with columns: email, name (optional), source (optional)</p>
+        <form id="importForm">
+          <div class="form-group">
+            <input type="file" id="csvFile" accept=".csv" required>
+          </div>
+          <div class="btn-group" style="justify-content:flex-end">
+            <button type="button" class="btn" onclick="document.getElementById('importModal').classList.remove('show')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Import</button>
+          </div>
+        </form>
+        <p id="importResult" style="margin-top:12px; font-size:0.85rem;"></p>
+      </div>
+    </div>
+
+    <!-- Tags Modal -->
+    <div class="modal-overlay" id="tagsModal">
+      <div class="modal">
+        <h3>Edit Tags</h3>
+        <p style="color:var(--text-light); font-size:0.85rem; margin-bottom:16px;" id="tagsEmail"></p>
+        <div class="form-group">
+          <input type="text" id="tagsInput" placeholder="Comma-separated tags (e.g. vip, coaching)">
+        </div>
+        <div class="btn-group" style="justify-content:flex-end">
+          <button class="btn" onclick="document.getElementById('tagsModal').classList.remove('show')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveTags()">Save</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    let currentPage = 1;
+    const limit = 50;
+    let editingSubId = null;
+
+    async function loadSubscribers(page) {
+      currentPage = page || 1;
+      const search = document.getElementById('searchInput').value;
+      const status = document.getElementById('statusFilter').value;
+      const source = document.getElementById('sourceFilter').value;
+      const params = new URLSearchParams({ page: currentPage, limit });
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      if (source) params.set('source', source);
+
+      try {
+        const data = await api(`/subscribers?${params}`);
+        const tb = document.getElementById('subscribersTable');
+        if (data.subscribers.length === 0) {
+          tb.innerHTML = '<tr><td colspan="7" class="empty">No subscribers found</td></tr>';
+        } else {
+          tb.innerHTML = data.subscribers.map(s => `<tr>
+            <td>${escapeHtml(s.email)}</td>
+            <td>${escapeHtml(s.name || '')}</td>
+            <td>${escapeHtml(s.source)}</td>
+            <td>${statusBadge(s.status)}</td>
+            <td>${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(' ') || '—'}</td>
+            <td>${formatDate(s.created_at)}</td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-sm" onclick="editTags(${s.id}, '${escapeHtml(s.email)}', ${JSON.stringify(s.tags || []).replace(/"/g, '&quot;')})">Tags</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteSub(${s.id}, '${escapeHtml(s.email)}')">Del</button>
+              </div>
+            </td>
+          </tr>`).join('');
+        }
+        renderPagination(document.getElementById('pagination'), data.page, data.total, limit, loadSubscribers);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Debounced search
+    let searchTimer;
+    document.getElementById('searchInput').addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => loadSubscribers(1), 300);
+    });
+    document.getElementById('statusFilter').addEventListener('change', () => loadSubscribers(1));
+    document.getElementById('sourceFilter').addEventListener('change', () => loadSubscribers(1));
+
+    function exportCSV() {
+      const status = document.getElementById('statusFilter').value;
+      const url = `/api/admin/subscribers/export${status ? '?status=' + status : ''}`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'subscribers.csv';
+      // Add auth header via fetch
+      fetch(url, { headers: { Authorization: 'Bearer ' + getToken() } })
+        .then(r => r.blob())
+        .then(blob => {
+          a.href = URL.createObjectURL(blob);
+          a.click();
+        });
+    }
+
+    document.getElementById('importForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const file = document.getElementById('csvFile').files[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const data = await api('/import', { method: 'POST', body: fd });
+        document.getElementById('importResult').textContent = `Imported ${data.imported}, skipped ${data.skipped} of ${data.total}`;
+        document.getElementById('importResult').style.color = 'var(--success)';
+        loadSubscribers(1);
+      } catch (e) {
+        document.getElementById('importResult').textContent = e.message;
+        document.getElementById('importResult').style.color = 'var(--danger)';
+      }
+    });
+
+    function editTags(id, email, tags) {
+      editingSubId = id;
+      document.getElementById('tagsEmail').textContent = email;
+      document.getElementById('tagsInput').value = (tags || []).join(', ');
+      document.getElementById('tagsModal').classList.add('show');
+    }
+
+    async function saveTags() {
+      const tags = document.getElementById('tagsInput').value.split(',').map(t => t.trim()).filter(Boolean);
+      try {
+        await api(`/subscribers/${editingSubId}/tags`, { method: 'POST', body: { tags } });
+        document.getElementById('tagsModal').classList.remove('show');
+        loadSubscribers(currentPage);
+      } catch (e) { alert(e.message); }
+    }
+
+    async function deleteSub(id, email) {
+      if (!confirm(`Delete subscriber ${email}?`)) return;
+      try {
+        await api(`/subscribers/${id}`, { method: 'DELETE' });
+        loadSubscribers(currentPage);
+      } catch (e) { alert(e.message); }
+    }
+
+    loadSubscribers(1);
+  </script>
+</body>
+</html>

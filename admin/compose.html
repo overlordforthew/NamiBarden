@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compose — Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <div class="sidebar-logout">
+      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Compose Newsletter</h1>
+      <div class="btn-group">
+        <button class="btn" onclick="loadTemplate()">Load Template</button>
+        <button class="btn" onclick="sendTest()">Send Test</button>
+        <button class="btn" onclick="saveDraft()">Save Draft</button>
+        <button class="btn btn-primary" onclick="sendCampaign()">Send Campaign</button>
+      </div>
+    </div>
+
+    <div id="alerts"></div>
+
+    <div class="card">
+      <div class="card-body">
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:16px;">
+          <div class="form-group" style="margin:0">
+            <label>Subject</label>
+            <input type="text" id="subject" placeholder="Newsletter subject line...">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Segment</label>
+            <select id="segment">
+              <option value="all">All active subscribers</option>
+              <option value="pdf_download">PDF downloaders</option>
+              <option value="contact_form">Contact form</option>
+              <option value="newsletter">Newsletter signups</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="editor-container">
+          <div>
+            <label>HTML Content</label>
+            <textarea id="htmlBody" placeholder="Write your newsletter HTML here..." oninput="updatePreview()"></textarea>
+          </div>
+          <div>
+            <label>Preview</label>
+            <div class="preview-frame" id="preview"></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:16px">
+          <label>Plain Text (auto-generated or custom)</label>
+          <textarea id="textBody" style="min-height:100px" placeholder="Plain text version..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Send Modal -->
+    <div class="modal-overlay" id="testModal">
+      <div class="modal">
+        <h3>Send Test Email</h3>
+        <div class="form-group">
+          <label>Send to</label>
+          <input type="email" id="testEmail" placeholder="test@example.com" value="overlord.gil.ai@gmail.com">
+        </div>
+        <div class="btn-group" style="justify-content:flex-end">
+          <button class="btn" onclick="document.getElementById('testModal').classList.remove('show')">Cancel</button>
+          <button class="btn btn-primary" onclick="doSendTest()">Send Test</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    let campaignId = null;
+
+    // Check if editing existing campaign
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) {
+      (async function() {
+        try {
+          const data = await api(`/campaigns/${params.get('id')}`);
+          const c = data.campaign;
+          if (c.status === 'draft') {
+            campaignId = c.id;
+            document.getElementById('subject').value = c.subject;
+            document.getElementById('htmlBody').value = c.html_body || '';
+            document.getElementById('textBody').value = c.text_body || '';
+            document.getElementById('segment').value = c.segment || 'all';
+            updatePreview();
+          }
+        } catch (e) { console.error(e); }
+      })();
+    }
+
+    function updatePreview() {
+      document.getElementById('preview').innerHTML = document.getElementById('htmlBody').value;
+    }
+
+    function loadTemplate() {
+      const subject = document.getElementById('subject');
+      const html = document.getElementById('htmlBody');
+      if (html.value && !confirm('Replace current content with template?')) return;
+
+      subject.value = 'Newsletter from Nami Barden';
+      html.value = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0; padding:0; background:#FAF7F2; font-family:-apple-system,system-ui,sans-serif;">
+  <div style="max-width:600px; margin:0 auto; background:#fff;">
+    <div style="padding:32px; text-align:center; background:#2C2C2C;">
+      <h1 style="color:#C4A882; margin:0; font-size:24px;">Nami Barden</h1>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#2C2C2C; margin-bottom:16px;">Hello!</h2>
+      <p style="color:#555; line-height:1.8;">
+        Write your newsletter content here...
+      </p>
+      <p style="margin-top:24px;">
+        <a href="https://namibarden.com" style="display:inline-block; padding:12px 28px; background:#C4A882; color:#fff; text-decoration:none; border-radius:8px;">Visit Website</a>
+      </p>
+    </div>
+    <div style="padding:24px 32px; background:#FAF7F2; text-align:center; font-size:12px; color:#999;">
+      <p>Nami Barden &mdash; Consciousness, Mindfulness & Meditation</p>
+    </div>
+  </div>
+</body>
+</html>`;
+      updatePreview();
+    }
+
+    async function saveDraft() {
+      const subject = document.getElementById('subject').value;
+      const html_body = document.getElementById('htmlBody').value;
+      const text_body = document.getElementById('textBody').value;
+      const segment = document.getElementById('segment').value;
+
+      if (!subject || !html_body) { showAlert(document.getElementById('alerts'), 'Subject and HTML body required', 'error'); return; }
+
+      try {
+        const data = await api('/campaigns', { method: 'POST', body: { subject, html_body, text_body, segment } });
+        campaignId = data.id;
+        showAlert(document.getElementById('alerts'), 'Draft saved!');
+      } catch (e) {
+        showAlert(document.getElementById('alerts'), e.message, 'error');
+      }
+    }
+
+    function sendTest() {
+      if (!campaignId) { showAlert(document.getElementById('alerts'), 'Save as draft first', 'error'); return; }
+      document.getElementById('testModal').classList.add('show');
+    }
+
+    async function doSendTest() {
+      const email = document.getElementById('testEmail').value;
+      if (!email) return;
+      try {
+        await api(`/campaigns/${campaignId}/test`, { method: 'POST', body: { email } });
+        document.getElementById('testModal').classList.remove('show');
+        showAlert(document.getElementById('alerts'), `Test sent to ${email}`);
+      } catch (e) {
+        showAlert(document.getElementById('alerts'), e.message, 'error');
+      }
+    }
+
+    async function sendCampaign() {
+      if (!campaignId) { showAlert(document.getElementById('alerts'), 'Save as draft first', 'error'); return; }
+      if (!confirm('Send this campaign to all matching subscribers? This cannot be undone.')) return;
+
+      try {
+        const data = await api(`/campaigns/${campaignId}/send`, { method: 'POST' });
+        showAlert(document.getElementById('alerts'), `Campaign sending to ${data.total} subscribers!`);
+        setTimeout(() => { window.location.href = '/admin/campaigns.html'; }, 2000);
+      } catch (e) {
+        showAlert(document.getElementById('alerts'), e.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

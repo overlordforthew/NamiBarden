@@ -2477,15 +2477,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     statusEl.textContent = lang === 'ja' ? '送信中...' : 'Sending...';
     statusEl.style.color = '#888';
     statusEl.style.display = 'block';
-    fetch('/api/contact', {
+    fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: 'PDF Download',
         email: email,
-        subject: '5day-journal-download',
-        message: '5日間内観ジャーナリング PDF ダウンロードリクエスト',
-        subscribe: true
+        source: 'pdf_download'
       })
     })
     .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
