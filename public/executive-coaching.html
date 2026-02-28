@@ -1303,7 +1303,11 @@ footer {
         </div>
       </div>
       <p class="pricing-limited">現在受け付け可能なクライアント数：<strong>残り３名</strong><br>ご興味のある方はお早めにご連絡ください</p>
-      <a href="#consultation" class="btn btn-filled"><span>無料相談を申し込む</span></a>
+      <button id="stripeCheckoutBtn" class="btn btn-filled" style="margin-bottom: 12px; width: 100%; cursor: pointer; border: none;">
+        <span>月額プランを開始する</span>
+      </button>
+      <p style="text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 20px;">Stripeによる安全なお支払い・いつでもキャンセル可能</p>
+      <a href="#consultation" class="btn btn-filled" style="background: transparent; color: var(--gold-dark); border: 1px solid var(--gold); width: 100%;"><span>まずは無料相談から</span></a>
     </div>
   </div>
 </section>
@@ -1501,6 +1505,41 @@ window.addEventListener('resize', fixMobileLayout);
       showStatus('送信に失敗しました。もう一度お試しください。', 'error');
       btn.disabled = false;
       btn.style.opacity = '1';
+    });
+  });
+})();
+
+// ─── STRIPE CHECKOUT ───
+(function() {
+  var btn = document.getElementById('stripeCheckoutBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', function() {
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.querySelector('span').textContent = '処理中...';
+
+    fetch('/api/stripe/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product: 'coaching' })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'エラーが発生しました。もう一度お試しください。');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.querySelector('span').textContent = '月額プランを開始する';
+      }
+    })
+    .catch(function() {
+      alert('接続エラーが発生しました。もう一度お試しください。');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.querySelector('span').textContent = '月額プランを開始する';
     });
   });
 })();

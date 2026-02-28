@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お支払い完了 — Nami Barden</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/x-icon" sizes="48x48 32x32 16x16" href="/favicon.ico">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Noto+Sans+JP:wght@400;500&display=swap">
+<style>
+:root {
+  --cream: #FAF7F2;
+  --gold: #C4A882;
+  --gold-dark: #A8895E;
+  --text-dark: #2C2419;
+  --text-medium: #5C4F3D;
+  --text-muted: #A99E8F;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 50px 40px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.06);
+}
+.check {
+  width: 64px;
+  height: 64px;
+  background: #E8F5E8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+.check svg { width: 32px; height: 32px; color: #4a7c59; }
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+p { color: var(--text-medium); line-height: 1.8; margin-bottom: 12px; font-size: 0.95rem; }
+.note { color: var(--text-muted); font-size: 0.82rem; margin-top: 24px; }
+.btn {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 14px 36px;
+  background: var(--gold);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: background 0.3s;
+}
+.btn:hover { background: var(--gold-dark); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="check">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+    </svg>
+  </div>
+  <h1>ありがとうございます</h1>
+  <p>コーチングプランへのご登録が完了しました。</p>
+  <p>確認メールをお送りしましたのでご確認ください。<br>初回セッションの日程について、近日中にメールにてご連絡いたします。</p>
+  <p class="note">ご不明な点がございましたら、お気軽にお問い合わせください。</p>
+  <a href="/executive-coaching" class="btn">コーチングページに戻る</a>
+</div>
+</body>
+</html>
