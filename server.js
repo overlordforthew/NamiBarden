@@ -6,8 +6,8 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const { stringify } = require('csv-stringify/sync');
-const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
+const uuidv4 = () => crypto.randomUUID();
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
