@@ -14,17 +14,22 @@ services:
       - namibarden-internal
     labels:
       - "traefik.enable=true"
+      # Define middlewares as Docker labels (not @file references)
+      - "traefik.http.middlewares.namibarden-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.namibarden-redirect-https.redirectscheme.permanent=true"
+      - "traefik.http.middlewares.namibarden-redirect-nonwww.redirectregex.regex=^https://www\\.namibarden\\.com/(.*)"
+      - "traefik.http.middlewares.namibarden-redirect-nonwww.redirectregex.replacement=https://namibarden.com/$${1}"
+      - "traefik.http.middlewares.namibarden-redirect-nonwww.redirectregex.permanent=true"
       # HTTP → HTTPS redirect
       - "traefik.http.routers.namibarden-http.rule=Host(`namibarden.com`) || Host(`www.namibarden.com`)"
       - "traefik.http.routers.namibarden-http.entryPoints=http"
-      - "traefik.http.routers.namibarden-http.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.namibarden-http.middlewares=namibarden-redirect-https"
       # HTTPS
       - "traefik.http.routers.namibarden-https.rule=Host(`namibarden.com`) || Host(`www.namibarden.com`)"
       - "traefik.http.routers.namibarden-https.entryPoints=https"
       - "traefik.http.routers.namibarden-https.tls=true"
       - "traefik.http.routers.namibarden-https.tls.certresolver=letsencrypt"
-      # www redirect
-      - "traefik.http.routers.namibarden-https.middlewares=redirect-to-non-www@file"
+      - "traefik.http.routers.namibarden-https.middlewares=namibarden-redirect-nonwww"
       # Service
       - "traefik.http.services.namibarden.loadbalancer.server.port=80"
       # Coolify label (for finding container)
