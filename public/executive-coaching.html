@@ -830,6 +830,29 @@ footer {
   color: #1a1a2e;
   font-weight: 500;
 }
+.consultation-form textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: var(--cream-light, #f0ebe3);
+  font-family: var(--font-body-jp);
+  font-size: 0.95rem;
+  transition: var(--transition);
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+  margin-top: 20px;
+}
+.consultation-form textarea::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+.consultation-form textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: rgba(255,255,255,0.15);
+}
 .consult-note {
   text-align: center;
   font-size: 0.82rem;
@@ -1318,6 +1341,8 @@ footer {
         </label>
       </div>
 
+      <textarea name="message" placeholder="何かメッセージがあればご自由にどうぞ（任意）" rows="3"></textarea>
+
       <button type="submit" class="btn btn-cream" id="consultSubmitBtn" style="margin-top: 24px;">
         <span>無料相談を申し込む</span>
       </button>
@@ -1444,11 +1469,16 @@ window.addEventListener('resize', fixMobileLayout);
     btn.style.opacity = '0.6';
     showStatus('送信中...', 'info');
 
+    var userMsg = form.querySelector('textarea[name="message"]').value.trim();
+    var msgBody = '【相談内容】' + topic;
+    if (userMsg) { msgBody += '\n\n【メッセージ】\n' + userMsg; }
+    msgBody += '\n\nエグゼクティブコーチングページからのお申し込み';
+
     var data = {
       name: name,
       email: email,
       subject: '30分無料相談申し込み',
-      message: '【相談内容】' + topic + '\n\nエグゼクティブコーチングページからのお申し込み'
+      message: msgBody
     };
 
     fetch('/api/contact', {
