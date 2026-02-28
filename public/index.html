@@ -1637,11 +1637,11 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
   <div class="about-timeline">
     <div class="container">
       <div class="timeline-grid">
-        <div class="timeline-item reveal">
+        <div class="timeline-item reveal" data-href="https://share.google/L89J2dScQRuyge5lL">
           <span class="timeline-year">2018</span>
           <h4 data-lang="ja">ベストセラー出版</h4>
           <h4 data-lang="en">Bestselling Author</h4>
-          <p data-lang="ja"><a href="https://share.google/L89J2dScQRuyge5lL" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">「世界中の億万長者がたどりつく心の授業」</a>出版。大ヒット作となる。</p>
+          <p data-lang="ja">「世界中の億万長者がたどりつく心の授業」出版。大ヒット作となる。</p>
           <p data-lang="en">"The Heart Lessons Billionaires Reach" — a major bestseller in Japan.</p>
         </div>
         <div class="timeline-item reveal">
@@ -1651,17 +1651,17 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
           <p data-lang="ja">東京・福岡・長野・ハワイでセミナー開催。エグゼクティブリトリート3回。個別カウンセリング1,000人超。</p>
           <p data-lang="en">Seminars in Tokyo, Fukuoka, Nagano & Hawaii. 3 executive retreats. 1,000+ sessions.</p>
         </div>
-        <div class="timeline-item reveal">
+        <div class="timeline-item reveal" data-href="https://www.amazon.co.jp/dp/4865641769">
           <span class="timeline-year">2020</span>
           <h4 data-lang="ja">第2弾著書出版</h4>
           <h4 data-lang="en">2nd Book Published</h4>
-          <p data-lang="ja"><a href="https://www.amazon.co.jp/dp/4865641769" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">「世界のエリートが実践する 心を磨く11のレッスン」</a>を出版。</p>
-          <p data-lang="en"><a href="https://www.amazon.co.jp/dp/4865641769" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">"11 Lessons the World's Elite Practice to Polish the Mind."</a></p>
+          <p data-lang="ja">「世界のエリートが実践する 心を磨く11のレッスン」を出版。</p>
+          <p data-lang="en">"11 Lessons the World's Elite Practice to Polish the Mind."</p>
         </div>
-        <div class="timeline-item reveal">
+        <div class="timeline-item reveal" data-href="https://youtube.com/shorts/h5OXx2SJXl4?si=8zI0bCFFJJGui28a">
           <span class="timeline-year">2025〜</span>
-          <h4 data-lang="ja"><a href="https://youtube.com/shorts/h5OXx2SJXl4?si=8zI0bCFFJJGui28a" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">大西洋横断成功</a></h4>
-          <h4 data-lang="en"><a href="https://youtube.com/shorts/h5OXx2SJXl4?si=8zI0bCFFJJGui28a" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Atlantic Crossing</a></h4>
+          <h4 data-lang="ja">大西洋横断成功</h4>
+          <h4 data-lang="en">Atlantic Crossing</h4>
           <p data-lang="ja">58フィートのスポーツカタマランでギリシャを出発、地中海・大西洋を横断成功。年齢を超えた挑戦を続ける。</p>
           <p data-lang="en">Departed Greece on a 58ft catamaran. Crossed Mediterranean & Atlantic. Now in Trinidad.</p>
         </div>
@@ -2328,6 +2328,13 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 
 revealElements.forEach(el => observer.observe(el));
+
+// Clickable timeline boxes
+document.querySelectorAll('[data-href]').forEach(function(el) {
+  el.addEventListener('click', function() {
+    window.open(el.getAttribute('data-href'), '_blank');
+  });
+});
 
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
