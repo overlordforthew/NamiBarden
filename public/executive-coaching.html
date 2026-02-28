@@ -760,6 +760,83 @@ footer {
 .back-link:hover { color: var(--gold-dark); gap: 12px; }
 .back-link svg { width: 14px; height: 14px; }
 
+/* ========== CONSULTATION FORM ========== */
+.consultation-form {
+  max-width: 520px;
+  margin: 0 auto;
+}
+.consult-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.consultation-form input[type="text"],
+.consultation-form input[type="email"] {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: var(--cream-light, #f0ebe3);
+  font-family: var(--font-body-jp);
+  font-size: 0.95rem;
+  transition: var(--transition);
+  box-sizing: border-box;
+}
+.consultation-form input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+.consultation-form input:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: rgba(255,255,255,0.15);
+}
+.consult-label {
+  font-size: 0.92rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 14px;
+  text-align: center;
+}
+.consult-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.topic-pill {
+  cursor: pointer;
+}
+.topic-pill input {
+  display: none;
+}
+.topic-pill span {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 50px;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.8);
+  transition: all 0.3s ease;
+  font-family: var(--font-body-jp);
+}
+.topic-pill:hover span {
+  border-color: var(--gold);
+  color: #fff;
+}
+.topic-pill input:checked + span {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1a1a2e;
+  font-weight: 500;
+}
+.consult-note {
+  text-align: center;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 16px;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
   .included-grid { grid-template-columns: repeat(2, 1fr); }
@@ -808,6 +885,10 @@ footer {
 
   .quote-block { padding: 40px 20px; }
   .quote-block::before { font-size: 5rem; }
+
+  .consult-form-row { grid-template-columns: 1fr; }
+  .consult-topics { gap: 8px; }
+  .topic-pill span { padding: 9px 16px; font-size: 0.84rem; }
 
   .about-nami-grid {
     grid-template-columns: 1fr !important;
@@ -1199,21 +1280,50 @@ footer {
         </div>
       </div>
       <p class="pricing-limited">現在受け付け可能なクライアント数：<strong>残り３名</strong><br>ご興味のある方はお早めにご連絡ください</p>
-      <a href="/#contact" class="btn btn-filled"><span>無料相談を申し込む</span></a>
+      <a href="#consultation" class="btn btn-filled"><span>無料相談を申し込む</span></a>
     </div>
   </div>
 </section>
 
-<!-- ===== CTA ===== -->
-<section class="cta-section">
+<!-- ===== CONSULTATION FORM ===== -->
+<section class="cta-section" id="consultation">
   <div class="container" style="position: relative; z-index: 1;">
     <p class="section-label">Next Step</p>
     <h2>まず、話してみませんか。</h2>
-    <p>変わりたい気持ちがあるなら、それだけで十分です。<br>30分の無料相談から、一緒に始めましょう。</p>
-    <div class="cta-buttons">
-      <a href="/#contact" class="btn btn-cream"><span>無料相談を申し込む</span></a>
-      <a href="/" class="btn btn-outline-cream"><span>トップページへ戻る</span></a>
-    </div>
+    <p style="margin-bottom: 40px;">変わりたい気持ちがあるなら、それだけで十分です。<br>30分の無料相談から、一緒に始めましょう。</p>
+
+    <form id="consultationForm" class="consultation-form" novalidate>
+      <div class="consult-form-row">
+        <input type="text" name="name" placeholder="お名前" required>
+        <input type="email" name="email" placeholder="メールアドレス" required>
+      </div>
+
+      <p class="consult-label">どんなことを改善していきたいですか？</p>
+      <div class="consult-topics">
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="経営・ビジネスの悩み">
+          <span>経営・ビジネスの悩み</span>
+        </label>
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="人間関係・家庭の悩み">
+          <span>人間関係・家庭の悩み</span>
+        </label>
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="自分自身の在り方">
+          <span>自分自身の在り方</span>
+        </label>
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="その他">
+          <span>その他</span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-cream" id="consultSubmitBtn" style="margin-top: 24px;">
+        <span>30分無料相談を申し込む</span>
+      </button>
+      <p class="consult-note">お申し込み後、メールにてお時間を調整させていただきます。</p>
+      <p id="consultStatus" style="text-align:center; margin-top:12px; display:none;"></p>
+    </form>
   </div>
 </section>
 
@@ -1295,6 +1405,74 @@ function fixMobileLayout() {
 }
 fixMobileLayout();
 window.addEventListener('resize', fixMobileLayout);
+
+// ─── CONSULTATION FORM ───
+(function() {
+  var form = document.getElementById('consultationForm');
+  if (!form) return;
+  var statusEl = document.getElementById('consultStatus');
+
+  function showStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.style.display = 'block';
+    statusEl.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#a8e6cf' : 'rgba(255,255,255,0.7)';
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = form.querySelector('input[name="name"]').value.trim();
+    var email = form.querySelector('input[name="email"]').value.trim();
+    var topicEl = form.querySelector('input[name="topic"]:checked');
+    var topic = topicEl ? topicEl.value : '';
+
+    if (!name || !email) {
+      showStatus('お名前とメールアドレスを入力してください', 'error');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showStatus('正しいメールアドレスを入力してください', 'error');
+      return;
+    }
+    if (!topic) {
+      showStatus('相談内容を選択してください', 'error');
+      return;
+    }
+
+    var btn = document.getElementById('consultSubmitBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    showStatus('送信中...', 'info');
+
+    var data = {
+      name: name,
+      email: email,
+      subject: '30分無料相談申し込み',
+      message: '【相談内容】' + topic + '\n\nエグゼクティブコーチングページからのお申し込み'
+    };
+
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.ok) {
+        form.reset();
+        showStatus('お申し込みありがとうございます！メールにてご連絡いたします。', 'success');
+      } else {
+        showStatus(res.data.error || '送信に失敗しました。もう一度お試しください。', 'error');
+      }
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    })
+    .catch(function() {
+      showStatus('送信に失敗しました。もう一度お試しください。', 'error');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+  });
+})();
 </script>
 
 </body>
