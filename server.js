@@ -141,7 +141,7 @@ app.post('/api/contact', async (req, res) => {
     try {
       await transporter.sendMail({
         from: SMTP_FROM,
-        to: 'overlord.gil.ai@gmail.com',
+        to: 'namibarden@gmail.com',
         replyTo: email.trim(),
         subject: `New contact from ${name} — NamiBarden.com`,
         html: `<h3>New Contact Form Submission</h3>
