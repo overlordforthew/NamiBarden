@@ -11,6 +11,10 @@ const crypto = require('crypto');
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON' });
+  next(err);
+});
 
 // ─── Config ───
 const PORT = 3100;
