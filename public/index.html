@@ -1126,10 +1126,32 @@ footer {
 .footer-brand p { color: rgba(250,247,242,0.5); font-size: 0.9rem; line-height: 1.7; margin-top: 12px; max-width: 280px; }
 
 .footer-logo {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.footer-logo .logo-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
   color: var(--cream);
-  font-weight: 600;
+  line-height: 1;
+}
+.footer-logo .logo-line {
+  width: 24px;
+  height: 1px;
+  background: #b8a07a;
+  margin: 5px 0;
+}
+.footer-logo .logo-sub {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  color: #f0ebe3;
+  line-height: 1;
 }
 
 .footer-col h4 {
@@ -2209,7 +2231,11 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
   <div class="container">
     <div class="footer-inner">
       <div class="footer-brand">
-        <div class="footer-logo">Nami Barden</div>
+        <div class="footer-logo">
+          <span class="logo-name">Nami Barden</span>
+          <span class="logo-line"></span>
+          <span class="logo-sub">意識学ビジネスコーチ</span>
+        </div>
         <p data-lang="ja">意識、マインドフルネス、瞑想。心を磨き、豊かな人生を送るヒントをお伝えします。</p>
         <p data-lang="en">Consciousness, mindfulness, meditation. Tips to refine your mind and live a richer life.</p>
         <div class="footer-social">
