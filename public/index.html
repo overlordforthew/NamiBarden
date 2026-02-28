@@ -489,7 +489,9 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
   line-height: 1.9;
 }
 
-.about-content .btn { margin-top: 24px; }
+.about-content .btn { margin-top: 24px; border-color: var(--gold); color: var(--cream); background: transparent; }
+.about-content .btn::before { background: var(--gold-dark); }
+.about-content .btn:hover { color: var(--white); border-color: var(--gold-dark); }
 
 .credential-tags {
   display: flex;
