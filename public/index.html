@@ -287,7 +287,8 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 /* ========== HERO ========== */
 .hero {
   padding-top: 80px;
-  min-height: 100vh;
+  padding-bottom: 60px;
+  min-height: auto;
   display: flex;
   align-items: center;
   background: linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 50%, var(--cream) 100%);
@@ -370,7 +371,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
   border-radius: 200px 200px 40px 40px;
   overflow: hidden;
   aspect-ratio: 3/4;
-  max-height: 600px;
+  max-height: 380px;
   background: var(--cream-darker);
 }
 
@@ -445,7 +446,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 }
 
 /* ========== ABOUT ========== */
-.about { padding: var(--section-padding); background: var(--brown-deep); }
+.about { padding: var(--section-padding); padding-bottom: 0; background: var(--brown-deep); }
 
 .about .container {
   display: grid;
@@ -723,7 +724,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 }
 
 .course-card .course-image { position: relative; overflow: hidden; }
-.course-card .course-image img { width: 100%; height: 220px; object-fit: cover; display: block; }
+.course-card .course-image img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
 .course-card .course-content { padding: 28px 24px; display: flex; flex-direction: column; flex: 1; }
 .course-card .course-content h3 { font-size: 1.05rem; line-height: 1.5; margin-bottom: 12px; }
 .course-card .course-content p:not(.section-label) { font-size: 0.92rem; line-height: 1.7; color: var(--text-light); flex: 1; }
@@ -1245,7 +1246,7 @@ footer {
   .timeline-grid { grid-template-columns: repeat(2, 1fr); }
   .services-grid { grid-template-columns: repeat(2, 1fr); }
   .courses-grid { grid-template-columns: repeat(2, 1fr); }
-  .course-card .course-image img { height: 180px; }
+  .course-card .course-image img { aspect-ratio: 16/10; }
   .books .container { grid-template-columns: 1fr; text-align: center; }
   .books-content { margin: 0 auto; }
   .books-showcase { margin-top: 20px; }
@@ -1270,7 +1271,7 @@ footer {
 
   .services-grid, .testimonials-grid, .media-grid { grid-template-columns: 1fr; }
   .courses-grid { grid-template-columns: 1fr; }
-  .course-card .course-image img { height: 200px; }
+  .course-card .course-image img { aspect-ratio: 16/10; }
   .course-stats { gap: 24px; }
   .course-stat .stat-number { font-size: 1.4rem; }
   .form-row { grid-template-columns: 1fr; }
@@ -1333,6 +1334,8 @@ html[lang="en"] div[data-lang="ja"].media-item { display: none; }
 
 html[lang="en"] div[data-lang="en"].service-card,
 html[lang="en"] div[data-lang="en"].testimonial-card { display: block; }
+
+html[lang="en"] div[data-lang="en"].course-card { display: flex; }
 
 html[lang="en"] div[data-lang="en"].media-item { display: block; }
 
@@ -1440,17 +1443,20 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
 .modal-skip:hover { color: var(--text-dark); }
 
 /* ========== LARGE DESKTOP ========== */
-@media (min-width: 1400px) {
+@media (min-width: 1280px) {
   :root { --max-width: 1400px; }
   .container { padding: 0 60px; }
 
   .hero .container { gap: 100px; }
-  .hero-image-wrapper { max-height: 700px; }
+  .hero-image-wrapper { max-height: 440px; }
   .hero::before { width: 800px; height: 800px; }
   .hero::after { width: 600px; height: 600px; }
 
   .about .container { gap: 100px; }
   .about-content p { max-width: 600px; }
+
+  .timeline-grid { gap: 36px; }
+  .timeline-item { padding: 32px; }
 
   .books .container { gap: 80px; }
   .book-item { width: 260px; }
@@ -1460,23 +1466,33 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
   .footer-inner { gap: 60px; }
 }
 
-@media (min-width: 1800px) {
+@media (min-width: 1600px) {
   :root { --max-width: 1600px; --section-padding: 120px 0; }
   .container { padding: 0 80px; }
 
   .hero .container { gap: 120px; }
-  .hero-image-wrapper { max-height: 800px; }
+  .hero-image-wrapper { max-height: 500px; }
 
   .about .container { gap: 120px; }
   .about-content p { max-width: 680px; }
+  .about-images { gap: 28px; }
+
+  .timeline-grid { gap: 40px; }
+  .timeline-item { padding: 36px; }
 
   .services-grid { gap: 40px; }
+  .service-card { padding: 56px 40px; }
+
   .courses-grid { gap: 40px; }
+  .course-card .course-content { padding: 32px 28px; }
+
   .testimonials-grid { gap: 40px; }
   .media-grid { gap: 32px; }
 
   .books .container { gap: 100px; }
-  .book-item { width: 280px; }
+  .book-item { width: 300px; }
+
+  .resources .container { gap: 100px; }
 }
 </style>
 </head>
