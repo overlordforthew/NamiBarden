@@ -76,11 +76,35 @@ nav.scrolled { box-shadow: 0 2px 40px rgba(44, 36, 25, 0.06); }
   height: 80px;
 }
 .nav-logo {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  gap: 0;
+}
+.nav-logo .logo-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  font-weight: 400;
   letter-spacing: 0.05em;
   color: var(--text-dark);
+  line-height: 1;
+}
+.nav-logo .logo-line {
+  width: 24px;
+  height: 1px;
+  background: #b8a07a;
+  margin: 5px 0;
+  align-self: center;
+}
+.nav-logo .logo-sub {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  color: #8b7355;
+  line-height: 1;
+  align-self: center;
 }
 .nav-links {
   display: flex;
@@ -246,12 +270,33 @@ footer {
   margin-bottom: 40px;
 }
 .footer-logo {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 12px;
+}
+.footer-logo .logo-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  font-weight: 400;
   letter-spacing: 0.05em;
   color: var(--cream);
-  margin-bottom: 12px;
+  line-height: 1;
+}
+.footer-logo .logo-line {
+  width: 24px;
+  height: 1px;
+  background: #b8a07a;
+  margin: 5px 0;
+}
+.footer-logo .logo-sub {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  color: #f0ebe3;
+  line-height: 1;
 }
 .footer-brand p { color: var(--text-muted); font-size: 0.82rem; line-height: 1.8; max-width: 280px; }
 .footer-social { display: flex; gap: 16px; margin-top: 16px; }
@@ -281,7 +326,11 @@ footer {
 
 <nav id="navbar">
   <div class="container nav-inner">
-    <a href="/" class="nav-logo">Nami Barden</a>
+    <a href="/" class="nav-logo">
+      <span class="logo-name">Nami Barden</span>
+      <span class="logo-line"></span>
+      <span class="logo-sub">意識学ビジネスコーチ</span>
+    </a>
     <div class="nav-links">
       <a href="/#about">プロフィール</a>
       <a href="/#services">サービス</a>
@@ -417,7 +466,11 @@ footer {
   <div class="container">
     <div class="footer-inner">
       <div class="footer-brand">
-        <div class="footer-logo">Nami Barden</div>
+        <div class="footer-logo">
+          <span class="logo-name">Nami Barden</span>
+          <span class="logo-line"></span>
+          <span class="logo-sub">意識学ビジネスコーチ</span>
+        </div>
         <p>意識、マインドフルネス、瞑想。心を磨き、豊かな人生を送るヒントをお伝えします。</p>
         <div class="footer-social">
           <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" aria-label="YouTube">
