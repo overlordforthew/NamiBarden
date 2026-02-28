@@ -7,10 +7,17 @@ const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const { stringify } = require('csv-stringify/sync');
 const crypto = require('crypto');
+const Stripe = require('stripe');
 const uuidv4 = () => crypto.randomUUID();
 
 const app = express();
-app.use(express.json({ limit: '5mb' }));
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/stripe/webhook') {
+    express.raw({ type: 'application/json' })(req, res, next);
+  } else {
+    express.json({ limit: '5mb' })(req, res, next);
+  }
+});
 app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON' });
   next(err);
@@ -22,8 +29,12 @@ const {
   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM,
   JWT_SECRET, ADMIN_PASSWORD,
-  OVERLORD_URL, WEBHOOK_TOKEN, SITE_URL
+  OVERLORD_URL, WEBHOOK_TOKEN, SITE_URL,
+  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 } = process.env;
+
+// ─── Stripe ───
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 // ─── Database ───
 const pool = new Pool({
@@ -291,6 +302,221 @@ app.post('/api/unsubscribe/:token', async (req, res) => {
   } catch (e) {
     console.error('Unsubscribe error:', e);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+// ══════════════════════════════════════
+// STRIPE ENDPOINTS
+// ══════════════════════════════════════
+
+// ─── POST /api/stripe/create-checkout-session ───
+app.post('/api/stripe/create-checkout-session', async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
+  try {
+    const ip = getIP(req);
+    if (!rateLimit(`stripe:${ip}`, 5, 300000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
+
+    const { email, name, product } = req.body;
+    const products = {
+      coaching: {
+        name: 'エグゼクティブ・コーチング月額プラン',
+        description: '月1回・90分Zoomセッション + テキストサポート + オンライン講座',
+        amount: 88000,
+        interval: 'month'
+      }
+    };
+
+    const prod = products[product || 'coaching'];
+    if (!prod) return res.status(400).json({ error: 'Invalid product' });
+
+    const sessionParams = {
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'jpy',
+          product_data: { name: prod.name, description: prod.description },
+          unit_amount: prod.amount,
+          recurring: { interval: prod.interval }
+        },
+        quantity: 1
+      }],
+      success_url: `${SITE_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${SITE_URL}/payment-cancel`,
+      locale: 'ja',
+      metadata: { product: product || 'coaching' }
+    };
+
+    if (email) sessionParams.customer_email = email;
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    res.json({ url: session.url });
+  } catch (e) {
+    console.error('Stripe checkout error:', e.message);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+// ─── POST /api/stripe/webhook ───
+app.post('/api/stripe/webhook', async (req, res) => {
+  if (!stripe) return res.sendStatus(503);
+
+  let event;
+  try {
+    const sig = req.headers['stripe-signature'];
+    if (STRIPE_WEBHOOK_SECRET) {
+      event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+    } else {
+      event = JSON.parse(req.body.toString());
+    }
+  } catch (e) {
+    console.error('Stripe webhook signature failed:', e.message);
+    return res.status(400).send(`Webhook Error: ${e.message}`);
+  }
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        if (session.mode !== 'subscription') break;
+
+        const customerId = session.customer;
+        const email = session.customer_details?.email || session.customer_email;
+        const name = session.customer_details?.name || null;
+        const product = session.metadata?.product || 'coaching';
+
+        // Upsert customer
+        const custResult = await pool.query(
+          `INSERT INTO nb_customers (email, name, stripe_customer_id)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (stripe_customer_id) DO UPDATE SET
+             email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
+           RETURNING id`,
+          [email, name, customerId]
+        );
+
+        // Record subscription
+        const sub = await stripe.subscriptions.retrieve(session.subscription);
+        await pool.query(
+          `INSERT INTO nb_subscriptions (customer_id, stripe_subscription_id, stripe_price_id, status, product_name, current_period_start, current_period_end)
+           VALUES ($1, $2, $3, $4, $5, to_timestamp($6), to_timestamp($7))
+           ON CONFLICT (stripe_subscription_id) DO UPDATE SET
+             status = EXCLUDED.status, current_period_start = EXCLUDED.current_period_start,
+             current_period_end = EXCLUDED.current_period_end, updated_at = NOW()`,
+          [custResult.rows[0].id, sub.id, sub.items.data[0].price.id, sub.status, product,
+           sub.current_period_start, sub.current_period_end]
+        );
+
+        // Notify Nami
+        sendWhatsApp(NAMI_JID,
+          `💳 新規コーチング契約!\n${name || email}\n¥88,000/月サブスクリプション開始`);
+
+        console.log(`Stripe: New subscription ${sub.id} for ${email}`);
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const sub = event.data.object;
+        await pool.query(
+          `UPDATE nb_subscriptions SET
+             status = $1, current_period_start = to_timestamp($2), current_period_end = to_timestamp($3),
+             cancel_at = $4, canceled_at = $5, updated_at = NOW()
+           WHERE stripe_subscription_id = $6`,
+          [sub.status, sub.current_period_start, sub.current_period_end,
+           sub.cancel_at ? new Date(sub.cancel_at * 1000) : null,
+           sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+           sub.id]
+        );
+        console.log(`Stripe: Subscription ${sub.id} updated to ${sub.status}`);
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object;
+        await pool.query(
+          `UPDATE nb_subscriptions SET status = 'canceled', canceled_at = NOW(), updated_at = NOW()
+           WHERE stripe_subscription_id = $1`,
+          [sub.id]
+        );
+
+        // Notify Nami
+        const custRow = await pool.query(
+          `SELECT c.email, c.name FROM nb_customers c JOIN nb_subscriptions s ON s.customer_id = c.id
+           WHERE s.stripe_subscription_id = $1`, [sub.id]
+        );
+        if (custRow.rows.length > 0) {
+          sendWhatsApp(NAMI_JID,
+            `⚠️ コーチング契約キャンセル\n${custRow.rows[0].name || custRow.rows[0].email}`);
+        }
+        console.log(`Stripe: Subscription ${sub.id} canceled`);
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object;
+        const custRow = await pool.query(
+          'SELECT id FROM nb_customers WHERE stripe_customer_id = $1',
+          [invoice.customer]
+        );
+        if (custRow.rows.length > 0) {
+          await pool.query(
+            `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
+             VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+             ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
+            [custRow.rows[0].id, invoice.payment_intent, invoice.id,
+             invoice.amount_paid, invoice.currency, 'coaching']
+          );
+        }
+        console.log(`Stripe: Payment succeeded for invoice ${invoice.id}`);
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object;
+        const custRow = await pool.query(
+          'SELECT c.email, c.name FROM nb_customers c WHERE c.stripe_customer_id = $1',
+          [invoice.customer]
+        );
+        if (custRow.rows.length > 0) {
+          sendWhatsApp(NAMI_JID,
+            `⚠️ 支払い失敗\n${custRow.rows[0].name || custRow.rows[0].email}\nStripeダッシュボードを確認してください`);
+        }
+        console.log(`Stripe: Payment failed for invoice ${invoice.id}`);
+        break;
+      }
+    }
+  } catch (e) {
+    console.error('Stripe webhook processing error:', e);
+  }
+
+  res.json({ received: true });
+});
+
+// ─── POST /api/stripe/customer-portal ───
+app.post('/api/stripe/customer-portal', async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+
+    const custRow = await pool.query(
+      'SELECT stripe_customer_id FROM nb_customers WHERE email = $1', [email]
+    );
+    if (custRow.rows.length === 0 || !custRow.rows[0].stripe_customer_id) {
+      return res.status(404).json({ error: 'No subscription found for this email' });
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: custRow.rows[0].stripe_customer_id,
+      return_url: `${SITE_URL}/executive-coaching`
+    });
+    res.json({ url: session.url });
+  } catch (e) {
+    console.error('Stripe portal error:', e.message);
+    res.status(500).json({ error: 'Failed to create portal session' });
   }
 });
 

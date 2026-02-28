@@ -80,3 +80,49 @@ CREATE INDEX IF NOT EXISTS idx_recipients_campaign ON nb_campaign_recipients(cam
 CREATE INDEX IF NOT EXISTS idx_recipients_tracking ON nb_campaign_recipients(tracking_id);
 CREATE INDEX IF NOT EXISTS idx_events_tracking ON nb_email_events(tracking_id);
 CREATE INDEX IF NOT EXISTS idx_events_created ON nb_email_events(created_at DESC);
+
+-- Stripe payment tables
+CREATE TABLE IF NOT EXISTS nb_customers (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  name VARCHAR(255),
+  stripe_customer_id VARCHAR(255) UNIQUE,
+  subscriber_id INTEGER REFERENCES nb_subscribers(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS nb_subscriptions (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER NOT NULL REFERENCES nb_customers(id),
+  stripe_subscription_id VARCHAR(255) UNIQUE NOT NULL,
+  stripe_price_id VARCHAR(255) NOT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'incomplete',
+  product_name VARCHAR(255) DEFAULT 'coaching',
+  current_period_start TIMESTAMP,
+  current_period_end TIMESTAMP,
+  cancel_at TIMESTAMP,
+  canceled_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS nb_payments (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES nb_customers(id),
+  stripe_payment_intent_id VARCHAR(255) UNIQUE,
+  stripe_invoice_id VARCHAR(255),
+  amount INTEGER NOT NULL,
+  currency VARCHAR(10) DEFAULT 'jpy',
+  status VARCHAR(50) NOT NULL,
+  product_name VARCHAR(255) DEFAULT 'coaching',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_customers_email ON nb_customers(email);
+CREATE INDEX IF NOT EXISTS idx_customers_stripe ON nb_customers(stripe_customer_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_customer ON nb_subscriptions(customer_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe ON nb_subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON nb_subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_payments_customer ON nb_payments(customer_id);
+CREATE INDEX IF NOT EXISTS idx_payments_stripe ON nb_payments(stripe_payment_intent_id);
