@@ -550,7 +550,11 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
   background: var(--cream);
   border-radius: 16px;
   border-top: 3px solid var(--gold);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.timeline-item[data-href] { cursor: pointer; }
+.timeline-item[data-href]:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(44,36,25,0.1); }
 
 .timeline-year {
   display: inline-block;
@@ -578,6 +582,7 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 /* ========== SERVICES ========== */
 .services {
   padding: var(--section-padding);
+  padding-top: 60px;
   background: var(--white);
 }
 
