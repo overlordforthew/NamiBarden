@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プライバシーポリシー — Nami Barden</title>
+<meta name="description" content="Nami Barden（namibarden.com）のプライバシーポリシー。個人情報の取り扱いについてご説明します。">
+<link rel="canonical" href="https://namibarden.com/privacy-policy">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/x-icon" sizes="48x48 32x32 16x16" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#FAF7F2">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap"></noscript>
+
+<style>
+:root {
+  --cream: #FAF7F2;
+  --cream-dark: #F0EAE0;
+  --cream-darker: #E8DFD3;
+  --warm-beige: #D4C5B2;
+  --gold: #C4A882;
+  --gold-dark: #A8895E;
+  --text-dark: #2C2419;
+  --text-medium: #5C4F3D;
+  --text-light: #8B7E6E;
+  --text-muted: #A99E8F;
+  --white: #FFFFFF;
+  --brown-deep: #2A1C10;
+
+  --font-display: 'Playfair Display', 'Noto Serif JP', serif;
+  --font-body: 'Cormorant Garamond', 'Noto Sans JP', sans-serif;
+  --font-body-jp: 'Noto Sans JP', sans-serif;
+
+  --max-width: 1200px;
+  --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--font-body-jp);
+  color: var(--text-dark);
+  background: var(--cream);
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+}
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 40px; }
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; line-height: 1.3; }
+h1 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); }
+h2 { font-size: clamp(1.2rem, 2vw, 1.5rem); margin-top: 48px; margin-bottom: 16px; color: var(--text-dark); }
+
+/* ========== NAVIGATION ========== */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(196, 168, 130, 0.15);
+  transition: var(--transition);
+}
+nav.scrolled { box-shadow: 0 2px 40px rgba(44, 36, 25, 0.06); }
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-dark);
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.nav-links a {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-medium);
+  font-weight: 500;
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0;
+  width: 0; height: 1px;
+  background: var(--gold);
+  transition: var(--transition);
+}
+.nav-links a:hover { color: var(--text-dark); }
+.nav-links a:hover::after { width: 100%; }
+
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid var(--warm-beige);
+  border-radius: 20px;
+  cursor: pointer;
+  background: transparent;
+  transition: var(--transition);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.lang-toggle .flag-divider { color: var(--warm-beige); font-size: 0.7rem; line-height: 1; }
+.lang-toggle:hover { background: var(--cream-dark); border-color: var(--gold); }
+
+.mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+.mobile-toggle span { display: block; width: 24px; height: 1.5px; background: var(--text-dark); margin: 6px 0; transition: var(--transition); }
+.nav-right-mobile { display: none; align-items: center; gap: 2px; }
+
+.mobile-menu {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--cream);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  transform: translateX(100%);
+  transition: transform 0.4s ease;
+}
+.mobile-menu.active { transform: translateX(0); }
+.mobile-menu a {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--text-dark);
+  letter-spacing: 0.05em;
+}
+.mobile-close {
+  position: absolute;
+  top: 24px; right: 24px;
+  background: none; border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-medium);
+}
+
+/* ========== PAGE CONTENT ========== */
+.page-content {
+  padding-top: 140px;
+  padding-bottom: 100px;
+}
+.page-content .container {
+  max-width: 800px;
+}
+.page-header {
+  margin-bottom: 50px;
+  text-align: center;
+}
+.section-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.page-header h1 {
+  margin-bottom: 16px;
+}
+.page-header .last-updated {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.policy-body {
+  color: var(--text-medium);
+  line-height: 2;
+  font-size: 0.95rem;
+}
+.policy-body h2 {
+  font-size: 1.15rem;
+  font-family: var(--font-body-jp);
+  font-weight: 600;
+  color: var(--text-dark);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--cream-darker);
+}
+.policy-body p {
+  margin-bottom: 16px;
+}
+.policy-body ul {
+  list-style: none;
+  margin-bottom: 16px;
+  padding-left: 0;
+}
+.policy-body ul li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 6px;
+}
+.policy-body ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 11px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.policy-body a {
+  color: var(--gold-dark);
+  border-bottom: 1px solid var(--gold);
+}
+.policy-body a:hover {
+  color: var(--text-dark);
+}
+
+.lang-section { display: block; }
+.lang-section[data-lang="en"] { display: none; }
+
+/* ========== FOOTER ========== */
+footer {
+  background: var(--brown-deep);
+  color: var(--cream-dark);
+  padding: 60px 0 30px;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+.footer-inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--cream);
+  margin-bottom: 12px;
+}
+.footer-brand p { color: var(--text-muted); font-size: 0.82rem; line-height: 1.8; max-width: 280px; }
+.footer-social { display: flex; gap: 16px; margin-top: 16px; }
+.footer-social a { color: var(--text-muted); transition: var(--transition); }
+.footer-social a:hover { color: var(--gold); }
+.footer-social svg { width: 20px; height: 20px; }
+.footer-col h4 { color: var(--cream); font-size: 0.85rem; letter-spacing: 0.08em; margin-bottom: 16px; font-weight: 500; }
+.footer-col a { display: block; color: var(--text-muted); margin-bottom: 8px; font-size: 0.82rem; }
+.footer-col a:hover { color: var(--gold); }
+.footer-bottom { border-top: 1px solid rgba(250, 247, 242, 0.08); padding-top: 24px; text-align: center; color: var(--text-muted); font-size: 0.78rem; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .container { padding: 0 20px; }
+  .nav-links { display: none; }
+  .nav-right-mobile { display: flex; }
+  .page-content { padding-top: 110px; padding-bottom: 60px; }
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 30px; }
+  .policy-body h2 { margin-top: 36px; }
+}
+@media (max-width: 480px) {
+  .footer-inner { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="container nav-inner">
+    <a href="/" class="nav-logo">Nami Barden</a>
+    <div class="nav-links">
+      <a href="/#about">プロフィール</a>
+      <a href="/#services">サービス</a>
+      <a href="/#courses">講座</a>
+      <a href="/#books">書籍</a>
+      <a href="/#media">メディア</a>
+      <a href="/#contact">お問い合わせ</a>
+      <button class="lang-toggle" onclick="toggleLang()" aria-label="Toggle language / 言語切替">
+        <span>🇯🇵</span><span class="flag-divider">|</span><span>🇺🇸</span>
+      </button>
+    </div>
+    <div class="nav-right-mobile">
+      <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="toggleMobile()">✕</button>
+  <a href="/#about" onclick="toggleMobile()">プロフィール</a>
+  <a href="/#services" onclick="toggleMobile()">サービス</a>
+  <a href="/#courses" onclick="toggleMobile()">講座</a>
+  <a href="/#books" onclick="toggleMobile()">書籍</a>
+  <a href="/#media" onclick="toggleMobile()">メディア</a>
+  <a href="/#contact" onclick="toggleMobile()">お問い合わせ</a>
+</div>
+
+<section class="page-content">
+  <div class="container">
+
+    <!-- ===== JAPANESE ===== -->
+    <div class="lang-section" data-lang="ja">
+      <div class="page-header">
+        <p class="section-label">Privacy Policy</p>
+        <h1>プライバシーポリシー</h1>
+        <p class="last-updated">最終更新日：2026年2月28日</p>
+      </div>
+
+      <div class="policy-body">
+        <p>Nami Barden（以下「当サイト」）は、当サイト（namibarden.com）をご利用いただくお客様の個人情報の保護に努めています。本ポリシーでは、個人情報の取り扱いについてご説明します。</p>
+
+        <h2>1. 収集する情報</h2>
+        <p>当サイトでは、以下の場合に個人情報を収集することがあります：</p>
+        <ul>
+          <li>お問い合わせフォームをご利用の際（お名前、メールアドレス、メッセージ内容）</li>
+          <li>無料コンテンツ（PDF等）のダウンロード時（メールアドレス）</li>
+        </ul>
+
+        <h2>2. 情報の利用目的</h2>
+        <p>収集した個人情報は、以下の目的で利用します：</p>
+        <ul>
+          <li>お問い合わせへの返信・対応</li>
+          <li>ご依頼いただいたサービスの提供</li>
+          <li>無料コンテンツのお届け</li>
+          <li>サービスに関するご案内（配信停止はいつでも可能です）</li>
+        </ul>
+
+        <h2>3. 第三者への提供</h2>
+        <p>お客様の個人情報は、法令に基づく場合を除き、第三者に提供・販売・共有することはありません。</p>
+
+        <h2>4. Cookie・アクセス解析</h2>
+        <p>当サイトでは、利用状況を把握するためにCookieおよびアクセス解析ツールを使用する場合があります。これらは統計的なデータの収集を目的としており、個人を特定するものではありません。</p>
+        <p>また、当サイトに埋め込まれたYouTube動画により、Google（YouTube）のCookieが使用される場合があります。</p>
+
+        <h2>5. 情報の管理</h2>
+        <p>収集した個人情報は適切に管理し、不正アクセス・紛失・漏洩の防止に努めます。</p>
+
+        <h2>6. お客様の権利</h2>
+        <p>ご自身の個人情報の開示・訂正・削除を希望される場合は、お問い合わせフォームよりご連絡ください。速やかに対応いたします。</p>
+
+        <h2>7. ポリシーの変更</h2>
+        <p>本ポリシーは、必要に応じて変更することがあります。変更後は当ページにて公開します。</p>
+
+        <h2>8. お問い合わせ</h2>
+        <p>プライバシーポリシーに関するご質問は、<a href="/#contact">お問い合わせフォーム</a>よりお気軽にご連絡ください。</p>
+      </div>
+    </div>
+
+    <!-- ===== ENGLISH ===== -->
+    <div class="lang-section" data-lang="en">
+      <div class="page-header">
+        <p class="section-label">Privacy Policy</p>
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last updated: February 28, 2026</p>
+      </div>
+
+      <div class="policy-body">
+        <p>Nami Barden ("we," "our") is committed to protecting the privacy of visitors to namibarden.com. This policy explains how we collect, use, and safeguard your personal information.</p>
+
+        <h2>1. Information We Collect</h2>
+        <p>We may collect personal information in the following cases:</p>
+        <ul>
+          <li>When you use our contact form (name, email address, message)</li>
+          <li>When you download free content such as PDFs (email address)</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use your personal information for the following purposes:</p>
+        <ul>
+          <li>Responding to your inquiries</li>
+          <li>Providing requested services</li>
+          <li>Delivering free content</li>
+          <li>Sending service-related updates (you can unsubscribe at any time)</li>
+        </ul>
+
+        <h2>3. Sharing with Third Parties</h2>
+        <p>We do not sell, share, or provide your personal information to third parties, except as required by law.</p>
+
+        <h2>4. Cookies & Analytics</h2>
+        <p>We may use cookies and analytics tools to understand how our site is used. These collect statistical data and do not personally identify you.</p>
+        <p>Embedded YouTube videos on our site may also use cookies set by Google (YouTube).</p>
+
+        <h2>5. Data Security</h2>
+        <p>We take appropriate measures to protect your personal information from unauthorized access, loss, or disclosure.</p>
+
+        <h2>6. Your Rights</h2>
+        <p>If you wish to access, correct, or delete your personal information, please contact us through our <a href="/#contact">contact form</a>. We will respond promptly.</p>
+
+        <h2>7. Changes to This Policy</h2>
+        <p>We may update this policy as needed. Changes will be posted on this page.</p>
+
+        <h2>8. Contact</h2>
+        <p>For questions about this privacy policy, please reach out via our <a href="/#contact">contact form</a>.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">Nami Barden</div>
+        <p>意識、マインドフルネス、瞑想。心を磨き、豊かな人生を送るヒントをお伝えします。</p>
+        <div class="footer-social">
+          <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" aria-label="YouTube">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>サービス</h4>
+        <a href="/executive-coaching">コーチング</a>
+        <a href="/#courses">オンライン講座</a>
+      </div>
+      <div class="footer-col">
+        <h4>コンテンツ</h4>
+        <a href="/#books">書籍</a>
+        <a href="/#media">YouTube</a>
+      </div>
+      <div class="footer-col">
+        <h4>その他</h4>
+        <a href="/#about">プロフィール</a>
+        <a href="/#contact">お問い合わせ</a>
+        <a href="/">トップページ</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Nami Barden. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+var currentLang = 'ja';
+
+function toggleLang() {
+  currentLang = currentLang === 'ja' ? 'en' : 'ja';
+  document.querySelectorAll('.lang-section').forEach(function(el) {
+    el.style.display = el.getAttribute('data-lang') === currentLang ? 'block' : 'none';
+  });
+}
+
+var navbar = document.getElementById('navbar');
+window.addEventListener('scroll', function() {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+function toggleMobile() {
+  document.getElementById('mobileMenu').classList.toggle('active');
+}
+</script>
+
+</body>
+</html>
