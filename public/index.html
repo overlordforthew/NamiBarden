@@ -496,6 +496,11 @@ html[lang="en"] .lang-toggle .flag-ja { opacity: 0.35; }
 }
 
 .about-content .btn { margin-top: 24px; border-color: var(--gold); color: var(--cream); background: transparent; }
+.about-cta-btn { margin-top: 28px; }
+a.about-cta-btn[data-lang="ja"] { display: inline-block; }
+a.about-cta-btn[data-lang="en"] { display: none; }
+html[lang="en"] a.about-cta-btn[data-lang="ja"] { display: none; }
+html[lang="en"] a.about-cta-btn[data-lang="en"] { display: inline-block; }
 .about-content .btn::before { background: var(--gold-dark); }
 .about-content .btn:hover { color: var(--white); border-color: var(--gold-dark); }
 
@@ -1639,8 +1644,8 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       <p data-lang="en">And I'm still at it. In 2025, my family and I sailed from Greece across the Mediterranean and the Atlantic on a 58-foot catamaran. Still out here — still teaching, still learning.</p>
 
 
-      <a href="/executive-coaching#consultation" class="btn" data-lang="ja" style="margin-top: 28px; display: inline-block;"><span>無料相談はこちら</span></a>
-      <a href="/executive-coaching#consultation" class="btn" data-lang="en" style="margin-top: 28px; display: inline-block;"><span>Free Consultation</span></a>
+      <a href="/executive-coaching#consultation" class="btn about-cta-btn" data-lang="ja"><span>無料相談はこちら</span></a>
+      <a href="/executive-coaching#consultation" class="btn about-cta-btn" data-lang="en"><span>Free Consultation</span></a>
 
       <div class="about-stats">
         <div class="stat-item">
