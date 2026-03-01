@@ -1481,32 +1481,32 @@ window.addEventListener('resize', fixMobileLayout);
     var topic = topicEl ? topicEl.value : '';
 
     if (!name || !email) {
-      showStatus('お名前とメールアドレスを入力してください', 'error');
+      showStatus('Please enter your name and email address.', 'error');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showStatus('正しいメールアドレスを入力してください', 'error');
+      showStatus('Please enter a valid email address.', 'error');
       return;
     }
     if (!topic) {
-      showStatus('相談内容を選択してください', 'error');
+      showStatus('Please select a topic.', 'error');
       return;
     }
 
     var btn = document.getElementById('consultSubmitBtn');
     btn.disabled = true;
     btn.style.opacity = '0.6';
-    showStatus('送信中...', 'info');
+    showStatus('Sending...', 'info');
 
     var userMsg = form.querySelector('textarea[name="message"]').value.trim();
-    var msgBody = '【相談内容】' + topic;
-    if (userMsg) { msgBody += '\n\n【メッセージ】\n' + userMsg; }
-    msgBody += '\n\nエグゼクティブコーチングページからのお申し込み';
+    var msgBody = 'Topic: ' + topic;
+    if (userMsg) { msgBody += '\n\nMessage:\n' + userMsg; }
+    msgBody += '\n\nSubmitted from the English Executive Coaching page';
 
     var data = {
       name: name,
       email: email,
-      subject: '30分無料相談申し込み',
+      subject: 'Free 30-min consultation request',
       message: msgBody
     };
 
@@ -1519,15 +1519,15 @@ window.addEventListener('resize', fixMobileLayout);
     .then(function(res) {
       if (res.ok) {
         form.reset();
-        showStatus('お申し込みありがとうございます！メールにてご連絡いたします。', 'success');
+        showStatus('Thank you! I\'ll be in touch by email to set up your call.', 'success');
       } else {
-        showStatus(res.data.error || '送信に失敗しました。もう一度お試しください。', 'error');
+        showStatus(res.data.error || 'Something went wrong. Please try again.', 'error');
       }
       btn.disabled = false;
       btn.style.opacity = '1';
     })
     .catch(function() {
-      showStatus('送信に失敗しました。もう一度お試しください。', 'error');
+      showStatus('Connection error. Please try again.', 'error');
       btn.disabled = false;
       btn.style.opacity = '1';
     });
@@ -1542,7 +1542,7 @@ window.addEventListener('resize', fixMobileLayout);
   btn.addEventListener('click', function() {
     btn.disabled = true;
     btn.style.opacity = '0.6';
-    btn.querySelector('span').textContent = '処理中...';
+    btn.querySelector('span').textContent = 'Processing...';
 
     fetch('/api/stripe/create-checkout-session', {
       method: 'POST',
@@ -1554,17 +1554,17 @@ window.addEventListener('resize', fixMobileLayout);
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || 'エラーが発生しました。もう一度お試しください。');
+        alert(data.error || 'Something went wrong. Please try again.');
         btn.disabled = false;
         btn.style.opacity = '1';
-        btn.querySelector('span').textContent = '月額プランを開始する';
+        btn.querySelector('span').textContent = 'Start Monthly Plan';
       }
     })
     .catch(function() {
-      alert('接続エラーが発生しました。もう一度お試しください。');
+      alert('Connection error. Please try again.');
       btn.disabled = false;
       btn.style.opacity = '1';
-      btn.querySelector('span').textContent = '月額プランを開始する';
+      btn.querySelector('span').textContent = 'Start Monthly Plan';
     });
   });
 })();
