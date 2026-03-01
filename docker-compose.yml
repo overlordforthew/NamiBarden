@@ -32,6 +32,7 @@ services:
       - "traefik.http.routers.namibarden-https.middlewares=namibarden-redirect-nonwww"
       # Service
       - "traefik.http.services.namibarden.loadbalancer.server.port=80"
+      - "traefik.docker.network=coolify"
       # Coolify label (for finding container)
       - "coolify.name=ock0wowgsgwwww8w00400k00"
 
