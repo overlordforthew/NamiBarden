@@ -517,10 +517,22 @@ html[lang="en"] .footer-logo .logo-sub {
 </footer>
 
 <script>
-var currentLang = 'ja';
+var currentLang = localStorage.getItem('namibarden-lang') || 'ja';
+
+// Restore saved language on load
+(function() {
+  if (currentLang !== 'ja') {
+    document.documentElement.setAttribute('lang', currentLang);
+    document.querySelectorAll('.lang-section').forEach(function(el) {
+      el.style.display = el.getAttribute('data-lang') === currentLang ? 'block' : 'none';
+    });
+  }
+})();
 
 function toggleLang() {
   currentLang = currentLang === 'ja' ? 'en' : 'ja';
+  document.documentElement.setAttribute('lang', currentLang);
+  localStorage.setItem('namibarden-lang', currentLang);
   document.querySelectorAll('.lang-section').forEach(function(el) {
     el.style.display = el.getAttribute('data-lang') === currentLang ? 'block' : 'none';
   });

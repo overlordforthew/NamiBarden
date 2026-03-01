@@ -1423,9 +1423,20 @@ function toggleMobile() {
 }
 
 function toggleLang() {
-  // On subpage: redirect to main with lang param
-  window.location.href = '/';
+  const html = document.documentElement;
+  const currentLang = html.getAttribute('lang');
+  const newLang = currentLang === 'ja' ? 'en' : 'ja';
+  html.setAttribute('lang', newLang);
+  localStorage.setItem('namibarden-lang', newLang);
 }
+
+// Restore saved language preference
+(function() {
+  const saved = localStorage.getItem('namibarden-lang');
+  if (saved && saved !== 'ja') {
+    document.documentElement.setAttribute('lang', saved);
+  }
+})();
 
 // Scroll reveal animation
 const revealElements = document.querySelectorAll('.reveal');
