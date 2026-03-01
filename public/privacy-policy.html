@@ -50,6 +50,11 @@ body {
   font-size: 15px;
 }
 a { text-decoration: none; color: inherit; transition: var(--transition); }
+
+/* Language toggle for inline elements */
+span[data-lang="en"] { display: none; }
+html[lang="en"] span[data-lang="en"] { display: inline; }
+html[lang="en"] span[data-lang="ja"] { display: none; }
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 40px; }
 
 h1, h2, h3 { font-family: var(--font-display); font-weight: 500; line-height: 1.3; }

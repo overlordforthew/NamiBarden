@@ -63,6 +63,11 @@ body {
 }
 img { max-width: 100%; height: auto; display: block; }
 a { text-decoration: none; color: inherit; transition: var(--transition); }
+
+/* Language toggle for inline elements */
+span[data-lang="en"] { display: none; }
+html[lang="en"] span[data-lang="en"] { display: inline; }
+html[lang="en"] span[data-lang="ja"] { display: none; }
 ul { list-style: none; }
 .container { max-width: var(--max-width); margin: 0 auto; padding: 0 40px; }
 
