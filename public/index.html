@@ -1360,6 +1360,9 @@ html[lang="en"] a[data-lang="en"] { display: inline; }
 html[lang="en"] span[data-lang="ja"],
 html[lang="en"] a[data-lang="ja"] { display: none; }
 
+/* Footer links must stay block even in English */
+html[lang="en"] .footer-col a[data-lang="en"] { display: block; }
+
 /* For input elements */
 input[data-lang="en"] { display: none; }
 html[lang="en"] input[data-lang="en"] { display: block; flex: 1; }
@@ -2309,7 +2312,7 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2025 Nami Barden. All rights reserved.</p>
+      <p>&copy; 2026 Nami Barden. All rights reserved.</p>
     </div>
   </div>
 </footer>
