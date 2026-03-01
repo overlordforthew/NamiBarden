@@ -1203,7 +1203,8 @@ html[lang="en"] .footer-logo .logo-sub {
             オンライン講座が無料
           </div>
         </div>
-        <a href="#consultation" class="btn btn-filled" style="width: 100%;"><span>無料相談を申し込む</span></a>
+        <button class="btn btn-filled stripe-checkout-btn" data-product="certification-monthly" style="width: 100%; cursor: pointer;"><span>月額プランで申し込む</span></button>
+        <a href="#consultation" style="display: block; text-align: center; margin-top: 12px; font-size: 0.85rem; color: var(--text-light);">まずは無料相談をする</a>
       </div>
       <!-- Lump Sum Plan -->
       <div class="pricing-card recommended reveal reveal-delay-1">
@@ -1238,7 +1239,8 @@ html[lang="en"] .footer-logo .logo-sub {
             オンライン講座が無料
           </div>
         </div>
-        <a href="#consultation" class="btn btn-gold" style="width: 100%;"><span>無料相談を申し込む</span></a>
+        <button class="btn btn-gold stripe-checkout-btn" data-product="certification-lumpsum" style="width: 100%; cursor: pointer;"><span>一括プランで申し込む</span></button>
+        <a href="#consultation" style="display: block; text-align: center; margin-top: 12px; font-size: 0.85rem; color: var(--text-light);">まずは無料相談をする</a>
       </div>
     </div>
   </div>
@@ -1384,6 +1386,24 @@ function fixMobileLayout() {
 }
 fixMobileLayout();
 window.addEventListener('resize', fixMobileLayout);
+
+// ─── STRIPE CHECKOUT ───
+document.querySelectorAll('.stripe-checkout-btn').forEach(function(btn) {
+  btn.addEventListener('click', async function() {
+    var product = this.dataset.product;
+    var origText = this.querySelector('span').textContent;
+    this.querySelector('span').textContent = 'お支払いページへ移動中...';
+    this.disabled = true;
+    try {
+      var res = await axios.post('/api/stripe/create-checkout-session', { product: product });
+      if (res.data.url) window.location.href = res.data.url;
+    } catch (e) {
+      alert('チェックアウトを開始できませんでした。もう一度お試しください。');
+      this.querySelector('span').textContent = origText;
+      this.disabled = false;
+    }
+  });
+});
 
 // ─── CONSULTATION FORM ───
 (function() {

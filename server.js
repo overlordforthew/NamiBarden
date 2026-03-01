@@ -325,23 +325,39 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         name: 'エグゼクティブ・コーチング月額プラン',
         description: '月1回・90分Zoomセッション + テキストサポート + オンライン講座',
         amount: 88000,
+        mode: 'subscription',
         interval: 'month'
+      },
+      'certification-monthly': {
+        name: '意識学コーチ認定コース — 月額プラン',
+        description: '月1回・60分Zoomセッション + テキストサポート + 実践課題 + 認定証',
+        amount: 50000,
+        mode: 'subscription',
+        interval: 'month'
+      },
+      'certification-lumpsum': {
+        name: '意識学コーチ認定コース — 一括払いプラン',
+        description: '12ヶ月認定プログラム一括払い（¥40,000お得）',
+        amount: 560000,
+        mode: 'payment'
       }
     };
 
     const prod = products[product || 'coaching'];
     if (!prod) return res.status(400).json({ error: 'Invalid product' });
 
+    const priceData = {
+      currency: 'jpy',
+      product_data: { name: prod.name, description: prod.description },
+      unit_amount: prod.amount
+    };
+    if (prod.interval) priceData.recurring = { interval: prod.interval };
+
     const sessionParams = {
-      mode: 'subscription',
+      mode: prod.mode,
       payment_method_types: ['card'],
       line_items: [{
-        price_data: {
-          currency: 'jpy',
-          product_data: { name: prod.name, description: prod.description },
-          unit_amount: prod.amount,
-          recurring: { interval: prod.interval }
-        },
+        price_data: priceData,
         quantity: 1
       }],
       success_url: `${SITE_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -349,6 +365,10 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       locale: 'ja',
       metadata: { product: product || 'coaching' }
     };
+
+    if (prod.mode === 'payment') {
+      sessionParams.invoice_creation = { enabled: true };
+    }
 
     if (email) sessionParams.customer_email = email;
 

@@ -1199,7 +1199,8 @@ html[lang="en"] .footer-logo .logo-sub {
             Text support anytime between sessions
           </div>
         </div>
-        <a href="#consultation" class="btn btn-filled" style="width: 100%;"><span>Inquire About This Plan</span></a>
+        <button class="btn btn-filled stripe-checkout-btn" data-product="certification-monthly" style="width: 100%; cursor: pointer;"><span>Enroll — Monthly Plan</span></button>
+        <a href="#consultation" style="display: block; text-align: center; margin-top: 12px; font-size: 0.85rem; color: var(--text-light);">Or book a free consultation first</a>
       </div>
 
       <!-- Lump Sum Plan -->
@@ -1227,7 +1228,8 @@ html[lang="en"] .footer-logo .logo-sub {
             Full commitment from day one
           </div>
         </div>
-        <a href="#consultation" class="btn btn-gold" style="width: 100%;"><span>Inquire About This Plan</span></a>
+        <button class="btn btn-gold stripe-checkout-btn" data-product="certification-lumpsum" style="width: 100%; cursor: pointer;"><span>Enroll — Lump Sum</span></button>
+        <a href="#consultation" style="display: block; text-align: center; margin-top: 12px; font-size: 0.85rem; color: var(--text-light);">Or book a free consultation first</a>
       </div>
     </div>
   </div>
@@ -1366,6 +1368,24 @@ function fixMobileLayout() {
 }
 fixMobileLayout();
 window.addEventListener('resize', fixMobileLayout);
+
+// ─── STRIPE CHECKOUT ───
+document.querySelectorAll('.stripe-checkout-btn').forEach(function(btn) {
+  btn.addEventListener('click', async function() {
+    var product = this.dataset.product;
+    var origText = this.querySelector('span').textContent;
+    this.querySelector('span').textContent = 'Redirecting to checkout...';
+    this.disabled = true;
+    try {
+      var res = await axios.post('/api/stripe/create-checkout-session', { product: product });
+      if (res.data.url) window.location.href = res.data.url;
+    } catch (e) {
+      alert('Could not start checkout. Please try again or contact us.');
+      this.querySelector('span').textContent = origText;
+      this.disabled = false;
+    }
+  });
+});
 
 // ─── CONSULTATION FORM ───
 (function() {
