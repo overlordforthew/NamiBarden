@@ -1404,8 +1404,14 @@ document.querySelectorAll('.stripe-checkout-btn').forEach(function(btn) {
     this.querySelector('span').textContent = 'お支払いページへ移動中...';
     this.disabled = true;
     try {
-      var res = await axios.post('/api/stripe/create-checkout-session', { product: product });
-      if (res.data.url) window.location.href = res.data.url;
+      var res = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: product })
+      });
+      var data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else throw new Error(data.error || 'No URL returned');
     } catch (e) {
       alert('チェックアウトを開始できませんでした。もう一度お試しください。');
       this.querySelector('span').textContent = origText;
