@@ -693,6 +693,10 @@ app.post('/api/stripe/customer-portal', async (req, res) => {
 // ─── GET /api/courses/verify ───
 app.get('/api/courses/verify', async (req, res) => {
   try {
+    const ip = getIP(req);
+    if (!rateLimit(`course-verify:${ip}`, 10, 60000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
     const { token } = req.query;
     if (!token) return res.status(400).json({ error: 'Token required' });
 
@@ -719,6 +723,10 @@ app.get('/api/courses/verify', async (req, res) => {
 // ─── GET /api/courses/:courseId/lessons ───
 app.get('/api/courses/:courseId/lessons', async (req, res) => {
   try {
+    const ip = getIP(req);
+    if (!rateLimit(`course-lessons:${ip}`, 20, 60000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
     const { token } = req.query;
     const { courseId } = req.params;
     if (!token) return res.status(401).json({ error: 'Token required' });
@@ -746,6 +754,10 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
   try {
     if (!r2) return res.status(503).json({ error: 'Video hosting not configured' });
 
+    const ip = getIP(req);
+    if (!rateLimit(`course-hls:${ip}`, 200, 60000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
     const { token } = req.query;
     const { courseId, lessonId } = req.params;
     const filePath = req.params[0]; // e.g. "master.m3u8" or "720p/stream.m3u8" or "720p/seg001.ts"
