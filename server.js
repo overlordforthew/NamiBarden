@@ -111,6 +111,9 @@ setInterval(() => {
     entry.attempts = entry.attempts.filter(t => now - t < 3600000);
     if (entry.attempts.length === 0) rateLimits.delete(key);
   }
+  for (const [key, entry] of accessCache) {
+    if (now - entry.ts > ACCESS_CACHE_TTL) accessCache.delete(key);
+  }
 }, 300000);
 
 function getIP(req) {
@@ -134,6 +137,37 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 *
 
 // ─── Helpers ───
 function generateToken() { return crypto.randomBytes(32).toString('hex'); }
+
+// Token validation cache for HLS (avoids ~300 DB hits per video)
+const accessCache = new Map();
+const ACCESS_CACHE_TTL = 120000; // 2 minutes
+
+async function verifyCourseAccess(token, courseId) {
+  const cacheKey = `${token}:${courseId}`;
+  const cached = accessCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < ACCESS_CACHE_TTL) return cached.ok;
+
+  const r = await pool.query(
+    `SELECT id FROM nb_course_access
+     WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
+    [token, courseId]
+  );
+  const ok = r.rows.length > 0;
+  accessCache.set(cacheKey, { ok, ts: Date.now() });
+  return ok;
+}
+
+async function upsertCustomer(email, name, stripeCustomerId) {
+  const r = await pool.query(
+    `INSERT INTO nb_customers (email, name, stripe_customer_id)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (stripe_customer_id) DO UPDATE SET
+       email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
+     RETURNING id`,
+    [email, name, stripeCustomerId]
+  );
+  return r.rows[0].id;
+}
 
 async function sendWhatsApp(to, text) {
   if (!OVERLORD_URL || !WEBHOOK_TOKEN) return;
@@ -386,20 +420,20 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         mode: 'payment'
       },
       'course-1': {
-        name: '愛を引き寄せる心の授業',
+        name: COURSES['course-1'].name,
         description: '全8レッスン動画コース — 意識の4ステップで本当のパートナーシップを引き寄せる',
         amount: 7800,
         mode: 'payment'
       },
       'course-2': {
-        name: '愛を深める心の授業',
+        name: COURSES['course-2'].name,
         description: '全11レッスン＋ボーナス瞑想 — パートナーシップの問題を心の深いレベルから解決',
         amount: 9800,
         mode: 'payment'
       },
       'course-bundle': {
-        name: '心の授業 2コースセット',
-        description: '愛を引き寄せる＋愛を深める — 全19レッスン＋ボーナス瞑想（2,800円おトク）',
+        name: `${COURSES['course-1'].name} + ${COURSES['course-2'].name} セット`,
+        description: '全19レッスン＋ボーナス瞑想（2,800円おトク）',
         amount: 14800,
         mode: 'payment'
       }
@@ -470,16 +504,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
 
         // Course purchases (one-time payment)
         if (['course-1', 'course-2', 'course-bundle'].includes(product)) {
-          // Upsert customer (use email as conflict key since one-time payments may not have stripe customer)
-          const custResult = await pool.query(
-            `INSERT INTO nb_customers (email, name, stripe_customer_id)
-             VALUES ($1, $2, $3)
-             ON CONFLICT (stripe_customer_id) DO UPDATE SET
-               email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
-             RETURNING id`,
-            [email, name, customerId || `onetime_${session.id}`]
-          );
-          const custId = custResult.rows[0].id;
+          const custId = await upsertCustomer(email, name, customerId || `onetime_${session.id}`);
 
           // Record payment
           await pool.query(
@@ -489,7 +514,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
             [custId, session.payment_intent, null, session.amount_total, session.currency, product]
           );
 
-          // Determine which courses to grant
+          // Determine which courses to grant — bundle shares one token
           const courseIds = product === 'course-bundle' ? ['course-1', 'course-2'] : [product];
           const accessToken = generateToken();
 
@@ -499,23 +524,11 @@ app.post('/api/stripe/webhook', async (req, res) => {
                VALUES ($1, $2, $3, $4, $5)
                ON CONFLICT (customer_id, course_id) DO UPDATE SET
                  access_token = EXCLUDED.access_token, stripe_session_id = EXCLUDED.stripe_session_id`,
-              [custId, courseId, courseIds.length > 1 ? accessToken : generateToken(), email, session.id]
+              [custId, courseId, accessToken, email, session.id]
             );
           }
 
-          // For bundle, set same token on both rows
-          if (product === 'course-bundle') {
-            await pool.query(
-              `UPDATE nb_course_access SET access_token = $1 WHERE customer_id = $2 AND course_id IN ('course-1', 'course-2')`,
-              [accessToken, custId]
-            );
-          }
-
-          // Get the final token for the email
-          const tokenRow = await pool.query(
-            'SELECT access_token FROM nb_course_access WHERE customer_id = $1 LIMIT 1', [custId]
-          );
-          const token = tokenRow.rows[0].access_token;
+          const token = accessToken;
 
           // Send access email
           const courseNames = courseIds.map(id => COURSES[id]?.name).join(' & ');
@@ -552,15 +565,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
 
         // Subscription handling (coaching etc.)
         if (session.mode === 'subscription') {
-          // Upsert customer
-          const custResult = await pool.query(
-            `INSERT INTO nb_customers (email, name, stripe_customer_id)
-             VALUES ($1, $2, $3)
-             ON CONFLICT (stripe_customer_id) DO UPDATE SET
-               email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
-             RETURNING id`,
-            [email, name, customerId]
-          );
+          const custId = await upsertCustomer(email, name, customerId);
 
           // Record subscription
           const sub = await stripe.subscriptions.retrieve(session.subscription);
@@ -570,7 +575,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
              ON CONFLICT (stripe_subscription_id) DO UPDATE SET
                status = EXCLUDED.status, current_period_start = EXCLUDED.current_period_start,
                current_period_end = EXCLUDED.current_period_end, updated_at = NOW()`,
-            [custResult.rows[0].id, sub.id, sub.items.data[0].price.id, sub.status, product,
+            [custId, sub.id, sub.items.data[0].price.id, sub.status, product,
              sub.current_period_start, sub.current_period_end]
           );
 
@@ -734,12 +739,7 @@ app.get('/api/courses/:courseId/lessons', async (req, res) => {
     const course = COURSES[courseId];
     if (!course) return res.status(404).json({ error: 'Course not found' });
 
-    const r = await pool.query(
-      `SELECT id FROM nb_course_access
-       WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
-      [token, courseId]
-    );
-    if (r.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
+    if (!await verifyCourseAccess(token, courseId)) return res.status(403).json({ error: 'Access denied' });
 
     res.json({ courseId, name: course.name, lessons: course.lessons });
   } catch (e) {
@@ -763,13 +763,8 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
     const filePath = req.params[0]; // e.g. "master.m3u8" or "720p/stream.m3u8" or "720p/seg001.ts"
     if (!token) return res.status(401).json({ error: 'Token required' });
 
-    // Validate access
-    const access = await pool.query(
-      `SELECT id FROM nb_course_access
-       WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
-      [token, courseId]
-    );
-    if (access.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
+    // Validate access (cached — avoids ~300 DB queries per video)
+    if (!await verifyCourseAccess(token, courseId)) return res.status(403).json({ error: 'Access denied' });
 
     const r2Key = `courses/${courseId}/${lessonId}/${filePath}`;
 
