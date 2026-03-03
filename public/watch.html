@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コース視聴 — Nami Barden</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/x-icon" sizes="48x48 32x32 16x16" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#FAF7F2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@300;400;500;600&family=Noto+Serif+JP:wght@500;600&display=swap">
+<script src="/js/hls.min.js"></script>
+<style>
+:root {
+  --cream: #FAF7F2;
+  --cream-dark: #F0EAE0;
+  --cream-darker: #E8DFD3;
+  --warm-beige: #D4C5B2;
+  --gold: #C4A882;
+  --gold-dark: #A8895E;
+  --text-dark: #2C2419;
+  --text-medium: #5C4F3D;
+  --text-light: #8B7E6E;
+  --text-muted: #A99E8F;
+  --white: #FFFFFF;
+  --brown-deep: #2A1C10;
+  --font-display: 'Playfair Display', 'Noto Serif JP', serif;
+  --font-body-jp: 'Noto Sans JP', sans-serif;
+  --transition: 0.3s ease;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; }
+body {
+  font-family: var(--font-body-jp);
+  color: var(--text-dark);
+  background: var(--cream);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Nav */
+.watch-nav {
+  background: rgba(250,247,242,0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(196,168,130,0.15);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.watch-nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--text-dark);
+  text-decoration: none;
+}
+.watch-nav-course {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  letter-spacing: 0.04em;
+}
+
+/* Layout */
+.watch-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  min-height: calc(100vh - 60px);
+}
+
+/* Video area */
+.video-area {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: #1a1410;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.video-container video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #1a1410;
+}
+.video-info h1 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+.video-info p {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--cream-dark);
+  border-left: 1px solid var(--cream-darker);
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+  position: sticky;
+  top: 60px;
+}
+.sidebar-header {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--cream-darker);
+}
+.sidebar-header h2 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+.sidebar-header p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Course tabs (for bundle) */
+.course-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--cream-darker);
+}
+.course-tab {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: var(--transition);
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: var(--font-body-jp);
+}
+.course-tab:hover { color: var(--text-medium); }
+.course-tab.active {
+  color: var(--gold-dark);
+  border-bottom-color: var(--gold-dark);
+}
+
+/* Lesson list */
+.lesson-list { padding: 8px 0; }
+.lesson-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body-jp);
+}
+.lesson-item:hover { background: rgba(196,168,130,0.08); }
+.lesson-item.active { background: rgba(196,168,130,0.15); }
+.lesson-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 1px solid var(--cream-darker);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+}
+.lesson-item.active .lesson-num {
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
+  color: var(--white);
+}
+.lesson-title {
+  font-size: 0.85rem;
+  color: var(--text-medium);
+  line-height: 1.4;
+}
+.lesson-item.active .lesson-title { color: var(--text-dark); font-weight: 500; }
+
+/* States */
+.loading-state, .error-state, .resend-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+  text-align: center;
+}
+.loading-state p { color: var(--text-muted); margin-top: 16px; }
+.error-state h2 { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 16px; }
+.error-state p { color: var(--text-light); margin-bottom: 24px; max-width: 400px; line-height: 1.8; }
+.error-state a, .resend-state a {
+  display: inline-block;
+  padding: 12px 32px;
+  background: var(--gold-dark);
+  color: var(--white);
+  text-decoration: none;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+.error-state a:hover, .resend-state a:hover { background: var(--brown-deep); }
+
+/* Resend form */
+.resend-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  max-width: 400px;
+  width: 100%;
+}
+.resend-form input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid var(--cream-darker);
+  border-radius: 2px;
+  font-size: 0.9rem;
+  font-family: var(--font-body-jp);
+  background: var(--white);
+}
+.resend-form button {
+  padding: 10px 24px;
+  background: var(--gold-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 2px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--font-body-jp);
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.resend-form button:hover { background: var(--brown-deep); }
+.resend-msg { margin-top: 12px; font-size: 0.85rem; color: var(--gold-dark); }
+
+/* Mobile toggle */
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px; height: 48px;
+  background: var(--gold-dark);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 200;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .watch-layout { grid-template-columns: 1fr; }
+  .video-area { padding: 16px; }
+  .sidebar {
+    position: fixed;
+    top: 60px; right: 0; bottom: 0;
+    width: 300px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 150;
+    max-height: none;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 140;
+  }
+  .sidebar-overlay.open { display: block; }
+  .watch-nav { padding: 0 16px; }
+  .watch-nav-course { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loadingState" class="loading-state">
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path></svg>
+  <p>読み込み中...</p>
+</div>
+
+<!-- Error -->
+<div id="errorState" class="error-state" style="display:none">
+  <h2>アクセスできません</h2>
+  <p id="errorMsg">このリンクは無効または期限切れです。</p>
+  <a href="/">トップに戻る</a>
+  <div style="margin-top: 40px;">
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">購入済みの方はメールアドレスで再送できます</p>
+    <div class="resend-form">
+      <input type="email" id="resendEmail" placeholder="メールアドレス">
+      <button onclick="resendAccess()">再送する</button>
+    </div>
+    <p id="resendMsg" class="resend-msg" style="display:none"></p>
+  </div>
+</div>
+
+<!-- Main player UI -->
+<div id="playerUI" style="display:none">
+  <nav class="watch-nav">
+    <a href="/" class="watch-nav-logo">Nami Barden</a>
+    <span class="watch-nav-course" id="courseTitle"></span>
+  </nav>
+
+  <div class="watch-layout">
+    <div class="video-area">
+      <div class="video-container">
+        <video id="videoPlayer" controls playsinline></video>
+      </div>
+      <div class="video-info">
+        <h1 id="lessonTitle"></h1>
+        <p id="lessonSub"></p>
+      </div>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>レッスン一覧</h2>
+        <p id="lessonCount"></p>
+      </div>
+      <div id="courseTabs" class="course-tabs" style="display:none"></div>
+      <div id="lessonList" class="lesson-list"></div>
+    </aside>
+  </div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const token = params.get('token');
+let courses = [];
+let currentCourse = null;
+let currentLesson = null;
+let hls = null;
+
+async function init() {
+  if (!token) return showError('トークンが見つかりません。購入時に届いたメールのリンクからアクセスしてください。');
+
+  try {
+    const res = await fetch(`/api/courses/verify?token=${encodeURIComponent(token)}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return showError(data.error || 'アクセスが拒否されました。');
+    }
+    const data = await res.json();
+    courses = data.courses;
+
+    if (courses.length === 0) return showError('利用可能なコースがありません。');
+
+    // Default to first course or course from URL
+    const urlCourse = params.get('course');
+    currentCourse = urlCourse && courses.find(c => c.id === urlCourse) ? urlCourse : courses[0].id;
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('playerUI').style.display = '';
+
+    // Show tabs if bundle (multiple courses)
+    if (courses.length > 1) {
+      const tabsEl = document.getElementById('courseTabs');
+      tabsEl.style.display = 'flex';
+      tabsEl.innerHTML = courses.map(c =>
+        `<button class="course-tab${c.id === currentCourse ? ' active' : ''}" onclick="switchCourse('${c.id}')">${c.name.replace('心の授業', '').trim()}</button>`
+      ).join('');
+    }
+
+    await loadCourse(currentCourse);
+  } catch (e) {
+    showError('接続エラーが発生しました。ページを再読み込みしてください。');
+  }
+}
+
+async function loadCourse(courseId) {
+  currentCourse = courseId;
+  const res = await fetch(`/api/courses/${courseId}/lessons?token=${encodeURIComponent(token)}`);
+  if (!res.ok) return showError('コースの読み込みに失敗しました。');
+  const data = await res.json();
+
+  document.getElementById('courseTitle').textContent = data.name;
+  document.getElementById('lessonCount').textContent = `${data.lessons.length}レッスン`;
+
+  const listEl = document.getElementById('lessonList');
+  listEl.innerHTML = data.lessons.map((l, i) => {
+    const num = l.id.startsWith('bonus') ? '★' : (i + 1);
+    return `<button class="lesson-item" data-lesson="${l.id}" onclick="playLesson('${courseId}','${l.id}',${i})">
+      <span class="lesson-num">${num}</span>
+      <span class="lesson-title">${l.title}</span>
+    </button>`;
+  }).join('');
+
+  // Update tabs
+  document.querySelectorAll('.course-tab').forEach(t => t.classList.remove('active'));
+  const activeTab = document.querySelector(`.course-tab[onclick*="${courseId}"]`);
+  if (activeTab) activeTab.classList.add('active');
+
+  // Auto-play first lesson
+  const urlLesson = params.get('lesson');
+  const startLesson = urlLesson && data.lessons.find(l => l.id === urlLesson) ? urlLesson : data.lessons[0].id;
+  const startIdx = data.lessons.findIndex(l => l.id === startLesson);
+  playLesson(courseId, startLesson, startIdx >= 0 ? startIdx : 0);
+}
+
+function switchCourse(courseId) {
+  loadCourse(courseId);
+}
+
+function playLesson(courseId, lessonId, idx) {
+  currentLesson = lessonId;
+  const video = document.getElementById('videoPlayer');
+  const hlsUrl = `/api/courses/${courseId}/${lessonId}/hls/master.m3u8?token=${encodeURIComponent(token)}`;
+
+  // Update active state
+  document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
+  const activeEl = document.querySelector(`.lesson-item[data-lesson="${lessonId}"]`);
+  if (activeEl) activeEl.classList.add('active');
+
+  // Update title
+  const title = activeEl?.querySelector('.lesson-title')?.textContent || '';
+  const num = lessonId.startsWith('bonus') ? 'ボーナス' : `レッスン ${idx + 1}`;
+  document.getElementById('lessonTitle').textContent = title;
+  document.getElementById('lessonSub').textContent = num;
+
+  // Close mobile sidebar
+  if (window.innerWidth <= 768) toggleSidebar(false);
+
+  // Destroy existing HLS instance
+  if (hls) { hls.destroy(); hls = null; }
+
+  // Native HLS support (Safari, iOS)
+  if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = hlsUrl;
+    video.play().catch(() => {});
+    return;
+  }
+
+  // hls.js
+  if (Hls.isSupported()) {
+    hls = new Hls({
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60
+    });
+    hls.loadSource(hlsUrl);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play().catch(() => {});
+    });
+    hls.on(Hls.Events.ERROR, (e, data) => {
+      if (data.fatal) {
+        console.error('HLS fatal error:', data.type, data.details);
+        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          hls.startLoad();
+        } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+          hls.recoverMediaError();
+        }
+      }
+    });
+  } else {
+    document.getElementById('lessonSub').textContent = 'お使いのブラウザでは動画を再生できません。';
+  }
+}
+
+function toggleSidebar(forceState) {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const isOpen = typeof forceState === 'boolean' ? forceState : !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', isOpen);
+  overlay.classList.toggle('open', isOpen);
+}
+
+function showError(msg) {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('errorState').style.display = '';
+  document.getElementById('errorMsg').textContent = msg;
+}
+
+async function resendAccess() {
+  const email = document.getElementById('resendEmail').value.trim();
+  if (!email) return;
+  const msgEl = document.getElementById('resendMsg');
+  msgEl.style.display = 'block';
+  msgEl.textContent = '送信中...';
+
+  try {
+    const res = await fetch('/api/courses/resend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    msgEl.textContent = data.message || 'リンクを送信しました。メールをご確認ください。';
+  } catch {
+    msgEl.textContent = 'エラーが発生しました。もう一度お試しください。';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -463,40 +463,123 @@ app.post('/api/stripe/webhook', async (req, res) => {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
-        if (session.mode !== 'subscription') break;
-
         const customerId = session.customer;
         const email = session.customer_details?.email || session.customer_email;
         const name = session.customer_details?.name || null;
         const product = session.metadata?.product || 'coaching';
 
-        // Upsert customer
-        const custResult = await pool.query(
-          `INSERT INTO nb_customers (email, name, stripe_customer_id)
-           VALUES ($1, $2, $3)
-           ON CONFLICT (stripe_customer_id) DO UPDATE SET
-             email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
-           RETURNING id`,
-          [email, name, customerId]
-        );
+        // Course purchases (one-time payment)
+        if (['course-1', 'course-2', 'course-bundle'].includes(product)) {
+          // Upsert customer (use email as conflict key since one-time payments may not have stripe customer)
+          const custResult = await pool.query(
+            `INSERT INTO nb_customers (email, name, stripe_customer_id)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (stripe_customer_id) DO UPDATE SET
+               email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
+             RETURNING id`,
+            [email, name, customerId || `onetime_${session.id}`]
+          );
+          const custId = custResult.rows[0].id;
 
-        // Record subscription
-        const sub = await stripe.subscriptions.retrieve(session.subscription);
-        await pool.query(
-          `INSERT INTO nb_subscriptions (customer_id, stripe_subscription_id, stripe_price_id, status, product_name, current_period_start, current_period_end)
-           VALUES ($1, $2, $3, $4, $5, to_timestamp($6), to_timestamp($7))
-           ON CONFLICT (stripe_subscription_id) DO UPDATE SET
-             status = EXCLUDED.status, current_period_start = EXCLUDED.current_period_start,
-             current_period_end = EXCLUDED.current_period_end, updated_at = NOW()`,
-          [custResult.rows[0].id, sub.id, sub.items.data[0].price.id, sub.status, product,
-           sub.current_period_start, sub.current_period_end]
-        );
+          // Record payment
+          await pool.query(
+            `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
+             VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+             ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
+            [custId, session.payment_intent, null, session.amount_total, session.currency, product]
+          );
 
-        // Notify Nami
-        sendWhatsApp(NAMI_JID,
-          `💳 新規コーチング契約!\n${name || email}\n¥88,000/月サブスクリプション開始`);
+          // Determine which courses to grant
+          const courseIds = product === 'course-bundle' ? ['course-1', 'course-2'] : [product];
+          const accessToken = generateToken();
 
-        console.log(`Stripe: New subscription ${sub.id} for ${email}`);
+          for (const courseId of courseIds) {
+            await pool.query(
+              `INSERT INTO nb_course_access (customer_id, course_id, access_token, email, stripe_session_id)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (customer_id, course_id) DO UPDATE SET
+                 access_token = EXCLUDED.access_token, stripe_session_id = EXCLUDED.stripe_session_id`,
+              [custId, courseId, courseIds.length > 1 ? accessToken : generateToken(), email, session.id]
+            );
+          }
+
+          // For bundle, set same token on both rows
+          if (product === 'course-bundle') {
+            await pool.query(
+              `UPDATE nb_course_access SET access_token = $1 WHERE customer_id = $2 AND course_id IN ('course-1', 'course-2')`,
+              [accessToken, custId]
+            );
+          }
+
+          // Get the final token for the email
+          const tokenRow = await pool.query(
+            'SELECT access_token FROM nb_course_access WHERE customer_id = $1 LIMIT 1', [custId]
+          );
+          const token = tokenRow.rows[0].access_token;
+
+          // Send access email
+          const courseNames = courseIds.map(id => COURSES[id]?.name).join(' & ');
+          const watchUrl = `${SITE_URL}/watch?token=${token}`;
+          try {
+            await transporter.sendMail({
+              from: SMTP_FROM,
+              to: email,
+              subject: `【NamiBarden】${courseNames} — ご購入ありがとうございます`,
+              html: `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
+                <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">ご購入ありがとうございます</h2>
+                <p style="line-height:1.8;margin-bottom:16px;">${name ? escapeHtml(name) + '様' : ''},</p>
+                <p style="line-height:1.8;margin-bottom:16px;">「${escapeHtml(courseNames)}」のご購入、誠にありがとうございます。</p>
+                <p style="line-height:1.8;margin-bottom:24px;">下のボタンをクリックして、すぐに視聴を開始できます。</p>
+                <p style="text-align:center;margin:32px 0;">
+                  <a href="${watchUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">コースを視聴する</a>
+                </p>
+                <p style="line-height:1.8;margin-bottom:8px;font-size:0.9rem;color:#8B7E6E;">このリンクはあなた専用です。他の方と共有しないでください。</p>
+                <p style="line-height:1.8;font-size:0.9rem;color:#8B7E6E;">リンクを紛失した場合は、購入時のメールアドレスで再送できます。</p>
+                <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
+                <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
+              </div>`
+            });
+          } catch (e) { console.error('Course access email failed:', e.message); }
+
+          // WhatsApp notify Nami
+          const amount = session.amount_total;
+          sendWhatsApp(NAMI_JID,
+            `🎓 コース購入!\n${name || email}\n${courseNames}\n¥${amount?.toLocaleString()}`);
+
+          console.log(`Stripe: Course ${product} purchased by ${email}`);
+          break;
+        }
+
+        // Subscription handling (coaching etc.)
+        if (session.mode === 'subscription') {
+          // Upsert customer
+          const custResult = await pool.query(
+            `INSERT INTO nb_customers (email, name, stripe_customer_id)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (stripe_customer_id) DO UPDATE SET
+               email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
+             RETURNING id`,
+            [email, name, customerId]
+          );
+
+          // Record subscription
+          const sub = await stripe.subscriptions.retrieve(session.subscription);
+          await pool.query(
+            `INSERT INTO nb_subscriptions (customer_id, stripe_subscription_id, stripe_price_id, status, product_name, current_period_start, current_period_end)
+             VALUES ($1, $2, $3, $4, $5, to_timestamp($6), to_timestamp($7))
+             ON CONFLICT (stripe_subscription_id) DO UPDATE SET
+               status = EXCLUDED.status, current_period_start = EXCLUDED.current_period_start,
+               current_period_end = EXCLUDED.current_period_end, updated_at = NOW()`,
+            [custResult.rows[0].id, sub.id, sub.items.data[0].price.id, sub.status, product,
+             sub.current_period_start, sub.current_period_end]
+          );
+
+          // Notify Nami
+          sendWhatsApp(NAMI_JID,
+            `💳 新規コーチング契約!\n${name || email}\n¥88,000/月サブスクリプション開始`);
+
+          console.log(`Stripe: New subscription ${sub.id} for ${email}`);
+        }
         break;
       }
 
@@ -599,6 +682,173 @@ app.post('/api/stripe/customer-portal', async (req, res) => {
   } catch (e) {
     console.error('Stripe portal error:', e.message);
     res.status(500).json({ error: 'Failed to create portal session' });
+  }
+});
+
+
+// ══════════════════════════════════════
+// COURSE VIDEO ENDPOINTS
+// ══════════════════════════════════════
+
+// ─── GET /api/courses/verify ───
+app.get('/api/courses/verify', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token required' });
+
+    const r = await pool.query(
+      `SELECT course_id, email FROM nb_course_access
+       WHERE access_token = $1 AND (expires_at IS NULL OR expires_at > NOW())`,
+      [token]
+    );
+    if (r.rows.length === 0) return res.status(403).json({ error: 'Invalid or expired token' });
+
+    const courses = r.rows.map(row => ({
+      id: row.course_id,
+      name: COURSES[row.course_id]?.name || row.course_id,
+      lessonCount: COURSES[row.course_id]?.lessons?.length || 0
+    }));
+
+    res.json({ ok: true, email: r.rows[0].email, courses });
+  } catch (e) {
+    console.error('Course verify error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── GET /api/courses/:courseId/lessons ───
+app.get('/api/courses/:courseId/lessons', async (req, res) => {
+  try {
+    const { token } = req.query;
+    const { courseId } = req.params;
+    if (!token) return res.status(401).json({ error: 'Token required' });
+
+    const course = COURSES[courseId];
+    if (!course) return res.status(404).json({ error: 'Course not found' });
+
+    const r = await pool.query(
+      `SELECT id FROM nb_course_access
+       WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
+      [token, courseId]
+    );
+    if (r.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
+
+    res.json({ courseId, name: course.name, lessons: course.lessons });
+  } catch (e) {
+    console.error('Course lessons error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── GET /api/courses/:courseId/:lessonId/hls/* ───
+// Proxies .m3u8 playlists (rewrites segment URLs) and 302-redirects .ts segments to signed R2 URLs
+app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
+  try {
+    if (!r2) return res.status(503).json({ error: 'Video hosting not configured' });
+
+    const { token } = req.query;
+    const { courseId, lessonId } = req.params;
+    const filePath = req.params[0]; // e.g. "master.m3u8" or "720p/stream.m3u8" or "720p/seg001.ts"
+    if (!token) return res.status(401).json({ error: 'Token required' });
+
+    // Validate access
+    const access = await pool.query(
+      `SELECT id FROM nb_course_access
+       WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
+      [token, courseId]
+    );
+    if (access.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
+
+    const r2Key = `courses/${courseId}/${lessonId}/${filePath}`;
+
+    // .ts segments → 302 redirect to signed R2 URL
+    if (filePath.endsWith('.ts')) {
+      const signedUrl = await getSignedUrl(r2, new GetObjectCommand({
+        Bucket: R2_BUCKET, Key: r2Key
+      }), { expiresIn: 300 }); // 5 min
+      return res.redirect(302, signedUrl);
+    }
+
+    // .m3u8 playlists → fetch from R2, rewrite URLs to go through our proxy
+    if (filePath.endsWith('.m3u8')) {
+      const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
+      let body = await obj.Body.transformToString();
+
+      // Rewrite relative segment/playlist references to go through our proxy
+      const baseApiPath = `/api/courses/${courseId}/${lessonId}/hls`;
+      const dir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
+
+      body = body.replace(/^(?!#)(.+)$/gm, (match, line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return match;
+        const fullPath = dir ? `${dir}/${trimmed}` : trimmed;
+        return `${baseApiPath}/${fullPath}?token=${token}`;
+      });
+
+      res.set({
+        'Content-Type': 'application/vnd.apple.mpegurl',
+        'Cache-Control': 'no-cache'
+      });
+      return res.send(body);
+    }
+
+    res.status(400).json({ error: 'Invalid file type' });
+  } catch (e) {
+    if (e.name === 'NoSuchKey' || e.$metadata?.httpStatusCode === 404) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    console.error('HLS proxy error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── POST /api/courses/resend ───
+app.post('/api/courses/resend', async (req, res) => {
+  try {
+    const ip = getIP(req);
+    if (!rateLimit(`course-resend:${ip}`, 3, 3600000)) {
+      return res.status(429).json({ error: 'Too many requests. Please try again later.' });
+    }
+    const { email } = req.body;
+    if (!email?.trim()) return res.status(400).json({ error: 'Email required' });
+
+    const r = await pool.query(
+      `SELECT access_token, course_id FROM nb_course_access WHERE email = $1 LIMIT 1`,
+      [email.trim()]
+    );
+    if (r.rows.length === 0) {
+      // Don't reveal whether email exists
+      return res.json({ ok: true, message: 'If a purchase exists for this email, an access link has been sent.' });
+    }
+
+    const token = r.rows[0].access_token;
+    const courseIds = (await pool.query(
+      'SELECT course_id FROM nb_course_access WHERE access_token = $1', [token]
+    )).rows.map(row => row.course_id);
+
+    const courseNames = courseIds.map(id => COURSES[id]?.name).join(' & ');
+    const watchUrl = `${SITE_URL}/watch?token=${token}`;
+
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: email.trim(),
+      subject: `【NamiBarden】コース視聴リンクの再送`,
+      html: `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
+        <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">コース視聴リンク</h2>
+        <p style="line-height:1.8;margin-bottom:16px;">「${escapeHtml(courseNames)}」の視聴リンクをお送りします。</p>
+        <p style="text-align:center;margin:32px 0;">
+          <a href="${watchUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">コースを視聴する</a>
+        </p>
+        <p style="font-size:0.9rem;color:#8B7E6E;">このリンクはあなた専用です。他の方と共有しないでください。</p>
+        <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
+        <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
+      </div>`
+    });
+
+    res.json({ ok: true, message: 'If a purchase exists for this email, an access link has been sent.' });
+  } catch (e) {
+    console.error('Course resend error:', e);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

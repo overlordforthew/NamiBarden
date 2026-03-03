@@ -1071,7 +1071,7 @@ footer {
             何度でも繰り返し視聴可能
           </div>
         </div>
-        <a href="#" class="btn btn-filled" onclick="return false;"><span>購入する</span></a>
+        <a href="#" class="btn btn-filled" onclick="purchaseCourse('course-1'); return false;"><span>購入する</span></a>
       </div>
       <!-- Bundle -->
       <div class="pricing-card recommended">
@@ -1097,7 +1097,7 @@ footer {
             何度でも繰り返し視聴可能
           </div>
         </div>
-        <a href="#" class="btn btn-gold" onclick="return false;"><span>セットで購入する</span></a>
+        <a href="#" class="btn btn-gold" onclick="purchaseCourse('course-bundle'); return false;"><span>セットで購入する</span></a>
       </div>
     </div>
   </div>
@@ -1180,6 +1180,33 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Course purchase
+async function purchaseCourse(product) {
+  const btn = event.target.closest('.btn');
+  const origText = btn.querySelector('span').textContent;
+  btn.querySelector('span').textContent = '処理中...';
+  btn.style.pointerEvents = 'none';
+  try {
+    const res = await fetch('/api/stripe/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product })
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert(data.error || 'エラーが発生しました');
+      btn.querySelector('span').textContent = origText;
+      btn.style.pointerEvents = '';
+    }
+  } catch {
+    alert('接続エラーが発生しました');
+    btn.querySelector('span').textContent = origText;
+    btn.style.pointerEvents = '';
+  }
+}
 </script>
 
 </body>
