@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マイコース — Nami Barden</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/x-icon" sizes="48x48 32x32 16x16" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#FAF7F2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Cormorant+Garamond:wght@400;500&family=Noto+Sans+JP:wght@300;400;500;600&display=swap">
+<script>
+(function() {
+  var saved = localStorage.getItem('namibarden-lang');
+  if (saved === 'en') document.documentElement.setAttribute('lang', 'en');
+})();
+</script>
+<style>
+:root {
+  --cream: #FAF7F2;
+  --cream-dark: #F0EAE0;
+  --cream-darker: #E8DFD3;
+  --warm-beige: #D4C5B2;
+  --gold: #C4A882;
+  --gold-dark: #A8895E;
+  --text-dark: #2C2419;
+  --text-medium: #5C4F3D;
+  --text-light: #8B7E6E;
+  --text-muted: #A99E8F;
+  --white: #FFFFFF;
+  --brown-deep: #2A1C10;
+  --font-display: 'Playfair Display', 'Noto Serif JP', serif;
+  --font-body-jp: 'Noto Sans JP', sans-serif;
+  --font-body: 'Cormorant Garamond', 'Noto Sans JP', sans-serif;
+  --transition: 0.3s ease;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; }
+body {
+  font-family: var(--font-body-jp);
+  color: var(--text-dark);
+  background: var(--cream);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+html[lang="en"] body { font-family: var(--font-body); }
+
+/* Nav */
+.dash-nav {
+  background: rgba(250,247,242,0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(196,168,130,0.15);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.dash-nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--text-dark);
+  text-decoration: none;
+}
+.dash-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.dash-nav-user {
+  font-size: 0.85rem;
+  color: var(--text-light);
+}
+.dash-nav-logout {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--font-body-jp);
+  transition: var(--transition);
+  padding: 6px 12px;
+  border: 1px solid var(--cream-darker);
+  border-radius: 2px;
+}
+.dash-nav-logout:hover { color: var(--text-dark); border-color: var(--gold); }
+
+/* Main */
+.dash-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 32px;
+}
+.dash-header {
+  margin-bottom: 40px;
+}
+.dash-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.dash-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+/* Course cards */
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.course-card {
+  background: var(--white);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  transition: var(--transition);
+}
+.course-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.course-thumb {
+  height: 160px;
+  background: linear-gradient(135deg, var(--cream-dark), var(--warm-beige));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.course-thumb-icon {
+  font-size: 2.5rem;
+  opacity: 0.3;
+}
+.course-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--gold-dark);
+  color: var(--white);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+.course-info {
+  padding: 20px;
+}
+.course-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text-dark);
+}
+.course-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.course-watch-btn {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  background: var(--gold-dark);
+  color: var(--white);
+  text-decoration: none;
+  border-radius: 2px;
+  font-size: 0.85rem;
+  transition: var(--transition);
+  letter-spacing: 0.05em;
+}
+.course-watch-btn:hover { background: var(--brown-deep); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+.empty-state h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+.empty-state p {
+  color: var(--text-light);
+  margin-bottom: 24px;
+  line-height: 1.8;
+}
+.empty-state a {
+  display: inline-block;
+  padding: 12px 32px;
+  background: var(--gold-dark);
+  color: var(--white);
+  text-decoration: none;
+  border-radius: 2px;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+.empty-state a:hover { background: var(--brown-deep); }
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .dash-nav { padding: 0 16px; }
+  .dash-main { padding: 32px 16px; }
+  .dash-nav-user { display: none; }
+  .course-grid { grid-template-columns: 1fr; }
+}
+
+[data-lang="en"] { display: none; }
+html[lang="en"] [data-lang="ja"] { display: none; }
+html[lang="en"] [data-lang="en"] { display: initial; }
+</style>
+</head>
+<body>
+
+<nav class="dash-nav">
+  <a href="/" class="dash-nav-logo">Nami Barden</a>
+  <div class="dash-nav-right">
+    <span class="dash-nav-user" id="userName"></span>
+    <button class="dash-nav-logout" onclick="logout()">
+      <span data-lang="ja">ログアウト</span>
+      <span data-lang="en">Log out</span>
+    </button>
+  </div>
+</nav>
+
+<main class="dash-main">
+  <div class="dash-header">
+    <h1 class="dash-title">
+      <span data-lang="ja">マイコース</span>
+      <span data-lang="en">My Courses</span>
+    </h1>
+    <p class="dash-subtitle" id="dashSubtitle"></p>
+  </div>
+
+  <div id="content" class="loading">
+    <p data-lang="ja">読み込み中...</p>
+    <p data-lang="en">Loading...</p>
+  </div>
+</main>
+
+<script>
+const token = localStorage.getItem('nb-auth-token');
+if (!token) {
+  window.location.href = '/login?redirect=/my-courses';
+}
+
+const isEn = document.documentElement.lang === 'en';
+
+async function loadDashboard() {
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem('nb-auth-token');
+      localStorage.removeItem('nb-auth-name');
+      window.location.href = '/login?redirect=/my-courses';
+      return;
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    // Set user info
+    if (data.name) {
+      document.getElementById('userName').textContent = data.name;
+      localStorage.setItem('nb-auth-name', data.name);
+    }
+
+    const contentEl = document.getElementById('content');
+
+    if (data.courses.length === 0) {
+      contentEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📚</div>
+          <h2>${isEn ? 'No courses yet' : 'まだコースがありません'}</h2>
+          <p>${isEn ? 'Browse our courses and start your journey.' : 'コースを購入して、学びの旅を始めましょう。'}</p>
+          <a href="/#courses">${isEn ? 'Browse Courses' : 'コース一覧を見る'}</a>
+        </div>`;
+      contentEl.className = '';
+      return;
+    }
+
+    document.getElementById('dashSubtitle').textContent =
+      isEn ? `${data.courses.length} course${data.courses.length > 1 ? 's' : ''} purchased` :
+             `${data.courses.length}コース購入済み`;
+
+    const courseImages = {
+      'course-1': '💕',
+      'course-2': '💑'
+    };
+
+    contentEl.innerHTML = `<div class="course-grid">${data.courses.map(c => {
+      const purchaseDate = new Date(c.purchasedAt);
+      const dateStr = isEn
+        ? purchaseDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+        : purchaseDate.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      return `<div class="course-card">
+        <div class="course-thumb">
+          <span class="course-thumb-icon">${courseImages[c.id] || '📖'}</span>
+          <span class="course-badge">${c.lessonCount} ${isEn ? 'lessons' : 'レッスン'}</span>
+        </div>
+        <div class="course-info">
+          <h3 class="course-name">${c.name}</h3>
+          <p class="course-meta">${isEn ? 'Purchased' : '購入日'}: ${dateStr}</p>
+          <a href="/watch?token=${c.accessToken}" class="course-watch-btn">
+            ${isEn ? 'Watch Course' : 'コースを視聴する'}
+          </a>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+    contentEl.className = '';
+
+  } catch (e) {
+    console.error('Dashboard error:', e);
+    document.getElementById('content').innerHTML = `
+      <div class="empty-state">
+        <p>${isEn ? 'Failed to load courses. Please try again.' : 'コースの読み込みに失敗しました。'}</p>
+        <a href="/my-courses">${isEn ? 'Retry' : '再読み込み'}</a>
+      </div>`;
+    document.getElementById('content').className = '';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('nb-auth-token');
+  localStorage.removeItem('nb-auth-name');
+  window.location.href = '/';
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

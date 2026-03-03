@@ -1577,6 +1577,8 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       <a href="#books"><span data-lang="ja">書籍</span><span data-lang="en">Books</span></a>
       <a href="#media"><span data-lang="ja">メディア</span><span data-lang="en">Media</span></a>
       <a href="#contact"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
+      <a href="/my-courses" id="navMyCoursesLink" style="display:none;font-size:0.72rem;padding:5px 12px;border:1px solid var(--gold);border-radius:2px;color:var(--gold-dark);letter-spacing:0.05em;white-space:nowrap;"><span data-lang="ja">マイコース</span><span data-lang="en">My Courses</span></a>
+      <a href="/login" id="navLoginLink" style="font-size:0.72rem;padding:5px 12px;border:1px solid var(--cream-darker);border-radius:2px;color:var(--text-light);letter-spacing:0.05em;white-space:nowrap;"><span data-lang="ja">ログイン</span><span data-lang="en">Sign In</span></a>
       <button class="lang-toggle" onclick="toggleLang()" aria-label="Toggle language / 言語切替">
         <span class="flag-ja">🇯🇵</span><span class="flag-divider">|</span><span class="flag-en">🇺🇸</span>
       </button>
@@ -1601,6 +1603,8 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
   <a href="#books" onclick="toggleMobile()"><span data-lang="ja">書籍</span><span data-lang="en">Books</span></a>
   <a href="#media" onclick="toggleMobile()"><span data-lang="ja">メディア</span><span data-lang="en">Media</span></a>
   <a href="#contact" onclick="toggleMobile()"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
+  <a href="/my-courses" id="mobileMyCoursesLink" onclick="toggleMobile()" style="display:none;"><span data-lang="ja">マイコース</span><span data-lang="en">My Courses</span></a>
+  <a href="/login" id="mobileLoginLink" onclick="toggleMobile()"><span data-lang="ja">ログイン</span><span data-lang="en">Sign In</span></a>
 </div>
 
 <!-- ===== HERO ===== -->
@@ -2606,6 +2610,20 @@ function closeModal() {
 document.getElementById('thankYouModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
+
+// Auth state: show My Courses or Login
+(function() {
+  if (localStorage.getItem('nb-auth-token')) {
+    var mc = document.getElementById('navMyCoursesLink');
+    var li = document.getElementById('navLoginLink');
+    var mmc = document.getElementById('mobileMyCoursesLink');
+    var mli = document.getElementById('mobileLoginLink');
+    if (mc) mc.style.display = '';
+    if (li) li.style.display = 'none';
+    if (mmc) mmc.style.display = '';
+    if (mli) mli.style.display = 'none';
+  }
+})();
 </script>
 
 </body>

@@ -83,7 +83,80 @@ p { color: var(--text-medium); line-height: 1.8; margin-bottom: 12px; font-size:
   <p>Your coaching plan registration is complete.</p>
   <p>A confirmation email has been sent to you.<br>We'll be in touch shortly to schedule your first session.</p>
   <p class="note">If you have any questions, please don't hesitate to reach out.</p>
-  <a href="/executive-coaching-en" class="btn">Back to Executive Coaching</a>
+  <a href="/" class="btn">Back to Home</a>
+
+  <!-- Account creation section -->
+  <div id="accountSection" style="display:none; border-top: 1px solid #E8DFD3; margin-top: 36px; padding-top: 32px;">
+    <h2 style="font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:500; margin-bottom:12px;">Create Your Account</h2>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:20px;">Set a password to log in and access your courses anytime.</p>
+    <div id="accountError" style="display:none; background:#fef2f2; border:1px solid #fecaca; color:#c44; padding:10px; border-radius:4px; font-size:0.85rem; margin-bottom:16px;"></div>
+    <div id="accountSuccess" style="display:none; background:#f0fdf4; border:1px solid #bbf7d0; color:#4a7; padding:10px; border-radius:4px; font-size:0.85rem; margin-bottom:16px;"></div>
+    <form id="accountForm" onsubmit="createAccount(event)" style="text-align:left;">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:0.82rem; color:var(--text-medium); margin-bottom:4px;">Email</label>
+        <input type="email" id="accEmail" required style="width:100%; padding:10px 14px; border:1px solid #E8DFD3; border-radius:4px; font-size:0.9rem; background:var(--cream);">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:0.82rem; color:var(--text-medium); margin-bottom:4px;">Password (min. 8 characters)</label>
+        <input type="password" id="accPassword" required minlength="8" style="width:100%; padding:10px 14px; border:1px solid #E8DFD3; border-radius:4px; font-size:0.9rem; background:var(--cream);">
+      </div>
+      <button type="submit" id="accBtn" style="width:100%; padding:12px; background:var(--gold-dark); color:#fff; border:none; border-radius:4px; font-size:0.9rem; cursor:pointer;">Create Account</button>
+    </form>
+  </div>
 </div>
+
+<script>
+const params = new URLSearchParams(location.search);
+if (params.get('session_id')) {
+  document.getElementById('accountSection').style.display = 'block';
+}
+
+async function createAccount(e) {
+  e.preventDefault();
+  const errorEl = document.getElementById('accountError');
+  const successEl = document.getElementById('accountSuccess');
+  const btn = document.getElementById('accBtn');
+  errorEl.style.display = 'none';
+  successEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('accEmail').value,
+        password: document.getElementById('accPassword').value
+      })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errorEl.textContent = data.error;
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+      return;
+    }
+
+    localStorage.setItem('nb-auth-token', data.token);
+    successEl.textContent = 'Account created! You can now log in anytime to watch your courses.';
+    successEl.style.display = 'block';
+    document.getElementById('accountForm').style.display = 'none';
+
+    const link = document.createElement('a');
+    link.href = '/my-courses';
+    link.textContent = 'Go to My Courses →';
+    link.style.cssText = 'display:inline-block; margin-top:16px; color:var(--gold-dark); font-size:0.9rem;';
+    successEl.after(link);
+  } catch {
+    errorEl.textContent = 'Connection error. Please try again.';
+    errorEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Create Account';
+  }
+}
+</script>
 </body>
 </html>

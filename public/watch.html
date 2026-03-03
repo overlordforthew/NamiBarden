@@ -334,7 +334,10 @@ body {
 <div id="playerUI" style="display:none">
   <nav class="watch-nav">
     <a href="/" class="watch-nav-logo">Nami Barden</a>
-    <span class="watch-nav-course" id="courseTitle"></span>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span class="watch-nav-course" id="courseTitle"></span>
+      <a href="/my-courses" id="myCoursesLink" style="display:none;font-size:0.8rem;color:var(--gold-dark);text-decoration:none;padding:6px 12px;border:1px solid var(--cream-darker);border-radius:2px;">マイコース</a>
+    </div>
   </nav>
 
   <div class="watch-layout">
@@ -527,6 +530,11 @@ async function resendAccess() {
   } catch {
     msgEl.textContent = 'エラーが発生しました。もう一度お試しください。';
   }
+}
+
+// Show "My Courses" link if logged in
+if (localStorage.getItem('nb-auth-token')) {
+  document.getElementById('myCoursesLink').style.display = '';
 }
 
 init();

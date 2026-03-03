@@ -866,6 +866,228 @@ app.post('/api/courses/resend', async (req, res) => {
 
 
 // ══════════════════════════════════════
+// CUSTOMER AUTH ENDPOINTS
+// ══════════════════════════════════════
+
+function customerAuth(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'ログインが必要です' });
+  try {
+    const decoded = jwt.verify(auth.slice(7), JWT_SECRET);
+    if (decoded.role !== 'customer') return res.status(403).json({ error: 'Forbidden' });
+    req.customer = decoded;
+    next();
+  } catch {
+    res.status(401).json({ error: 'セッションが期限切れです。再度ログインしてください。' });
+  }
+}
+
+// ─── POST /api/auth/register ───
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const ip = getIP(req);
+    if (!rateLimit(`auth-register:${ip}`, 5, 300000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
+    const { email, password, name } = req.body;
+    if (!email?.trim() || !password) return res.status(400).json({ error: 'Email and password required' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email' });
+    if (password.length < 8) return res.status(400).json({ error: 'パスワードは8文字以上で入力してください' });
+
+    const emailLower = email.trim().toLowerCase();
+
+    // Check if customer already has a password
+    const existing = await pool.query(
+      'SELECT id, password_hash FROM nb_customers WHERE LOWER(email) = $1 ORDER BY updated_at DESC LIMIT 1',
+      [emailLower]
+    );
+
+    if (existing.rows.length > 0 && existing.rows[0].password_hash) {
+      return res.status(409).json({ error: 'このメールアドレスのアカウントは既に存在します。ログインしてください。' });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    let customerId;
+    if (existing.rows.length > 0) {
+      // Set password on existing customer record
+      await pool.query(
+        'UPDATE nb_customers SET password_hash = $1, name = COALESCE($2, name), updated_at = NOW() WHERE id = $3',
+        [hash, name?.trim() || null, existing.rows[0].id]
+      );
+      customerId = existing.rows[0].id;
+    } else {
+      // Create new customer record
+      const r = await pool.query(
+        'INSERT INTO nb_customers (email, name, password_hash) VALUES ($1, $2, $3) RETURNING id',
+        [emailLower, name?.trim() || null, hash]
+      );
+      customerId = r.rows[0].id;
+    }
+
+    const token = jwt.sign({ role: 'customer', customerId, email: emailLower }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ ok: true, token });
+  } catch (e) {
+    console.error('Auth register error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── POST /api/auth/login ───
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const ip = getIP(req);
+    if (!rateLimit(`auth-login:${ip}`, 5, 300000)) {
+      return res.status(429).json({ error: 'ログイン試行回数が超えました。5分後にお試しください。' });
+    }
+    const { email, password } = req.body;
+    if (!email?.trim() || !password) return res.status(400).json({ error: 'Email and password required' });
+
+    const emailLower = email.trim().toLowerCase();
+    const r = await pool.query(
+      'SELECT id, email, name, password_hash FROM nb_customers WHERE LOWER(email) = $1 AND password_hash IS NOT NULL ORDER BY updated_at DESC LIMIT 1',
+      [emailLower]
+    );
+    if (r.rows.length === 0) return res.status(401).json({ error: 'メールアドレスまたはパスワードが正しくありません。' });
+
+    const customer = r.rows[0];
+    const valid = await bcrypt.compare(password, customer.password_hash);
+    if (!valid) return res.status(401).json({ error: 'メールアドレスまたはパスワードが正しくありません。' });
+
+    const token = jwt.sign({ role: 'customer', customerId: customer.id, email: customer.email }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ ok: true, token, name: customer.name });
+  } catch (e) {
+    console.error('Auth login error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── GET /api/auth/me ───
+app.get('/api/auth/me', customerAuth, async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT c.id, c.email, c.name, c.created_at,
+              COALESCE(json_agg(json_build_object(
+                'course_id', ca.course_id,
+                'access_token', ca.access_token,
+                'purchased_at', ca.purchased_at
+              )) FILTER (WHERE ca.id IS NOT NULL), '[]') AS courses
+       FROM nb_customers c
+       LEFT JOIN nb_course_access ca ON ca.customer_id = c.id AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
+       WHERE c.id = $1
+       GROUP BY c.id`,
+      [req.customer.customerId]
+    );
+    if (r.rows.length === 0) return res.status(404).json({ error: 'Customer not found' });
+
+    const customer = r.rows[0];
+    const courses = customer.courses.map(c => ({
+      id: c.course_id,
+      name: COURSES[c.course_id]?.name || c.course_id,
+      lessonCount: COURSES[c.course_id]?.lessons?.length || 0,
+      accessToken: c.access_token,
+      purchasedAt: c.purchased_at
+    }));
+
+    res.json({
+      id: customer.id,
+      email: customer.email,
+      name: customer.name,
+      memberSince: customer.created_at,
+      courses
+    });
+  } catch (e) {
+    console.error('Auth me error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── POST /api/auth/forgot-password ───
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const ip = getIP(req);
+    if (!rateLimit(`auth-forgot:${ip}`, 3, 3600000)) {
+      return res.status(429).json({ error: 'Too many requests. Please try again later.' });
+    }
+    const { email } = req.body;
+    if (!email?.trim()) return res.status(400).json({ error: 'Email required' });
+
+    const emailLower = email.trim().toLowerCase();
+    const r = await pool.query(
+      'SELECT id FROM nb_customers WHERE LOWER(email) = $1 AND password_hash IS NOT NULL LIMIT 1',
+      [emailLower]
+    );
+
+    // Always return success (don't reveal if email exists)
+    if (r.rows.length === 0) {
+      return res.json({ ok: true, message: 'パスワードリセットメールを送信しました。' });
+    }
+
+    const resetToken = generateToken();
+    const expires = new Date(Date.now() + 3600000); // 1 hour
+    await pool.query(
+      'UPDATE nb_customers SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+      [resetToken, expires, r.rows[0].id]
+    );
+
+    const resetUrl = `${SITE_URL}/reset-password?token=${resetToken}`;
+    await transporter.sendMail({
+      from: SMTP_FROM,
+      to: emailLower,
+      subject: '【NamiBarden】パスワードリセット',
+      html: `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
+        <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">パスワードリセット</h2>
+        <p style="line-height:1.8;margin-bottom:16px;">パスワードリセットのリクエストを受け付けました。</p>
+        <p style="line-height:1.8;margin-bottom:24px;">下のボタンをクリックして新しいパスワードを設定してください。このリンクは1時間有効です。</p>
+        <p style="text-align:center;margin:32px 0;">
+          <a href="${resetUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">パスワードをリセット</a>
+        </p>
+        <p style="font-size:0.85rem;color:#8B7E6E;margin-top:24px;">このリクエストに心当たりがない場合は、このメールを無視してください。</p>
+        <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
+        <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
+      </div>`
+    });
+
+    res.json({ ok: true, message: 'パスワードリセットメールを送信しました。' });
+  } catch (e) {
+    console.error('Forgot password error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── POST /api/auth/reset-password ───
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const ip = getIP(req);
+    if (!rateLimit(`auth-reset:${ip}`, 5, 300000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: 'Token and password required' });
+    if (password.length < 8) return res.status(400).json({ error: 'パスワードは8文字以上で入力してください' });
+
+    const r = await pool.query(
+      'SELECT id, email FROM nb_customers WHERE reset_token = $1 AND reset_token_expires > NOW()',
+      [token]
+    );
+    if (r.rows.length === 0) return res.status(400).json({ error: 'リンクが無効または期限切れです。再度パスワードリセットをお試しください。' });
+
+    const hash = await bcrypt.hash(password, 10);
+    await pool.query(
+      'UPDATE nb_customers SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL, updated_at = NOW() WHERE id = $2',
+      [hash, r.rows[0].id]
+    );
+
+    const authToken = jwt.sign({ role: 'customer', customerId: r.rows[0].id, email: r.rows[0].email }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ ok: true, token: authToken });
+  } catch (e) {
+    console.error('Reset password error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+// ══════════════════════════════════════
 // ADMIN ENDPOINTS
 // ══════════════════════════════════════
 
