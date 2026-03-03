@@ -100,6 +100,12 @@ p { color: var(--text-medium); line-height: 1.8; margin-bottom: 12px; font-size:
         <label style="display:block; font-size:0.82rem; color:var(--text-medium); margin-bottom:4px;">Password (min. 8 characters)</label>
         <input type="password" id="accPassword" required minlength="8" style="width:100%; padding:10px 14px; border:1px solid #E8DFD3; border-radius:4px; font-size:0.9rem; background:var(--cream);">
       </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; color:var(--text-medium); cursor:pointer;">
+          <input type="checkbox" id="accNewsletter" checked style="margin-top:3px; accent-color:var(--gold-dark);">
+          <span>Receive updates, promotions, and new course announcements from Nami Barden</span>
+        </label>
+      </div>
       <button type="submit" id="accBtn" style="width:100%; padding:12px; background:var(--gold-dark); color:#fff; border:none; border-radius:4px; font-size:0.9rem; cursor:pointer;">Create Account</button>
     </form>
   </div>
@@ -127,7 +133,8 @@ async function createAccount(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: document.getElementById('accEmail').value,
-        password: document.getElementById('accPassword').value
+        password: document.getElementById('accPassword').value,
+        subscribe: document.getElementById('accNewsletter').checked
       })
     });
     const data = await res.json();

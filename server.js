@@ -889,7 +889,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (!rateLimit(`auth-register:${ip}`, 5, 300000)) {
       return res.status(429).json({ error: 'Too many requests' });
     }
-    const { email, password, name } = req.body;
+    const { email, password, name, subscribe } = req.body;
     if (!email?.trim() || !password) return res.status(400).json({ error: 'Email and password required' });
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email' });
     if (password.length < 8) return res.status(400).json({ error: 'パスワードは8文字以上で入力してください' });
@@ -923,6 +923,20 @@ app.post('/api/auth/register', async (req, res) => {
         [emailLower, name?.trim() || null, hash]
       );
       customerId = r.rows[0].id;
+    }
+
+    // Subscribe to newsletter if opted in
+    if (subscribe) {
+      const unsubToken = generateToken();
+      await pool.query(
+        `INSERT INTO nb_subscribers (email, name, source, unsubscribe_token, ip)
+         VALUES ($1, $2, 'course_signup', $3, $4)
+         ON CONFLICT (email) DO UPDATE SET
+           name = COALESCE(EXCLUDED.name, nb_subscribers.name),
+           status = 'active',
+           updated_at = NOW()`,
+        [emailLower, name?.trim() || null, unsubToken, getIP(req)]
+      );
     }
 
     const token = jwt.sign({ role: 'customer', customerId, email: emailLower }, JWT_SECRET, { expiresIn: '30d' });
