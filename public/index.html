@@ -47,7 +47,14 @@
 <script>
 (function() {
   var saved = localStorage.getItem('namibarden-lang');
-  if (saved && saved !== 'ja') {
+  var ver = localStorage.getItem('namibarden-lang-v');
+  if (!saved || ver !== '2') {
+    var browserLang = (navigator.language || navigator.userLanguage || '').slice(0, 2);
+    saved = browserLang === 'en' ? 'en' : 'ja';
+    localStorage.setItem('namibarden-lang', saved);
+    localStorage.setItem('namibarden-lang-v', '2');
+  }
+  if (saved !== 'ja') {
     document.documentElement.setAttribute('lang', saved);
     document.title = 'Nami Barden — Refine Your Mind, Enrich Your Life';
   }
@@ -558,14 +565,13 @@ html[lang="en"] a.about-cta-btn[data-lang="en"] { display: inline-block; }
 .about-timeline {
   background: var(--cream-dark);
   padding: 60px 0;
-  margin-top: 80px;
   border-top: 1px solid rgba(196,168,130,0.2);
 }
 
 .timeline-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 28px;
+  gap: 20px;
 }
 
 .timeline-item {
@@ -577,7 +583,7 @@ html[lang="en"] a.about-cta-btn[data-lang="en"] { display: inline-block; }
 }
 
 .timeline-item[data-href] { cursor: pointer; }
-.timeline-item[data-href]:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(44,36,25,0.1); }
+.timeline-item[data-href]:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(44,36,25,0.1); }
 
 .timeline-year {
   display: inline-block;
@@ -592,7 +598,7 @@ html[lang="en"] a.about-cta-btn[data-lang="en"] { display: inline-block; }
 .timeline-item h4 {
   font-size: 0.93rem;
   color: var(--text-dark);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   line-height: 1.4;
 }
 
@@ -1685,41 +1691,49 @@ html[lang="en"] div[data-lang="en"].media-item { display: block; }
       </div>
     </div>
   </div>
+</section>
 
-  <!-- Achievement Timeline -->
-  <div class="about-timeline">
-    <div class="container">
-      <div class="timeline-grid">
+<!-- Achievement Timeline (outside about section) -->
+<section class="about-timeline">
+  <div class="container">
+    <div class="timeline-grid">
         <div class="timeline-item reveal" data-href="https://share.google/L89J2dScQRuyge5lL">
           <span class="timeline-year">2018</span>
-          <h4 data-lang="ja">ベストセラー出版</h4>
-          <h4 data-lang="en">Bestselling Author</h4>
-          <p data-lang="ja">「世界中の億万長者がたどりつく心の授業」出版。大ヒット作となる。</p>
-          <p data-lang="en">"The Heart Lessons That Billionaires Reach" — became a bestseller in Japan.</p>
+          <div class="timeline-content">
+            <h4 data-lang="ja">ベストセラー出版</h4>
+            <h4 data-lang="en">Bestselling Author</h4>
+            <p data-lang="ja">「世界中の億万長者がたどりつく心の授業」出版。大ヒット作となる。</p>
+            <p data-lang="en">"The Heart Lessons That Billionaires Reach" — became a bestseller in Japan.</p>
+          </div>
         </div>
         <div class="timeline-item reveal">
           <span class="timeline-year">2018〜</span>
-          <h4 data-lang="ja">エグゼクティブ実績</h4>
-          <h4 data-lang="en">Executive Work</h4>
-          <p data-lang="ja">東京・福岡・長野・ハワイでセミナー開催。エグゼクティブリトリート3回。個別カウンセリング1,000人超。</p>
-          <p data-lang="en">Seminars across Tokyo, Fukuoka, Nagano & Hawaii. 3 executive retreats. 1,000+ one-on-one sessions.</p>
+          <div class="timeline-content">
+            <h4 data-lang="ja">エグゼクティブ実績</h4>
+            <h4 data-lang="en">Executive Work</h4>
+            <p data-lang="ja">東京・福岡・長野・ハワイでセミナー開催。エグゼクティブリトリート3回。個別カウンセリング1,000人超。</p>
+            <p data-lang="en">Seminars across Tokyo, Fukuoka, Nagano & Hawaii. 3 executive retreats. 1,000+ one-on-one sessions.</p>
+          </div>
         </div>
         <div class="timeline-item reveal" data-href="https://www.amazon.co.jp/dp/4865641769">
           <span class="timeline-year">2020</span>
-          <h4 data-lang="ja">第2弾著書出版</h4>
-          <h4 data-lang="en">2nd Book Published</h4>
-          <p data-lang="ja">「世界のエリートが実践する 心を磨く11のレッスン」を出版。</p>
-          <p data-lang="en">"11 Lessons the World's Elite Use to Sharpen the Mind."</p>
+          <div class="timeline-content">
+            <h4 data-lang="ja">第2弾著書出版</h4>
+            <h4 data-lang="en">2nd Book Published</h4>
+            <p data-lang="ja">「世界のエリートが実践する 心を磨く11のレッスン」を出版。</p>
+            <p data-lang="en">"11 Lessons the World's Elite Use to Sharpen the Mind."</p>
+          </div>
         </div>
         <div class="timeline-item reveal" data-href="https://youtube.com/shorts/h5OXx2SJXl4?si=8zI0bCFFJJGui28a">
           <span class="timeline-year">2025〜</span>
-          <h4 data-lang="ja">大西洋横断成功</h4>
-          <h4 data-lang="en">Atlantic Crossing</h4>
-          <p data-lang="ja">58フィートのスポーツカタマランでギリシャを出発、地中海・大西洋を横断成功。年齢を超えた挑戦を続ける。</p>
-          <p data-lang="en">Sailed a 58ft catamaran from Greece across the Mediterranean and Atlantic. Currently in Trinidad.</p>
+          <div class="timeline-content">
+            <h4 data-lang="ja">大西洋横断成功</h4>
+            <h4 data-lang="en">Atlantic Crossing</h4>
+            <p data-lang="ja">58フィートのスポーツカタマランでギリシャを出発、地中海・大西洋を横断成功。年齢を超えた挑戦を続ける。</p>
+            <p data-lang="en">Sailed a 58ft catamaran from Greece across the Mediterranean and Atlantic. Currently in Trinidad.</p>
+          </div>
         </div>
       </div>
-    </div>
   </div>
 </section>
 

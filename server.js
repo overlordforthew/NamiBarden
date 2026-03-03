@@ -397,43 +397,44 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       return res.status(429).json({ error: 'Too many requests' });
     }
 
-    const { email, name, product } = req.body;
+    const { email, name, product, lang } = req.body;
+    const en = lang === 'en';
     const products = {
       coaching: {
-        name: 'エグゼクティブ・コーチング月額プラン',
-        description: '月1回・90分Zoomセッション + テキストサポート + オンライン講座',
+        name: en ? 'Executive Coaching — Monthly Plan' : 'エグゼクティブ・コーチング月額プラン',
+        description: en ? '1x/month 90-min Zoom session + text support + online course' : '月1回・90分Zoomセッション + テキストサポート + オンライン講座',
         amount: 88000,
         mode: 'subscription',
         interval: 'month'
       },
       'certification-monthly': {
-        name: '意識学コーチ認定コース — 月額プラン',
-        description: '月1回・60分Zoomセッション + テキストサポート + 実践課題 + 認定証',
+        name: en ? 'Consciousness Coach Certification — Monthly Plan' : '意識学コーチ認定コース — 月額プラン',
+        description: en ? '1x/month 60-min Zoom + text support + assignments + certificate' : '月1回・60分Zoomセッション + テキストサポート + 実践課題 + 認定証',
         amount: 50000,
         mode: 'subscription',
         interval: 'month'
       },
       'certification-lumpsum': {
-        name: '意識学コーチ認定コース — 一括払いプラン',
-        description: '12ヶ月認定プログラム一括払い（¥40,000お得）',
+        name: en ? 'Consciousness Coach Certification — One-Time Payment' : '意識学コーチ認定コース — 一括払いプラン',
+        description: en ? '12-month certification program (save ¥40,000)' : '12ヶ月認定プログラム一括払い（¥40,000お得）',
         amount: 560000,
         mode: 'payment'
       },
       'course-1': {
         name: COURSES['course-1'].name,
-        description: '全8レッスン動画コース — 意識の4ステップで本当のパートナーシップを引き寄せる',
+        description: en ? '8-lesson video course — attract your ideal partnership' : '全8レッスン動画コース — 意識の4ステップで本当のパートナーシップを引き寄せる',
         amount: 7800,
         mode: 'payment'
       },
       'course-2': {
         name: COURSES['course-2'].name,
-        description: '全11レッスン＋ボーナス瞑想 — パートナーシップの問題を心の深いレベルから解決',
+        description: en ? '11 lessons + bonus meditation — resolve relationship issues at a deeper level' : '全11レッスン＋ボーナス瞑想 — パートナーシップの問題を心の深いレベルから解決',
         amount: 9800,
         mode: 'payment'
       },
       'course-bundle': {
-        name: `${COURSES['course-1'].name} + ${COURSES['course-2'].name} セット`,
-        description: '全19レッスン＋ボーナス瞑想（2,800円おトク）',
+        name: `${COURSES['course-1'].name} + ${COURSES['course-2'].name} ${en ? 'Bundle' : 'セット'}`,
+        description: en ? '19 lessons + bonus meditation (save ¥2,800)' : '全19レッスン＋ボーナス瞑想（2,800円おトク）',
         amount: 14800,
         mode: 'payment'
       }
@@ -452,14 +453,18 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     const sessionParams = {
       mode: prod.mode,
       payment_method_types: ['card'],
+      payment_method_options: {
+        card: { setup_future_usage: prod.mode === 'subscription' ? undefined : null }
+      },
       line_items: [{
         price_data: priceData,
         quantity: 1
       }],
-      success_url: `${SITE_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE_URL}/payment-cancel`,
-      locale: 'ja',
-      metadata: { product: product || 'coaching' }
+      success_url: `${SITE_URL}/payment-success${en ? '-en' : ''}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${SITE_URL}/payment-cancel${en ? '-en' : ''}`,
+      locale: 'auto',
+      metadata: { product: product || 'coaching' },
+      saved_payment_method_options: { payment_method_save: 'disabled' }
     };
 
     if (prod.mode === 'payment') {

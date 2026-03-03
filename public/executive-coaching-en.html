@@ -1548,7 +1548,7 @@ window.addEventListener('resize', fixMobileLayout);
     fetch('/api/stripe/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product: 'coaching' })
+      body: JSON.stringify({ product: 'coaching', lang: 'en' })
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
