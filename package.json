@@ -6,14 +6,16 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "pg": "^8.13.1",
-    "jsonwebtoken": "^9.0.2",
+    "@aws-sdk/client-s3": "^3.1000.0",
+    "@aws-sdk/s3-request-presigner": "^3.1000.0",
     "bcryptjs": "^2.4.3",
-    "nodemailer": "^6.9.16",
-    "multer": "^1.4.5-lts.1",
     "csv-parse": "^5.6.0",
     "csv-stringify": "^6.5.2",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.16",
+    "pg": "^8.13.1",
     "stripe": "^17.5.0"
   }
 }

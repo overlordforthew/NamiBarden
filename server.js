@@ -8,6 +8,8 @@ const { parse } = require('csv-parse/sync');
 const { stringify } = require('csv-stringify/sync');
 const crypto = require('crypto');
 const Stripe = require('stripe');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const uuidv4 = () => crypto.randomUUID();
 
 const app = express();
@@ -30,11 +32,53 @@ const {
   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM,
   JWT_SECRET, ADMIN_PASSWORD,
   OVERLORD_URL, WEBHOOK_TOKEN, SITE_URL,
-  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+  STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+  R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET
 } = process.env;
 
 // ─── Stripe ───
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+
+// ─── R2 (Cloudflare) ───
+const r2 = (R2_ENDPOINT && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY) ? new S3Client({
+  region: 'auto',
+  endpoint: R2_ENDPOINT,
+  credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY }
+}) : null;
+
+// ─── Course config ───
+const COURSES = {
+  'course-1': {
+    name: '愛を引き寄せる心の授業',
+    lessons: [
+      { id: 'lesson-1', title: '美しい心と苦悩の心' },
+      { id: 'lesson-2', title: '意識の4ステップ' },
+      { id: 'lesson-3', title: 'なぜパートナーが欲しいのか 〜理想像の罠〜' },
+      { id: 'lesson-4', title: 'デートがうまくいかない本当の理由' },
+      { id: 'lesson-5', title: '運命の相手はどこにいる？' },
+      { id: 'lesson-6', title: '魅力的な自分を作る5つの心得' },
+      { id: 'lesson-7', title: '心を通わせるコミュニケーション術' },
+      { id: 'lesson-8', title: '引き寄せの法則 〜ビジョンボード実践〜' }
+    ]
+  },
+  'course-2': {
+    name: '愛を深める心の授業',
+    lessons: [
+      { id: 'lesson-1', title: '意見の食い違いをどう乗り越える？' },
+      { id: 'lesson-2', title: 'パートナーを一番にできていますか？' },
+      { id: 'lesson-3', title: '5つの愛の言語' },
+      { id: 'lesson-4', title: '男性性と女性性の法則' },
+      { id: 'lesson-5', title: '家ではどちらの顔でいる？' },
+      { id: 'lesson-6', title: 'あなたのセックスがうまくいかないワケ' },
+      { id: 'lesson-7', title: '価値観が合わないときどうすれば？' },
+      { id: 'lesson-8', title: '裏切り・不倫を乗り越える方法' },
+      { id: 'lesson-9', title: '複数パートナーについて考える' },
+      { id: 'lesson-10', title: '相手を許す方法' },
+      { id: 'lesson-11', title: '別れ・離婚する前に気をつけること' },
+      { id: 'bonus-meditation', title: '愛の瞑想（ボーナス）' }
+    ]
+  }
+};
 
 // ─── Database ───
 const pool = new Pool({
@@ -339,6 +383,24 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         name: '意識学コーチ認定コース — 一括払いプラン',
         description: '12ヶ月認定プログラム一括払い（¥40,000お得）',
         amount: 560000,
+        mode: 'payment'
+      },
+      'course-1': {
+        name: '愛を引き寄せる心の授業',
+        description: '全8レッスン動画コース — 意識の4ステップで本当のパートナーシップを引き寄せる',
+        amount: 7800,
+        mode: 'payment'
+      },
+      'course-2': {
+        name: '愛を深める心の授業',
+        description: '全11レッスン＋ボーナス瞑想 — パートナーシップの問題を心の深いレベルから解決',
+        amount: 9800,
+        mode: 'payment'
+      },
+      'course-bundle': {
+        name: '心の授業 2コースセット',
+        description: '愛を引き寄せる＋愛を深める — 全19レッスン＋ボーナス瞑想（2,800円おトク）',
+        amount: 14800,
         mode: 'payment'
       }
     };
