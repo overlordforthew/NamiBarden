@@ -56,7 +56,7 @@
           </div>
           <div>
             <label>Preview</label>
-            <div class="preview-frame" id="preview"></div>
+            <iframe id="preview" class="preview-frame" sandbox="" style="width:100%;border:1px solid #ddd;min-height:400px;background:#fff;"></iframe>
           </div>
         </div>
 
@@ -110,7 +110,12 @@
     }
 
     function updatePreview() {
-      document.getElementById('preview').innerHTML = document.getElementById('htmlBody').value;
+      // Use sandboxed iframe (sandbox="") — blocks all script execution
+      const iframe = document.getElementById('preview');
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(document.getElementById('htmlBody').value);
+      doc.close();
     }
 
     function loadTemplate() {

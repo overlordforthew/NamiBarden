@@ -7,7 +7,12 @@ function setToken(t) { localStorage.setItem('nb_token', t); }
 function clearToken() { localStorage.removeItem('nb_token'); }
 
 function requireAuth() {
-  if (!getToken()) { window.location.href = '/admin/'; return false; }
+  const token = getToken();
+  if (!token) { window.location.href = '/admin/'; return false; }
+  // Validate token with server (non-blocking — redirects on failure)
+  fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(function(r) { if (r.status === 401 || r.status === 403) { clearToken(); window.location.href = '/admin/'; } })
+    .catch(function() {});
   return true;
 }
 

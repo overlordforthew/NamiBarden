@@ -281,9 +281,11 @@ async function handleLogin(e) {
     localStorage.setItem('nb-auth-token', data.token);
     if (data.name) localStorage.setItem('nb-auth-name', data.name);
 
-    // Redirect to my-courses or return URL
+    // Redirect to my-courses or return URL (validated: relative paths only)
     const params = new URLSearchParams(location.search);
-    window.location.href = params.get('redirect') || '/my-courses';
+    let redirect = params.get('redirect') || '/my-courses';
+    if (!redirect.startsWith('/') || redirect.startsWith('//')) redirect = '/my-courses';
+    window.location.href = redirect;
   } catch {
     errorEl.textContent = isEn ? 'Connection error. Please try again.' : '接続エラーです。もう一度お試しください。';
     errorEl.style.display = 'block';

@@ -117,7 +117,8 @@ setInterval(() => {
 }, 300000);
 
 function getIP(req) {
-  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+  // Use X-Real-IP set by nginx (from $remote_addr, not spoofable) instead of X-Forwarded-For
+  return req.headers['x-real-ip'] || req.ip;
 }
 
 // ─── JWT Auth Middleware ───
@@ -125,7 +126,9 @@ function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
   try {
-    req.admin = jwt.verify(auth.slice(7), JWT_SECRET);
+    const decoded = jwt.verify(auth.slice(7), JWT_SECRET);
+    if (decoded.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+    req.admin = decoded;
     next();
   } catch {
     res.status(401).json({ error: 'Invalid token' });
@@ -321,7 +324,25 @@ app.get('/api/track/open/:trackingId', async (req, res) => {
 // ─── GET /api/track/click/:trackingId ───
 app.get('/api/track/click/:trackingId', async (req, res) => {
   const { trackingId } = req.params;
-  const url = req.query.url || SITE_URL;
+  let url = req.query.url || SITE_URL;
+
+  // Validate redirect URL: must be http(s) and same origin or known safe domain
+  try {
+    const parsed = new URL(url);
+    const allowedHosts = [new URL(SITE_URL).hostname];
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      url = SITE_URL;
+    } else if (!allowedHosts.includes(parsed.hostname) && !parsed.hostname.endsWith('.namibarden.com')) {
+      // Allow external links from newsletters but block internal/metadata IPs
+      const blocked = ['127.0.0.1', 'localhost', '0.0.0.0', '169.254.169.254', '[::1]'];
+      if (blocked.includes(parsed.hostname) || parsed.hostname.startsWith('10.') ||
+          parsed.hostname.startsWith('172.') || parsed.hostname.startsWith('192.168.')) {
+        url = SITE_URL;
+      }
+    }
+  } catch {
+    url = SITE_URL;
+  }
 
   try {
     const ip = getIP(req);
@@ -671,10 +692,11 @@ app.post('/api/stripe/webhook', async (req, res) => {
 });
 
 // ─── POST /api/stripe/customer-portal ───
-app.post('/api/stripe/customer-portal', async (req, res) => {
+app.post('/api/stripe/customer-portal', customerAuth, async (req, res) => {
   if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
   try {
-    const { email } = req.body;
+    // Use the authenticated customer's email from JWT, not request body
+    const email = req.customer.email;
     if (!email) return res.status(400).json({ error: 'Email required' });
 
     const custRow = await pool.query(
