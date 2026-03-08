@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blue Moon — The Grand Caribbean Voyage</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#030712;color:#f9fafb;font-family:'Inter',-apple-system,sans-serif;min-height:100vh}
+.mono{font-family:'DM Mono',monospace}
+.serif{font-family:'Playfair Display',Georgia,serif}
+.header{background:linear-gradient(180deg,#0c1e3a,#030712);padding:28px 16px 20px;text-align:center}
+.header h1{font-size:clamp(22px,5vw,34px);font-weight:900;background:linear-gradient(135deg,#f9fafb,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 4px}
+.stats{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:16px}
+.stat-val{font-size:16px;font-weight:700;color:#e2e8f0}
+.stat-lbl{font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em}
+.tabs{display:flex;border-bottom:1px solid #1f2937;overflow-x:auto}
+.tab{flex:1 0 auto;padding:8px 12px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;background:transparent;color:#6b7280;border:none;border-bottom:2px solid transparent}
+.tab.active{background:#1e293b;color:#f9fafb}
+.tab-map{border-right:1px solid #1f2937;font-weight:700}
+.leg-bar{padding:8px 14px;border-bottom:1px solid #1f2937;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.content{padding:10px 10px 30px;max-width:800px;margin:0 auto}
+.card{background:#111827;border-radius:10px;border:1px solid #1f2937;overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}
+.card.expanded{border-color:var(--phase-color)}
+.card-header{padding:10px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;user-select:none}
+.card-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}
+.card-name{font-size:15px;font-weight:700;color:#f9fafb}
+.card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:10px;color:#6b7280}
+.card-island{font-weight:600}
+.day-pill{background:#1f2937;padding:0 4px;border-radius:3px}
+.awe-bar{display:flex;gap:1px}
+.awe-bar div{width:6px;height:16px;border-radius:2px}
+.awe-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}
+.pill{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block}
+.arrow{font-size:14px;color:#4b5563;transition:transform 0.2s;margin-top:4px}
+.card.expanded .arrow{transform:rotate(180deg)}
+.card-body{padding:0 12px 14px 50px;display:flex;flex-direction:column;gap:10px;display:none}
+.card.expanded .card-body{display:flex}
+.box{border-radius:6px;padding:10px 12px}
+.box-clearance{background:#0f172a;border:1px solid #1e293b}
+.box-nature{border-left:3px solid var(--phase-color)}
+.box-hurricane{background:rgba(127,29,29,0.08);border:1px solid rgba(127,29,29,0.2)}
+.box-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.box-detail{font-size:12px;line-height:1.7;white-space:pre-line}
+.map-btn{font-size:12px;color:#6b7280;text-decoration:none;display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;background:#1e293b}
+.map-btn:hover{background:#374151}
+/* Map */
+.map-controls{display:flex;gap:14px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;padding:10px}
+.map-controls label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px}
+.map-controls input{width:14px;height:14px;cursor:pointer}
+.map-legend{display:flex;gap:10px;justify-content:center;margin-bottom:6px;font-size:8px;color:#6b7280}
+/* Footer sections */
+.footer-section{padding:14px;max-width:800px;margin:0 auto;border-top:1px solid #1f2937}
+.qref-row{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;line-height:2}
+.hidden{display:none}
+#photoModal img{transition:opacity 0.3s}#photoModal img[src]{opacity:1}
+/* Route segment hover effects */
+.seg .seg-line{transition:stroke-width 0.2s,opacity 0.2s}
+.seg .seg-label{transition:opacity 0.2s}
+.seg .seg-label-hover{transition:opacity 0.2s}
+.seg-hover .seg-line{stroke-width:5 !important;opacity:1 !important;filter:drop-shadow(0 0 6px currentColor)}
+.seg-hover .seg-label{opacity:0 !important}
+.seg-hover .seg-label-hover{opacity:1 !important}
+</style>
+</head>
+<body>
+<!-- HEADER -->
+<div class="header">
+  <div class="mono" style="font-size:9px;color:#0ea5e9;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px">Blue Moon · Catana 581</div>
+  <h1 class="serif">The Grand Caribbean Voyage</h1>
+  <div class="serif" style="font-size:12px;color:#94a3b8;font-style:italic;margin-bottom:16px">March 20 – June 20, 2026 · 92 Days · 3 Phases</div>
+  <div class="stats">
+    <div><div class="stat-val mono">28</div><div class="stat-lbl mono">Stops</div></div>
+    <div><div class="stat-val mono">92</div><div class="stat-lbl mono">Days</div></div>
+    <div><div class="stat-val mono">9 ★</div><div class="stat-lbl mono">Transcendent</div></div>
+    <div><div class="stat-val mono">~20</div><div class="stat-lbl mono">Borders</div></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabs">
+  <button class="tab tab-map mono" data-view="map" onclick="showView('map')">🗺️ Map</button>
+  <button class="tab mono active" data-view="list" data-leg="0" onclick="showList(0)">All</button>
+  <button class="tab mono" data-view="list" data-leg="1" onclick="showList(1)">Phase 1</button>
+  <button class="tab mono" data-view="list" data-leg="2" onclick="showList(2)">Phase 2</button>
+  <button class="tab mono" data-view="list" data-leg="3" onclick="showList(3)">Phase 3</button>
+</div>
+
+<!-- LEG INFO BAR -->
+<div class="leg-bar mono hidden" id="legBar"></div>
+
+<!-- MAP VIEW -->
+<div id="mapView" class="hidden" style="padding:10px">
+  <div class="map-controls mono" id="mapControls"></div>
+  <div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;flex-wrap:wrap" id="zoomControls">
+    <button class="mono" onclick="setMapZoom('full')" style="font-size:9px;padding:4px 10px;border-radius:6px;border:1px solid #374151;background:#1e293b;color:#f9fafb;cursor:pointer;font-weight:600">🌎 Full Route</button>
+    <button class="mono" onclick="setMapZoom('grenadines')" style="font-size:9px;padding:4px 10px;border-radius:6px;border:1px solid #0ea5e9;background:#0ea5e915;color:#0ea5e9;cursor:pointer;font-weight:600">🔍 Grenadines (#1-#8)</button>
+    <button class="mono" onclick="setMapZoom('windwards')" style="font-size:9px;padding:4px 10px;border-radius:6px;border:1px solid #7c3aed;background:#7c3aed15;color:#7c3aed;cursor:pointer;font-weight:600">🔍 Windwards (#9-#14)</button>
+    <button class="mono" onclick="setMapZoom('leewards')" style="font-size:9px;padding:4px 10px;border-radius:6px;border:1px solid #e11d48;background:#e11d4815;color:#e11d48;cursor:pointer;font-weight:600">🔍 Leewards (#15-#18)</button>
+    <button class="mono" onclick="setMapZoom('north')" style="font-size:9px;padding:4px 10px;border-radius:6px;border:1px solid #a855f7;background:#a855f715;color:#a855f7;cursor:pointer;font-weight:600">🔍 North (#19-#28)</button>
+  </div>
+  <div class="map-legend mono">
+    <span style="color:#f59e0b">◉ Transcendent</span>
+    <span>--- Phase 3 return</span>
+    <span>Tap stop → details</span>
+  </div>
+  <div style="text-align:center;font-size:8px;color:#374151;margin-bottom:4px" class="mono">💡 Photos load when you download and open this file in your browser</div><div id="mapContainer" style="position:relative"></div><div id="mapTip" style="display:none;position:fixed;z-index:100;pointer-events:none;max-width:320px;background:#111827;border:1px solid #374151;border-radius:10px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,0.7)"></div>
+</div>
+
+<!-- LIST VIEW -->
+<div id="listView" class="content"></div>
+
+<!-- CLEARANCE QUICK REF -->
+<div id="qrefSection" class="footer-section">
+  <div class="mono" style="font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Clearance Quick Reference</div>
+  <div id="qref" class="mono"></div>
+</div>
+
+<!-- HURRICANE FOOTER -->
+<div id="hurricaneSection" class="footer-section" style="border-top-color:rgba(127,29,29,0.2)">
+  <div class="mono" style="font-size:9px;color:#fca5a5;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">🌀 June Hurricane Rules</div>
+  <div style="font-size:11px;color:#9ca3af;line-height:1.7">
+    <p style="margin:0 0 4px"><strong style="color:#fecaca">Rule #1:</strong> Never more than 24 hrs from English Harbour.</p>
+    <p style="margin:0 0 4px"><strong style="color:#fecaca">Safe Harbor:</strong> English Harbour / Falmouth Bay — historic #1 hurricane hole in Leewards.</p>
+    <p style="margin:0 0 4px"><strong style="color:#fecaca">No shelter:</strong> Saba, Statia, St. Kitts, Nevis, Montserrat — RUN to Antigua if anything develops.</p>
+    <p style="margin:0"><strong style="color:#fecaca">Reality:</strong> Major storms rarely before mid-August. But after Beryl (Jul 1 2024, Cat 4) — stay nimble.</p>
+  </div>
+</div>
+
+<div style="text-align:center;padding:14px;font-size:10px;color:#374151" class="mono">Fair winds, Gil, Nami & Ailie 🌊</div>
+
+<script>
+const STOPS = [
+  // === PHASE 1 ===
+  { id:1, leg:1, phase:"Launch", island:"Trinidad → Grenada", name:"Chaguaramas to St. George's",
+    days:"Mar 20-22", dayCount:2, nm:"~85", natureAwe:3, stayRec:"2 nights", lat:12.050, lng:-61.752,
+    clearance:{ action:"OUT → IN", system:"SailClear", currency:"EC$",
+      port:"Out: YSATT Chaguaramas · In: St. George's Port Authority",
+      detail:"TRINIDAD OUT: Clear at YSATT/Customs in Chaguaramas. Bring ship papers, passports, insurance. Hours: Mon-Fri 8am-4pm (overtime charges weekends). You know this drill.\n\nGRENADA IN: Port Authority, The Carenage, St. George's. Captain only goes ashore. SailClear pre-arrival form 24hrs before. Fees: ~EC$50 customs + EC$10 immigration. Hours: Mon-Fri 8am-4pm, Sat 8am-12pm. Overtime ~EC$50.\n\nTIP: Register sailclear.com ($25/yr) before departure — pre-load Blue Moon and all crew. Saves time at every SailClear port." },
+    nature:"Sculpture park is eerie and beautiful — art fusing with ocean. Provisioning stop more than wilderness.", highlight:"Underwater Sculpture Park" },
+
+  { id:2, leg:1, phase:"Grenada", island:"Grenada → Carriacou", name:"Sandy Island & Tyrrel Bay",
+    days:"Mar 23-25", dayCount:3, nm:"~35", natureAwe:4, stayRec:"2-3 nights", lat:12.488, lng:-61.472,
+    clearance:{ action:"OUT", system:"SailClear", currency:"EC$",
+      port:"Out: Tyrrel Bay customs (at marina)",
+      detail:"GRENADA OUT: Customs & Immigration at Tyrrel Bay — small office at the south end of the bay near the boatyard. Submit SailClear departure form. Fees: ~EC$25 departure tax. Hours: Mon-Fri 8am-4pm.\n\nALTERNATIVE: Hillsborough (main town, Carriacou) also has customs — slightly more formal but same process.\n\nIMPORTANT: You must clear out of Grenada before entering SVG waters. The border is the channel between Carriacou and Union/Palm Island." },
+    nature:"Tiny palm-fringed cay with world-class reef. Desert island fantasy. Carriacou is unspoiled with rolling green hills.", highlight:"Sandy Island — desert island perfection" },
+
+  { id:3, leg:1, phase:"S. Grenadines", island:"Union Island", name:"Chatham Bay",
+    days:"Mar 26-27", dayCount:2, nm:"~12", natureAwe:3, stayRec:"1-2 nights", lat:12.597, lng:-61.453,
+    clearance:{ action:"IN", system:"SailClear", currency:"EC$",
+      port:"In: Chatham Bay yacht agent or Clifton Harbour",
+      detail:"SVG IN: Two options —\n\n1. CHATHAM BAY: Contact yacht agent (Vanessa or Secki) by VHF/phone IN ADVANCE. They'll meet you at anchor, collect passports, handle clearance at Clifton for a fee (~$30-50 EC). Very convenient.\n\n2. CLIFTON HARBOUR: Customs & Immigration office near the airport. Captain goes ashore with all passports + ship papers + SailClear ID. Hours: Mon-Fri 8:30am-4:30pm. Fees: ~EC$35 entry.\n\n⚠️ SVG ENFORCES STRICTLY: Officials patrol anchorages in the Grenadines. If caught without clearance, fines start at EC$5,000+. Do not anchor anywhere in SVG without clearing in first.\n\nOnce cleared, you're good for all SVG islands until you clear out. Carry your clearance papers at all times." },
+    nature:"Sweeping green crescent with almost no development. Still rebuilding post-Beryl. Real Caribbean.", highlight:"Secluded crescent bay" },
+
+  { id:4, leg:1, phase:"S. Grenadines", island:"Tobago Cays", name:"Tobago Cays Marine Park",
+    days:"Mar 28 - Apr 1", dayCount:4, nm:"~8", natureAwe:5, stayRec:"4 nights ★", lat:12.627, lng:-61.357,
+    clearance:{ action:"NONE", system:"—", currency:"EC$",
+      port:"Within SVG — Marine Park fees only",
+      detail:"NO CLEARANCE NEEDED — within SVG.\n\nMARINE PARK FEES: EC$10/person/day + mooring EC$45/night. Rangers patrol daily in boats to collect — have EC$ cash ready. They'll give you a receipt.\n\nMOORING: Pick up a ball between Petit Rameau and Petit Bateau. Arrive early for best position. Don't anchor in the coral — use mooring balls only.\n\nNO GARBAGE DISPOSAL: Pack everything out." },
+    nature:"Peak Caribbean. Five uninhabited islands inside horseshoe reef. Water so clear your anchor floats. Turtles glide beneath you. Milky Way blazes at night. The place that makes you go silent.", highlight:"Swimming with turtles in paradise" },
+
+  { id:5, leg:1, phase:"S. Grenadines", island:"Mayreau", name:"Salt Whistle & Saline Bay",
+    days:"Apr 2-3", dayCount:2, nm:"~3", natureAwe:4, stayRec:"1-2 nights", lat:12.638, lng:-61.393,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within SVG", detail:"No clearance needed — within SVG." },
+    nature:"Hourglass island with powder beaches both sides. Hilltop village gives 360° views. Mopion sandbar — a speck of sand with one umbrella in infinite blue.", highlight:"Mopion sandbar & hilltop panorama" },
+
+  { id:6, leg:1, phase:"N. Grenadines", island:"Canouan", name:"Tamarind / Glossy Bay",
+    days:"Apr 4", dayCount:1, nm:"~8", natureAwe:4, stayRec:"1-2 nights", lat:12.717, lng:-61.338,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within SVG", detail:"No clearance needed — within SVG." },
+    nature:"Caribbean's third-largest barrier reef. Immense reef visible breaking from anchorage. Blindingly white beaches against deep green hills.", highlight:"Barrier reef system" },
+
+  { id:7, leg:1, phase:"N. Grenadines", island:"Baliceaux & Isle à Quatre", name:"Wild Uninhabited Islands",
+    days:"Apr 5-6", dayCount:2, nm:"~10", natureAwe:5, stayRec:"1-2 nights", lat:12.975, lng:-61.180,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within SVG", detail:"No clearance needed — within SVG. These islands are uninhabited with no facilities. Be completely self-sufficient." },
+    nature:"Islands nobody goes to. 320 acres uninhabited volcanic wild: white sand, wild cattle, tortoises. Sacred Garifuna history. Isle à Quatre has caves, panoramic hiking. Untouched reef.", highlight:"Uninhabited islands — total solitude" },
+
+  { id:8, leg:1, phase:"N. Grenadines", island:"Bequia", name:"Admiralty Bay (provisioning)",
+    days:"Apr 7", dayCount:1, nm:"~12", natureAwe:3, stayRec:"1 night", lat:13.006, lng:-61.243,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within SVG — customs available",
+      detail:"No clearance needed if staying within SVG.\n\nIf you want to clear OUT of SVG here: Customs & Immigration in Port Elizabeth, near the ferry dock. Hours: Mon-Fri 8:30am-4:30pm. Alternatively, clear out at Wallilabou/Cumberland further north (more scenic final SVG stop)." },
+    nature:"Charming maritime town, not a nature destination. Here for provisioning, laundry, cold beer.", highlight:"Provisioning hub" },
+
+  { id:9, leg:1, phase:"Windwards", island:"St. Vincent", name:"Cumberland Bay / Byahaut",
+    days:"Apr 8-9", dayCount:2, nm:"~15", natureAwe:5, stayRec:"1-2 nights", lat:13.249, lng:-61.268,
+    clearance:{ action:"OUT", system:"SailClear", currency:"EC$",
+      port:"Out: Wallilabou or Cumberland customs",
+      detail:"SVG OUT: Two options —\n\n1. WALLILABOU BAY: Customs office on the waterfront near the Pirates of the Caribbean set. Small office, straightforward process. SailClear departure form. Fees: ~EC$25 departure tax.\n\n2. CUMBERLAND BAY: Customs officer sometimes available — less reliable hours. Wallilabou is more certain.\n\nIMPORTANT: Once cleared out, you have 24 hours to physically exit SVG waters. Plan: Clear out in the morning, enjoy a final afternoon at anchor, depart at dawn for St. Lucia." },
+    nature:"Jaw-dropping. Sheer volcanic cliffs in dense jungle plunge into Caribbean. Waterfalls off cliff faces. Byahaut's underwater cave and 100ft coral wall.", highlight:"Volcanic jungle coast & underwater cave" },
+
+  { id:10, leg:1, phase:"Windwards", island:"St. Lucia", name:"Soufrière / The Pitons",
+    days:"Apr 10-13", dayCount:3, nm:"~40", natureAwe:5, stayRec:"3 nights ★", lat:13.800, lng:-61.070,
+    clearance:{ action:"IN", system:"SailClear", currency:"EC$",
+      port:"In: Soufrière customs (waterfront)",
+      detail:"ST. LUCIA IN: Customs & Immigration on the Soufrière waterfront. Captain goes ashore with passports + SailClear ID + ship papers + insurance.\n\nFees: ~EC$20 customs + marine park fees for Pitons area moorings (~US$15/night from SMMA). Hours: Mon-Fri 8:30am-4:30pm.\n\nTIP: Clear in at Soufrière — it puts you right at the Pitons. If you clear at Rodney Bay instead, you'll waste a day sailing back south. SMMA (Soufrière Marine Management Area) manages moorings between the Pitons — anchoring is restricted to protect the reef." },
+    nature:"Two volcanic spires 2,400ft from sea, draped in rainforest, protected reef at base. Anchoring between them at sunset is one of the most dramatic moments in Caribbean sailing.", highlight:"The Pitons — volcanic cathedrals" },
+
+  { id:11, leg:1, phase:"Windwards", island:"St. Lucia", name:"Anse Cochon",
+    days:"Apr 14", dayCount:1, nm:"~8", natureAwe:4, stayRec:"1 night", lat:13.876, lng:-61.037,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within St. Lucia", detail:"No clearance — within St. Lucia. SMMA mooring balls available (~US$15/night)." },
+    nature:"Secluded bay with shipwreck and pristine coral gardens. Sea whips, gorgonians, brain coral. Volcanic rock swim-throughs.", highlight:"Coral gardens & shipwreck" },
+
+  { id:12, leg:1, phase:"Windwards", island:"St. Lucia", name:"Rodney Bay",
+    days:"Apr 15", dayCount:1, nm:"~15", natureAwe:2, stayRec:"1 night", lat:14.074, lng:-60.953,
+    clearance:{ action:"OUT", system:"SailClear", currency:"EC$",
+      port:"Out: Rodney Bay customs (at marina)",
+      detail:"ST. LUCIA OUT: Customs at IGY Rodney Bay Marina. SailClear departure form. Fees: ~EC$20. Hours: Mon-Fri 8:30am-4:30pm.\n\nThis is a full-service marina — fuel, water, laundry, chandlery, supermarkets nearby. Top up on everything before Martinique." },
+    nature:"Services stop. Provision, fuel, chandlery. Not nature.", highlight:"Full services & provisioning" },
+
+  { id:13, leg:1, phase:"French Islands", island:"Martinique", name:"Anses d'Arlet",
+    days:"Apr 16-17", dayCount:2, nm:"~25", natureAwe:4, stayRec:"1-2 nights", lat:14.497, lng:-61.083,
+    clearance:{ action:"IN", system:"demarches-simplifiees.fr", currency:"EUR",
+      port:"In: Online + stamp at Le Marin or Fort-de-France",
+      detail:"MARTINIQUE IN (France): Since Sept 2024, clearance is ONLINE.\n\nWEBSITE: demarches-simplifiees.fr/commencer/declaration-clearance-antilles\n\nPROCESS:\n1. Complete the online form before arrival (in French — use Google Translate)\n2. You'll get a digital clearance certificate\n3. Print it and get it stamped at an approved Clearance Point (€5 fee)\n4. Approved points: Le Marin harbour office, Fort-de-France port, others\n\nNOT SailClear — this is a completely different French government system.\n\nCurrency: EURO only. ATMs plentiful at Le Marin.\n\nNOTE: French authorities use AIS and helicopters to track vessels and confirm clearance. Don't skip this.\n\nLE MARIN PROVISIONING: Dinghy to the dock behind the supermarket — roll your cart right down to the boat. Stock up on French cheeses, wine, baguettes." },
+    nature:"Turtle central. Swim with relaxed sea turtles in calm clear water. Diamond Rock is dramatic volcanic pinnacle offshore.", highlight:"Turtle encounters & Diamond Rock" },
+
+  { id:14, leg:1, phase:"French Islands", island:"Martinique", name:"St-Pierre",
+    days:"Apr 18-19", dayCount:2, nm:"~25", natureAwe:4, stayRec:"1-2 nights", lat:14.737, lng:-61.177,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within Martinique",
+      detail:"No clearance — within Martinique/France. There's a clearance computer terminal in the Welcome Center at St-Pierre if you need to process exit paperwork.\n\nRemember: When departing Martinique for Dominica, you need to complete a departure declaration on demarches-simplifiees.fr (or duplicate your arrival submission and change the dates)." },
+    nature:"Mt. Pelée obliterated this city in 1902. Ruins underwater and ashore. Drive into mountains for cascading streams, jungle pools.", highlight:"Mt. Pelée & volcanic wrecks" },
+
+  { id:15, leg:1, phase:"Leewards", island:"Dominica", name:"Champagne Reef & Portsmouth",
+    days:"Apr 20-24", dayCount:4, nm:"~25", natureAwe:5, stayRec:"4 nights ★", lat:15.574, lng:-61.467,
+    clearance:{ action:"IN + OUT", system:"SailClear", currency:"EC$",
+      port:"In/Out: Portsmouth, Prince Rupert Bay",
+      detail:"DOMINICA IN: Call PAYS (Portsmouth Association of Yacht Security) on VHF Channel 16 as you enter Prince Rupert Bay. A PAYS boat boy will come out, guide you to a mooring/anchorage, and handle your clearance for a fee (~EC$50-75 for the service).\n\nALTERNATIVELY: Go to the customs office yourself at the commercial dock, south of Portsmouth. SailClear form + passports + ship papers. Hours: Mon-Fri 8am-4pm. Fees: ~EC$25 + port fee.\n\nPAYS SERVICES: Mooring, customs handling, island tours, provisioning, laundry — they do everything. Tip them well (~US$10-20/day). They earn it and the service is genuinely excellent.\n\nDOMINICA OUT: Same process in reverse. PAYS can handle or go to customs yourself. Complete SailClear departure form.\n\nFOR CHAMPAGNE REEF: If you want to anchor near Soufrière/Scotts Head (south end) for reef access, you can clear in at Roseau instead of Portsmouth. Same process." },
+    nature:"The Nature Island EARNS the name. Champagne Reef — volcanic bubbles sparkling like diamonds through pristine coral. Boiling Lake through Valley of Desolation. Indian River mangrove canopy. Speechless.", highlight:"Champagne Reef + Boiling Lake" },
+
+  { id:16, leg:1, phase:"Leewards", island:"Guadeloupe", name:"Îles des Saintes",
+    days:"Apr 25-27", dayCount:3, nm:"~20", natureAwe:4, stayRec:"2-3 nights", lat:15.862, lng:-61.582,
+    clearance:{ action:"IN", system:"demarches-simplifiees.fr", currency:"EUR",
+      port:"In: Les Saintes, Terre-de-Haut",
+      detail:"GUADELOUPE IN (France): Same demarches-simplifiees.fr system as Martinique.\n\nWEBSITE: demarches-simplifiees.fr/commencer/declaration-clearance-antilles\n\nAT LES SAINTES: Customs computer in the building just south of the ferry landing on Terre-de-Haut. You can complete the form there if you haven't done it online. Fee: €5-10 for stamp.\n\n⚠️ STRIKES: French island workers strike frequently. If customs at Les Saintes is closed ('Non, we are on strike'), you'll need to divert to mainland Guadeloupe — Deshaies (20 NM) or Pointe-à-Pitre (25 NM). Have a backup plan.\n\nNOTE: Martinique and Guadeloupe are separate French departments — you must clear out of one and into the other even though both are France." },
+    nature:"UNESCO beautiful bay. Volcanic archipelago — nine islands, two inhabited. Dramatic underwater terrain.", highlight:"UNESCO bay — volcanic jewels" },
+
+  { id:17, leg:1, phase:"Leewards", island:"Guadeloupe", name:"Cousteau Reserve / Deshaies",
+    days:"Apr 28-30", dayCount:2, nm:"~20", natureAwe:5, stayRec:"2 nights ★", lat:16.167, lng:-61.790,
+    clearance:{ action:"OUT", system:"demarches-simplifiees.fr", currency:"EUR",
+      port:"Out: Deshaies or Pointe-à-Pitre",
+      detail:"GUADELOUPE OUT: Complete departure declaration on demarches-simplifiees.fr. Go into your previous arrival submission, click 'duplicate', change dates and destination.\n\nDESHAIES: Clearance now at the gray building across the bridge from the main dock. Fee: €5 if you have a printed copy, €10 without. The officer there is helpful.\n\nPRINT YOUR ZARPE: If your next stop is outside French territory (Antigua), you need a printed departure certificate (zarpe) stamped at an approved point. Other Caribbean customs will ask for it.\n\nLast French stop — final boulangerie run!" },
+    nature:"World-class marine conservation. Ancient barrel sponges older than Christianity. Elkhorn coral regenerating. Carbet Waterfalls 350ft through jungle.", highlight:"Cousteau Reserve — living marine cathedral" },
+
+  { id:18, leg:1, phase:"Antigua", island:"Antigua", name:"English Harbour",
+    days:"May 7-11", dayCount:4, nm:"~40", natureAwe:3, stayRec:"4 nights", lat:17.003, lng:-61.765,
+    clearance:{ action:"IN", system:"eSeaClear", currency:"EC$",
+      port:"In: English Harbour or Jolly Harbour",
+      detail:"ANTIGUA IN: Uses eSeaClear (eseaclear.com) — NOT SailClear. Different system, different login.\n\nPROCESS: Register on eseaclear.com, submit arrival form online, then visit FOUR offices in person:\n1. Health/Quarantine\n2. Customs\n3. Immigration\n4. Port Authority\n\nAT ENGLISH HARBOUR: All offices near Nelson's Dockyard. Budget 1-1.5 hours. Fees: ~EC$50 total + National Park fee (~US$5). Hours: Mon-Sat 8am-4:30pm. Overtime available.\n\nAT JOLLY HARBOUR: All offices in one building — sometimes faster. Anchor outside, dinghy in.\n\nIMPORTANT: If you clear in at Jolly Harbour but sail to English Harbour, you're supposed to check in again at Nelson's Dockyard customs and pay the park fee.\n\nNOTE: eSeaClear registration is separate from SailClear — you need both accounts for this trip." },
+    nature:"Maritime culture over wilderness. Nelson's Dockyard, Shirley Heights sunset.", highlight:"Shirley Heights + Nelson's Dockyard" },
+
+  // === PHASE 2 ===
+  { id:19, leg:2, phase:"Northbound", island:"Barbuda", name:"Pink Sand & Frigates",
+    days:"May 11-14", dayCount:3, nm:"~30", natureAwe:5, stayRec:"3 nights ★", lat:17.634, lng:-61.826,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within Antigua & Barbuda",
+      detail:"No clearance needed — Barbuda is part of Antigua & Barbuda. No border crossing.\n\nThere are no customs or immigration facilities on Barbuda. Just sail up and anchor." },
+    nature:"17 miles unbroken pink sand — likely to yourselves. Frigate Bird Sanctuary, 8-foot wingspans. Pristine reef. Robinson Crusoe solitude.", highlight:"Pink sand beach + frigate birds",
+    hurricane:"Run to English Harbour, Antigua — 30 NM, ~5 hrs" },
+
+  { id:20, leg:2, phase:"Northbound", island:"St. Barths", name:"Île Fourchue & Anse Colombier",
+    days:"May 14-16", dayCount:2, nm:"~45", natureAwe:4, stayRec:"2 nights", lat:17.890, lng:-62.852,
+    clearance:{ action:"IN + OUT", system:"demarches-simplifiees.fr", currency:"EUR",
+      port:"In/Out: Gustavia port office",
+      detail:"ST. BARTHS IN+OUT (France): Same demarches-simplifiees.fr system.\n\nWEBSITE: demarches-simplifiees.fr/commencer/declaration-clearance-antilles\n\nGUSTAVIA: Port office near the harbor. Complete online form + get stamped. Fee: ~€7 for 35-45ft vessel.\n\nHours: Mon-Fri 7:30am-12pm, 2pm-5pm. Sat morning only.\n\nTIP: Clear in at Gustavia, then sail to Colombier/Fourchue. Clear out when you return to Gustavia before departing for St. Maarten.\n\nFourchue is uninhabited — no facilities, no clearance point. Bring everything you need." },
+    nature:"Fourchue: uninhabited volcanic rock with tiny spectacular bay. Colombier: roadless wild solitude.", highlight:"Wild volcanic solitude",
+    hurricane:"Run to Simpson Bay, SXM — 15 NM, ~3 hrs" },
+
+  { id:21, leg:2, phase:"St. Maarten", island:"St. Maarten", name:"Simpson Bay — Batten Repairs",
+    days:"May 17-25", dayCount:8, nm:"~15", natureAwe:2, stayRec:"8 nights (work week)", lat:18.042, lng:-63.085,
+    clearance:{ action:"IN", system:"Dutch direct", currency:"USD",
+      port:"In: Simpson Bay or Philipsburg",
+      detail:"ST. MAARTEN IN (Dutch side): Straightforward.\n\nSIMPSON BAY: Immigration office near the bridge. Fee: ~US$20. Hours: daily 8am-6pm. Bring passports + ship papers + clearance from last port.\n\nPHILIPSBURG: Alternative — slightly more formal. Immigration + Customs on the waterfront.\n\nBRIDGE: Simpson Bay Bridge opens on schedule (check current times — typically 9:30am, 11:30am, 5:30pm inbound). Outbound times differ. VHF Ch 12 for bridge operations.\n\nFRENCH SIDE (Marigot): If you want to anchor on the French side, that's technically separate clearance via demarches-simplifiees.fr. Most cruisers just clear Dutch side.\n\nMARINE SERVICES: FKG Marine, Electec, Budget Marine all in Simpson Bay Lagoon. Everything Blue Moon needs for battens." },
+    nature:"Work stop. Battens, chandleries, marine services. Day trip to Tintamarre Island between repairs.", highlight:"Batten repairs + Tintamarre day trip",
+    hurricane:"Simpson Bay Lagoon — adequate for lesser storms, not for major." },
+
+  // === PHASE 3 ===
+  { id:22, leg:3, phase:"Return South", island:"Saba", name:"The Unspoiled Queen",
+    days:"May 25-28", dayCount:3, nm:"~25", natureAwe:5, stayRec:"2-3 nights ★", lat:17.634, lng:-63.236,
+    clearance:{ action:"IN + OUT", system:"SailClear + forms", currency:"USD",
+      port:"In/Out: Fort Bay harbour",
+      detail:"SABA IN+OUT: Fort Bay is the ONLY port of entry.\n\nSYSTEM: SailClear pre-arrival + additional printed forms (download from noonsite.com/place/saba). Bring printed copies.\n\nPROCESS: Anchor/moor, captain goes to harbour office at Fort Bay. Submit forms + passports. Fees: Harbor fee US$20-40 (depending on tonnage) + US$10/person departure tax + Marine Park overnight fee.\n\nHours: Mon-Fri 8am-5pm. Call ahead if arriving weekend.\n\nMOORINGS: Yellow overnight moorings at Wells Bay and Fort Bay (managed by Saba Conservation Foundation). Do NOT anchor in coral or dive zones.\n\nGETTING ASHORE: Only land at Fort Bay harbour. Do NOT attempt to land at Wells Bay, Ladder Bay, or Cove Bay — treacherous in any swell.\n\nDIVING: All diving must be done with a licensed Saba dive shop. Sea Saba and Saba Deep are the two operators. Book in advance.\n\n⚠️ WEATHER: Only visit with <12kt winds forecast. Anchorages are rolly in anything more. Check conditions before committing." },
+    nature:"Fairy tale volcanic island, 3,084ft straight from the sea. Over 30 dive sites — volcanic pinnacles, lava labyrinths, shark encounters. Mount Scenery hike through cloud forest.", highlight:"Volcanic pinnacles + cloud forest",
+    hurricane:"⚠️ NO SHELTER. Run to Simpson Bay SXM — 25 NM, ~4 hrs" },
+
+  { id:23, leg:3, phase:"Return South", island:"Statia (St. Eustatius)", name:"Oranjestad Roads",
+    days:"May 28-29", dayCount:1, nm:"~17", natureAwe:3, stayRec:"1 night / day stop", lat:17.478, lng:-62.978,
+    clearance:{ action:"IN + OUT", system:"SailClear", currency:"USD",
+      port:"In/Out: Oranjestad anchorage",
+      detail:"STATIA IN+OUT: Anchor in the open roadstead off Oranjestad (Orange Bay). SailClear form + visit customs/immigration office in town.\n\nFees: ~US$10-15. Hours: Mon-Fri 8am-4pm.\n\n⚠️ OPEN ROADSTEAD: Can be very uncomfortable in swell or wrong wind direction. Best as a day stop — if conditions deteriorate, be prepared to leave.\n\nCurrency: USD (Statia is part of Netherlands but uses US dollar)." },
+    nature:"The Quill: dormant volcano with rainforest-filled crater. Dutch colonial ruins. More historical than wild.", highlight:"The Quill crater + colonial ruins",
+    hurricane:"⚠️ NO SHELTER. Run to Antigua — 60 NM, ~10 hrs" },
+
+  { id:24, leg:3, phase:"Return South", island:"St. Kitts", name:"White House Bay / Basseterre",
+    days:"May 29-31", dayCount:2, nm:"~8", natureAwe:4, stayRec:"2 nights", lat:17.303, lng:-62.727,
+    clearance:{ action:"IN + OUT", system:"SailClear", currency:"EC$",
+      port:"In/Out: Basseterre customs (Port Zante)",
+      detail:"ST. KITTS IN+OUT: Customs & Immigration at Port Zante, Basseterre. SailClear form + passports + ship papers.\n\nFees: ~EC$30-50 entry. Hours: Mon-Fri 8am-4pm. Overtime available.\n\nANCHORAGE TIP: White House Bay (south end of St. Kitts) is much calmer than Basseterre for sleeping, but you must clear at Basseterre first. Sail down after clearance.\n\nSt. Kitts and Nevis are ONE federation — once cleared into St. Kitts, you can sail to Nevis without additional clearance." },
+    nature:"Brimstone Hill Fortress — UNESCO, volcanic bluff with views to Saba, Statia, Montserrat. Southeast Peninsula has wild beaches.", highlight:"Brimstone Hill + volcanic beaches",
+    hurricane:"⚠️ LIMITED. St. Kitts Marine Works can haul out. Better: run to Antigua — 55 NM" },
+
+  { id:25, leg:3, phase:"Return South", island:"Nevis", name:"Pinney's Beach",
+    days:"May 31 - Jun 2", dayCount:2, nm:"~8", natureAwe:4, stayRec:"2 nights", lat:17.153, lng:-62.610,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within St. Kitts & Nevis",
+      detail:"No clearance needed — within the St. Kitts & Nevis federation.\n\nCross The Narrows between the islands (2 NM). Watch for shallows at the Nevis end — take the north or south channel, not straight through.\n\nPINNEY'S BEACH: Anchor on the leeward side in sand, good holding. Beach bars ashore. The volcano towers above." },
+    nature:"Single perfect volcanic cone draped in jungle. Hot springs, plantation ruins reclaimed by forest.", highlight:"Perfect volcanic cone + hot springs",
+    hurricane:"⚠️ NO SHELTER. Run to Antigua — 55 NM, ~10 hrs" },
+
+  { id:26, leg:3, phase:"Return South", island:"Montserrat", name:"Rendezvous Bay / Little Bay",
+    days:"Jun 2-5", dayCount:3, nm:"~35", natureAwe:5, stayRec:"3 nights ★", lat:16.753, lng:-62.193,
+    clearance:{ action:"IN + OUT", system:"SailClear", currency:"EC$",
+      port:"In/Out: Little Bay port office",
+      detail:"MONTSERRAT IN+OUT: Little Bay is the ONLY port of entry. SailClear form + passports + ship papers.\n\nSHAMROCK MOORINGS PLUS: Contact in advance — they can pre-arrange clearance, provide moorings, and organize volcano tours. Very helpful outfit. VHF Ch 16.\n\nFees: ~EC$30 + port charges. Hours: Mon-Fri 8am-4pm.\n\nREDUCED FACILITIES: Montserrat has minimal marine services. Be self-sufficient. Basic provisioning available in Brades (taxi ride from Little Bay).\n\nRENDEZVOUS BAY: Anchor here in settled conditions only — the only white sand beach, only reachable by boat. Gorgeous but exposed.\n\nVOLCANO EXCLUSION ZONE: The southern half of the island + 2 NM offshore is a strict exclusion zone. Do NOT enter. Volcano tours can be arranged through Shamrock Moorings or local taxi operators — they have safety training and advance clearance from the Volcano Observatory." },
+    nature:"Caribbean's Pompeii. Active volcano smoking, lava flows building new land. Plymouth — abandoned capital buried in ash. 30+ virgin dive sites.", highlight:"Active volcano + Caribbean Pompeii",
+    hurricane:"⚠️ NO SHELTER. Run to Antigua — 35 NM, ~6 hrs" },
+
+  { id:27, leg:3, phase:"Return South", island:"Antigua", name:"Green Island & Coastal Exploring",
+    days:"Jun 6-19", dayCount:14, nm:"~35", natureAwe:3, stayRec:"14 nights", lat:17.060, lng:-61.787,
+    clearance:{ action:"IN", system:"eSeaClear", currency:"EC$",
+      port:"In: English Harbour or Jolly Harbour",
+      detail:"ANTIGUA IN (again): Same eSeaClear process as before — you'll need to clear in again since you left the country.\n\neseaclear.com — submit arrival form, then visit the four offices at English Harbour or Jolly Harbour.\n\nYou're home base now. For the next 2 weeks, explore Antigua's coastline staying within easy reach of English Harbour:\n\n• Green Island (east coast) — dinghy ride, uninhabited, coral heads\n• Bird Island (NE) — tiny cay, nesting seabirds, snorkeling\n• Half Moon Bay (east) — wild beach\n• Carlisle Bay — reef snorkeling\n• Five Islands Bay — quiet, good holding" },
+    nature:"Green Island — uninhabited feel, coral heads. Bird Island — nesting seabirds. Half Moon Bay is wild. Decompress and explore 365 beaches by dinghy.", highlight:"Safe harbor + 365 beaches",
+    hurricane:"English Harbour / Falmouth — #1 hurricane hole in the Leewards" },
+
+  { id:28, leg:3, phase:"Pickup", island:"Antigua", name:"English Harbour — Pick up Ailie!",
+    days:"Jun 20", dayCount:1, nm:"—", natureAwe:5, stayRec:"🎉", lat:17.003, lng:-61.765,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"You're already here!",
+      detail:"No clearance — you're already cleared into Antigua.\n\nCelebrate at Shirley Heights Sunday sunset party — rum punch, steel band, panoramic views of Blue Moon at anchor far below. 🎉" },
+    nature:"The nature awe is having your daughter aboard Blue Moon. That's transcendent.", highlight:"🎉 Family reunion on Blue Moon",
+    hurricane:"Safest harbor in the Leewards." },
+];
+
+const LEG_INFO = {
+  1: { label:"Phase 1: Trinidad → Antigua", color:"#0ea5e9", dates:"Mar 20 – May 7", days:"48 days", desc:"Northbound through Grenadines, Windwards & Leewards" },
+  2: { label:"Phase 2: Antigua → St. Maarten", color:"#a855f7", dates:"May 11 – May 25", days:"14 days", desc:"Leisurely north via Barbuda & St. Barths + batten repairs" },
+  3: { label:"Phase 3: Return to Antigua", color:"#f59e0b", dates:"May 25 – Jun 20", days:"26 days", desc:"Nature loop: Saba, Nevis, Montserrat — hurricane aware" },
+};
+
+const ISLANDS = [
+  {name:"Trinidad",pts:[[10.04,-61.93],[10.06,-61.84],[10.06,-61.75],[10.08,-61.66],[10.12,-61.58],[10.15,-61.50],[10.18,-61.47],[10.24,-61.40],[10.32,-61.38],[10.40,-61.37],[10.48,-61.39],[10.54,-61.43],[10.58,-61.46],[10.63,-61.47],[10.69,-61.50],[10.72,-61.53],[10.77,-61.58],[10.80,-61.62],[10.83,-61.67],[10.84,-61.72],[10.83,-61.78],[10.82,-61.85],[10.80,-61.90],[10.74,-61.93],[10.68,-61.93],[10.62,-61.92],[10.55,-61.93],[10.48,-61.95],[10.42,-61.96],[10.35,-61.95],[10.28,-61.94],[10.20,-61.95],[10.13,-61.95],[10.07,-61.95]]},
+  {name:"Tobago",pts:[[11.15,-60.84],[11.17,-60.80],[11.19,-60.76],[11.21,-60.73],[11.24,-60.68],[11.27,-60.62],[11.30,-60.56],[11.32,-60.52],[11.33,-60.54],[11.31,-60.60],[11.29,-60.66],[11.27,-60.72],[11.25,-60.76],[11.22,-60.80],[11.19,-60.83],[11.16,-60.85]]},
+  {name:"Grenada",pts:[[11.98,-61.79],[12.00,-61.77],[12.01,-61.73],[12.01,-61.69],[12.02,-61.65],[12.03,-61.62],[12.05,-61.60],[12.08,-61.60],[12.11,-61.60],[12.14,-61.62],[12.17,-61.63],[12.20,-61.65],[12.23,-61.69],[12.24,-61.72],[12.24,-61.75],[12.23,-61.78],[12.21,-61.79],[12.18,-61.80],[12.14,-61.80],[12.10,-61.80],[12.06,-61.80],[12.02,-61.80]]},
+  {name:"Carriacou",pts:[[12.44,-61.49],[12.46,-61.47],[12.47,-61.45],[12.48,-61.43],[12.49,-61.43],[12.50,-61.44],[12.51,-61.45],[12.52,-61.47],[12.51,-61.49],[12.50,-61.50],[12.48,-61.50],[12.46,-61.50]]},
+  {name:"Union",pts:[[12.58,-61.45],[12.59,-61.43],[12.60,-61.42],[12.61,-61.42],[12.62,-61.43],[12.63,-61.44],[12.62,-61.45],[12.61,-61.46],[12.59,-61.46]]},
+  {name:"Bequia",pts:[[12.98,-61.27],[12.99,-61.25],[13.00,-61.23],[13.01,-61.22],[13.02,-61.22],[13.03,-61.23],[13.03,-61.25],[13.02,-61.26],[13.00,-61.27]]},
+  {name:"St Vincent",pts:[[13.08,-61.28],[13.10,-61.25],[13.12,-61.22],[13.14,-61.20],[13.16,-61.18],[13.18,-61.16],[13.20,-61.14],[13.23,-61.13],[13.26,-61.12],[13.29,-61.13],[13.31,-61.14],[13.33,-61.15],[13.35,-61.17],[13.37,-61.19],[13.38,-61.21],[13.38,-61.24],[13.37,-61.26],[13.36,-61.28],[13.34,-61.29],[13.31,-61.30],[13.28,-61.29],[13.25,-61.29],[13.22,-61.30],[13.19,-61.30],[13.16,-61.29],[13.13,-61.29],[13.10,-61.29]]},
+  {name:"St Lucia",pts:[[13.71,-61.07],[13.73,-61.04],[13.74,-61.01],[13.76,-60.97],[13.78,-60.94],[13.80,-60.92],[13.83,-60.89],[13.86,-60.88],[13.89,-60.88],[13.92,-60.89],[13.95,-60.90],[13.98,-60.91],[14.01,-60.93],[14.04,-60.94],[14.07,-60.95],[14.09,-60.97],[14.10,-60.99],[14.10,-61.01],[14.08,-61.03],[14.06,-61.05],[14.04,-61.06],[14.01,-61.07],[13.98,-61.07],[13.95,-61.07],[13.92,-61.07],[13.89,-61.07],[13.86,-61.08],[13.83,-61.08],[13.80,-61.08],[13.77,-61.08],[13.74,-61.08]]},
+  {name:"Martinique",pts:[[14.40,-61.22],[14.42,-61.18],[14.44,-61.14],[14.46,-61.10],[14.48,-61.06],[14.50,-61.02],[14.52,-60.98],[14.55,-60.95],[14.58,-60.92],[14.61,-60.89],[14.64,-60.87],[14.67,-60.85],[14.70,-60.84],[14.73,-60.84],[14.76,-60.85],[14.79,-60.86],[14.82,-60.88],[14.84,-60.90],[14.86,-60.93],[14.87,-60.96],[14.87,-61.00],[14.86,-61.04],[14.86,-61.08],[14.85,-61.11],[14.83,-61.14],[14.80,-61.17],[14.78,-61.19],[14.75,-61.21],[14.72,-61.22],[14.69,-61.23],[14.66,-61.23],[14.63,-61.22],[14.60,-61.22],[14.57,-61.21],[14.54,-61.20],[14.51,-61.20],[14.48,-61.21],[14.45,-61.22],[14.42,-61.22]]},
+  {name:"Dominica",pts:[[15.20,-61.52],[15.22,-61.49],[15.24,-61.46],[15.26,-61.43],[15.28,-61.40],[15.30,-61.38],[15.33,-61.36],[15.36,-61.35],[15.39,-61.34],[15.42,-61.33],[15.45,-61.34],[15.48,-61.35],[15.51,-61.37],[15.53,-61.39],[15.55,-61.41],[15.57,-61.43],[15.59,-61.45],[15.61,-61.44],[15.63,-61.45],[15.64,-61.47],[15.63,-61.49],[15.62,-61.51],[15.60,-61.52],[15.57,-61.53],[15.54,-61.54],[15.51,-61.55],[15.48,-61.55],[15.45,-61.55],[15.42,-61.55],[15.39,-61.54],[15.36,-61.54],[15.33,-61.54],[15.30,-61.54],[15.27,-61.53],[15.24,-61.53]]},
+  {name:"Basse-Terre",pts:[[15.88,-61.80],[15.91,-61.78],[15.94,-61.75],[15.97,-61.72],[16.00,-61.69],[16.03,-61.67],[16.06,-61.65],[16.09,-61.63],[16.12,-61.62],[16.16,-61.59],[16.19,-61.58],[16.22,-61.59],[16.25,-61.61],[16.27,-61.63],[16.29,-61.66],[16.30,-61.69],[16.31,-61.72],[16.30,-61.75],[16.28,-61.77],[16.25,-61.79],[16.22,-61.80],[16.19,-61.80],[16.16,-61.80],[16.13,-61.80],[16.10,-61.80],[16.07,-61.81],[16.04,-61.81],[16.01,-61.81],[15.98,-61.82],[15.95,-61.82],[15.92,-61.82]]},
+  {name:"Grande-Terre",pts:[[16.18,-61.58],[16.20,-61.54],[16.22,-61.50],[16.24,-61.46],[16.25,-61.42],[16.26,-61.38],[16.27,-61.34],[16.28,-61.31],[16.30,-61.28],[16.33,-61.25],[16.35,-61.24],[16.37,-61.26],[16.38,-61.29],[16.37,-61.32],[16.36,-61.36],[16.35,-61.40],[16.34,-61.44],[16.32,-61.48],[16.30,-61.51],[16.28,-61.54],[16.25,-61.56],[16.22,-61.57]]},
+  {name:"Antigua",pts:[[17.00,-61.99],[17.00,-61.95],[17.00,-61.91],[17.00,-61.87],[17.00,-61.83],[17.01,-61.79],[17.01,-61.75],[17.02,-61.72],[17.03,-61.69],[17.05,-61.67],[17.07,-61.66],[17.09,-61.67],[17.11,-61.67],[17.13,-61.68],[17.15,-61.70],[17.16,-61.73],[17.17,-61.76],[17.17,-61.79],[17.17,-61.82],[17.17,-61.85],[17.17,-61.88],[17.16,-61.90],[17.14,-61.91],[17.12,-61.91],[17.10,-61.90],[17.08,-61.90],[17.06,-61.91],[17.04,-61.93],[17.03,-61.95],[17.02,-61.97]]},
+  {name:"Barbuda",pts:[[17.55,-61.89],[17.56,-61.86],[17.57,-61.83],[17.58,-61.80],[17.59,-61.77],[17.61,-61.75],[17.63,-61.74],[17.65,-61.73],[17.67,-61.74],[17.69,-61.76],[17.70,-61.78],[17.71,-61.81],[17.72,-61.84],[17.71,-61.87],[17.70,-61.89],[17.68,-61.90],[17.66,-61.91],[17.64,-61.91],[17.62,-61.91],[17.60,-61.91],[17.58,-61.90]]},
+  {name:"Montserrat",pts:[[16.67,-62.24],[16.69,-62.21],[16.71,-62.19],[16.73,-62.17],[16.75,-62.16],[16.77,-62.17],[16.79,-62.18],[16.80,-62.20],[16.81,-62.22],[16.80,-62.24],[16.79,-62.25],[16.77,-62.25],[16.75,-62.25],[16.73,-62.25],[16.71,-62.25],[16.69,-62.25]]},
+  {name:"Nevis",pts:[[17.09,-62.63],[17.10,-62.61],[17.11,-62.59],[17.12,-62.57],[17.14,-62.56],[17.16,-62.57],[17.17,-62.58],[17.18,-62.60],[17.18,-62.62],[17.17,-62.63],[17.15,-62.64],[17.13,-62.64],[17.11,-62.64]]},
+  {name:"St Kitts",pts:[[17.23,-62.80],[17.24,-62.77],[17.25,-62.74],[17.26,-62.71],[17.28,-62.68],[17.30,-62.66],[17.32,-62.64],[17.34,-62.62],[17.36,-62.61],[17.38,-62.62],[17.39,-62.64],[17.40,-62.66],[17.40,-62.69],[17.40,-62.72],[17.39,-62.75],[17.38,-62.78],[17.36,-62.80],[17.34,-62.81],[17.32,-62.83],[17.30,-62.83],[17.28,-62.83],[17.26,-62.82]]},
+  {name:"Saba",pts:[[17.62,-63.26],[17.63,-63.24],[17.64,-63.23],[17.65,-63.23],[17.65,-63.25],[17.64,-63.27],[17.63,-63.27]]},
+  {name:"Statia",pts:[[17.47,-63.00],[17.48,-62.98],[17.49,-62.97],[17.50,-62.97],[17.51,-62.98],[17.51,-63.00],[17.50,-63.01],[17.49,-63.01]]},
+  {name:"St Barths",pts:[[17.89,-62.87],[17.89,-62.85],[17.90,-62.83],[17.91,-62.82],[17.92,-62.83],[17.93,-62.85],[17.92,-62.87],[17.91,-62.88]]},
+  {name:"St Maarten",pts:[[18.01,-63.13],[18.02,-63.10],[18.03,-63.07],[18.04,-63.04],[18.06,-63.02],[18.07,-63.01],[18.09,-63.02],[18.10,-63.04],[18.11,-63.07],[18.10,-63.09],[18.09,-63.11],[18.07,-63.13],[18.05,-63.14],[18.03,-63.14]]},
+  {name:"Iles Saintes",pts:[[15.85,-61.63],[15.86,-61.61],[15.87,-61.59],[15.88,-61.60],[15.87,-61.62]]},
+];
+
+function getPhaseColor(p) {
+  var m={"Launch":"#1a5e3a","Grenada":"#2d7d46","S. Grenadines":"#0ea5e9","N. Grenadines":"#0284c7","Windwards":"#7c3aed","French Islands":"#c026d3","Leewards":"#e11d48","Antigua":"#ea580c","Northbound":"#a855f7","St. Maarten":"#6366f1","Return South":"#f59e0b","Pickup":"#22c55e"};
+  return m[p]||"#666";
+}
+
+var SHELTER = {1:"good",2:"good",3:"moderate",4:"good",5:"good",6:"good",7:"exposed",8:"good",9:"good",10:"good",11:"good",12:"good",13:"moderate",14:"exposed",15:"good",16:"good",17:"moderate",18:"good",19:"good",20:"moderate",21:"good",22:"exposed",23:"exposed",24:"moderate",25:"moderate",26:"moderate",27:"good",28:"good"};
+
+
+// Satellite image URL - use Google Maps static embed (no API key needed for embed)
+function satUrl(lat, lng, w, h, zoom) {
+  // Google Maps embed satellite view
+  return 'https://maps.google.com/maps?q='+lat+','+lng+'&t=k&z='+(zoom||15)+'&output=embed';
+}
+function satEmbed(lat, lng, zoom) {
+  var z = zoom || 15;
+  var url = 'https://www.google.com/maps?q='+lat+','+lng+'&z='+z+'&t=h';
+  return '<a href="'+url+'" target="_blank" rel="noopener" style="display:block;text-decoration:none;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,#0a1e3d,#0c2a4a,#0a1e3d);border:1px solid #1e3a5f;padding:24px 16px;text-align:center;transition:background 0.2s" onmouseover="this.style.borderColor=\'#0ea5e9\'" onmouseout="this.style.borderColor=\'#1e3a5f\'">' +
+    '<div style="font-size:32px;margin-bottom:8px">🛰️</div>' +
+    '<div style="font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:#0ea5e9;margin-bottom:4px">View Satellite Imagery</div>' +
+    '<div style="font-family:DM Mono,monospace;font-size:10px;color:#64748b">'+lat.toFixed(3)+'°N, '+Math.abs(lng).toFixed(3)+'°W · Tap to open Google Maps</div>' +
+  '</a>';
+}
+
+// Google image search URL for a location
+function photoSearchUrl(name, island) {
+  return 'https://www.google.com/search?q='+encodeURIComponent(name+' '+island+' Caribbean sailing anchorage')+'&tbm=isch';
+}
+
+// Shelter icon
+function shelterIcon(id) {
+  var s = SHELTER[id] || 'good';
+  if(s==='good') return '<span style="color:#22c55e" title="Good protection">🛡️</span>';
+  if(s==='moderate') return '<span style="color:#f59e0b" title="Moderate — check conditions">⚠️</span>';
+  if(s==='exposed') return '<span style="color:#ef4444" title="Exposed — settled weather only!">🔴</span>';
+  return '';
+}
+
+// Trinidad start point (not in STOPS since it's the departure, not an anchorage)
+var TRINIDAD_START = {lat: 10.42, lng: -61.63};
+
+var PHOTOS = {"1": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Molinere_Underwater_Sculpture_Park.jpg/800px-Molinere_Underwater_Sculpture_Park.jpg", "cap": "Molinere Underwater Sculpture Park"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Grand_Anse_Beach_Grenada.jpg/800px-Grand_Anse_Beach_Grenada.jpg", "cap": "Grand Anse Beach, Grenada"}], "2": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Sandy_Island%2C_Carriacou.jpg/800px-Sandy_Island%2C_Carriacou.jpg", "cap": "Sandy Island, Carriacou"}], "4": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Tobago_Cays.jpg/800px-Tobago_Cays.jpg", "cap": "Tobago Cays from above"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Green_sea_turtle_Tobago_Cays.jpg/800px-Green_sea_turtle_Tobago_Cays.jpg", "cap": "Swimming with green turtles"}], "9": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Cumberland_Bay_SVG.jpg/800px-Cumberland_Bay_SVG.jpg", "cap": "Cumberland Bay, St. Vincent"}], "10": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/The_Pitons%2C_St_Lucia.jpg/800px-The_Pitons%2C_St_Lucia.jpg", "cap": "The Pitons at sunset"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Gros_and_Petit_Pitons.jpg/800px-Gros_and_Petit_Pitons.jpg", "cap": "Gros & Petit Pitons from the sea"}], "13": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Diamond_Rock_Martinique.jpg/800px-Diamond_Rock_Martinique.jpg", "cap": "Diamond Rock, Martinique"}], "15": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Indian_River_Dominica.jpg/800px-Indian_River_Dominica.jpg", "cap": "Indian River, Dominica"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Champagne_Reef_Dominica.jpg/800px-Champagne_Reef_Dominica.jpg", "cap": "Champagne Reef bubbles"}], "16": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Les_Saintes_Islands.jpg/800px-Les_Saintes_Islands.jpg", "cap": "\u00celes des Saintes from above"}], "17": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Ilets_Pigeon_Reserve_Cousteau.jpg/800px-Ilets_Pigeon_Reserve_Cousteau.jpg", "cap": "Cousteau Reserve, Pigeon Islands"}], "18": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nelsons_Dockyard_Antigua.jpg/800px-Nelsons_Dockyard_Antigua.jpg", "cap": "Nelson's Dockyard, English Harbour"}], "19": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Barbuda_pink_sand_beach.jpg/800px-Barbuda_pink_sand_beach.jpg", "cap": "Pink sand beach, Barbuda"}], "22": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Saba_Island.jpg/800px-Saba_Island.jpg", "cap": "Saba rising from the sea"}], "26": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Soufri\u00e8reHillsMontserrat.jpg/800px-Soufri\u00e8reHillsMontserrat.jpg", "cap": "Soufri\u00e8re Hills volcano, Montserrat"}]};
+
+var natureLabels = ["","Skip","Pleasant","Beautiful","Stunning","TRANSCENDENT"];
+var natureColors = ["","#6b7280","#22c55e","#3b82f6","#a855f7","#f59e0b"];
+var currentView = "list";
+var currentLeg = 0;
+var expandedId = null;
+var legFilter = {1:true, 2:true, 3:true};
+
+// === RENDER FUNCTIONS ===
+
+function escHtml(s) { var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function natureAweHtml(r) {
+  var bars = '';
+  for(var i=1;i<=5;i++) bars += '<div style="width:6px;height:16px;border-radius:2px;background:'+(i<=r?natureColors[r]:'#1f2937')+'"></div>';
+  return '<div style="display:flex;align-items:center;gap:4px"><div style="display:flex;gap:1px">'+bars+'</div><span class="mono awe-label" style="color:'+natureColors[r]+'">'+natureLabels[r]+'</span></div>';
+}
+
+function clearancePillHtml(action, system) {
+  if(action==="NONE") return '<span class="mono" style="font-size:8px;color:#4b5563">No clearance</span>';
+  var ac = action.includes("IN")&&action.includes("OUT")?"#fbbf24":action.includes("IN")?"#4ade80":"#f87171";
+  var html = '<span style="display:inline-flex;align-items:center;gap:4px;font-size:8px;font-weight:700" class="mono">';
+  html += '<span class="pill" style="color:'+ac+';background:'+ac+'15">🛂 '+escHtml(action)+'</span>';
+  if(system!=="—") html += '<span class="pill" style="color:#94a3b8;background:#1e293b">'+escHtml(system)+'</span>';
+  return html + '</span>';
+}
+
+function renderCard(s) {
+  var color = getPhaseColor(s.phase);
+  var isExp = expandedId === s.id;
+  var mapLink = s.lat ? '<a href="https://www.google.com/maps?q='+s.lat+','+s.lng+'&z=14&t=h" target="_blank" rel="noopener noreferrer" class="map-btn" onclick="event.stopPropagation()" title="Google Maps">📍<span class="mono" style="font-size:8px">MAP</span></a>' : '';
+  var nmText = s.nm !== "—" ? escHtml(s.nm) + ' NM' : '';
+
+  var bodyHtml = '';
+  // Satellite imagery + photo link
+  if(s.lat) {
+    bodyHtml += '<div style="margin-bottom:4px">';
+    
+    // Photo gallery (loads in real browser, not in claude sandbox)
+    var photos = PHOTOS[s.id];
+    if(photos && photos.length > 0) {
+      bodyHtml += '<div style="display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;padding-bottom:4px;-webkit-overflow-scrolling:touch">';
+      photos.forEach(function(p){
+        bodyHtml += '<div style="flex:0 0 auto;width:200px"><img src="'+p.url+'" alt="'+escHtml(p.cap)+'" style="width:200px;height:130px;object-fit:cover;border-radius:6px;border:1px solid #1e293b;display:block;background:#0f172a" loading="lazy" onerror="this.parentNode.style.display=\'none\'"><div class="mono" style="font-size:8px;color:#6b7280;margin-top:2px;text-align:center">'+escHtml(p.cap)+'</div></div>';
+      });
+      bodyHtml += '</div>';
+    }
+    bodyHtml += '<div style="display:flex;gap:6px;margin-bottom:6px">';
+    bodyHtml += '<a href="https://www.google.com/maps?q='+s.lat+','+s.lng+'&z=15&t=h" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#0ea5e9">📍 Maps</span></a>';
+    bodyHtml += '<a href="'+photoSearchUrl(s.name, s.island)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#22c55e">📷 Photos</span></a>';
+    bodyHtml += '<a href="https://www.google.com/maps?q='+s.lat+','+s.lng+'&z=11&t=h" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#a855f7">🌍 Wide View</span></a>';
+    bodyHtml += '</div>';
+    // Shelter indicator
+    var sh = SHELTER[s.id] || 'good';
+    var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
+    var shLabel = sh==='good'?'Good protection':sh==='moderate'?'Moderate — check conditions':' Exposed — settled weather only!';
+    bodyHtml += '<div style="margin-top:4px;display:flex;align-items:center;gap:6px"><span class="mono" style="font-size:9px;color:'+shColor+';font-weight:700">🛡️ ANCHORAGE: '+shLabel.toUpperCase()+'</span></div>';
+    bodyHtml += '</div>';
+  }
+  // Clearance box
+  if(s.clearance.action !== "NONE") {
+    bodyHtml += '<div class="box box-clearance"><div class="box-title mono" style="color:#94a3b8">🛂 Clearance — '+escHtml(s.clearance.action)+' · '+escHtml(s.clearance.system)+' · '+escHtml(s.clearance.currency)+'</div><div class="box-detail" style="color:#cbd5e1">'+escHtml(s.clearance.detail)+'</div></div>';
+  } else if(s.clearance.detail && s.clearance.detail.length > 40) {
+    bodyHtml += '<div class="box box-clearance"><div class="box-title mono" style="color:#4b5563">ℹ️ Notes</div><div class="box-detail" style="color:#94a3b8">'+escHtml(s.clearance.detail)+'</div></div>';
+  }
+  // Nature box
+  bodyHtml += '<div class="box box-nature" style="--phase-color:'+color+';background:'+color+'08"><div class="box-title mono" style="color:'+color+'">🌿 '+escHtml(s.highlight)+'</div><div class="box-detail" style="color:#e5e7eb">'+escHtml(s.nature)+'</div></div>';
+  // Hurricane box
+  if(s.hurricane) {
+    bodyHtml += '<div class="box box-hurricane"><div class="box-title mono" style="color:#fca5a5">🌀 Hurricane Escape</div><div class="box-detail" style="color:#fecaca">'+escHtml(s.hurricane)+'</div></div>';
+  }
+
+  return '<div class="card'+(isExp?' expanded':'')+'" style="--phase-color:'+color+'" id="card-'+s.id+'" onclick="toggleCard('+s.id+')">' +
+    '<div class="card-header">' +
+      '<div class="card-num" style="background:'+color+'">'+s.id+'</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">' +
+          '<span class="card-name serif">'+escHtml(s.name)+'</span>' + mapLink +
+        '</div>' +
+        '<div class="card-meta mono">' +
+          '<span class="card-island" style="color:'+color+'">'+escHtml(s.island)+'</span>' +
+          '<span>'+escHtml(s.days)+'</span>' +
+          '<span class="day-pill">'+s.dayCount+' '+(s.dayCount===1?'day':'days')+'</span>' +
+          '<span>'+shelterIcon(s.id)+'</span>' +
+          '<span>'+nmText+'</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+          natureAweHtml(s.natureAwe) +
+          clearancePillHtml(s.clearance.action, s.clearance.system) +
+        '</div>' +
+      '</div>' +
+      '<div class="arrow">▾</div>' +
+    '</div>' +
+    '<div class="card-body">'+bodyHtml+'</div>' +
+  '</div>';
+}
+
+function renderList() {
+  var filtered = STOPS.filter(function(s){ return currentLeg===0 || s.leg===currentLeg; });
+  var html = filtered.map(renderCard).join('');
+  document.getElementById('listView').innerHTML = html;
+}
+
+function renderQref() {
+  var rows = [
+    {c:"Trinidad",s:"SailClear",a:"OUT",cur:"TT$"},
+    {c:"Grenada",s:"SailClear",a:"IN + OUT",cur:"EC$"},
+    {c:"SVG",s:"SailClear (strict!)",a:"IN + OUT",cur:"EC$"},
+    {c:"St. Lucia",s:"SailClear",a:"IN + OUT",cur:"EC$"},
+    {c:"Martinique",s:"demarches-simplifiees.fr",a:"IN + OUT",cur:"EUR"},
+    {c:"Dominica",s:"SailClear + PAYS VHF16",a:"IN + OUT",cur:"EC$"},
+    {c:"Guadeloupe",s:"demarches-simplifiees.fr",a:"IN + OUT",cur:"EUR"},
+    {c:"Antigua",s:"eSeaClear (different!)",a:"IN + OUT",cur:"EC$"},
+    {c:"St. Barths",s:"demarches-simplifiees.fr",a:"IN + OUT",cur:"EUR"},
+    {c:"St. Maarten",s:"Dutch direct",a:"IN",cur:"USD"},
+    {c:"Saba",s:"SailClear + forms",a:"IN + OUT",cur:"USD"},
+    {c:"Statia",s:"SailClear",a:"IN + OUT",cur:"USD"},
+    {c:"St. Kitts",s:"SailClear",a:"IN + OUT",cur:"EC$"},
+    {c:"Montserrat",s:"SailClear",a:"IN + OUT",cur:"EC$"},
+  ];
+  document.getElementById('qref').innerHTML = rows.map(function(r){
+    return '<div class="qref-row"><span style="color:#fbbf24;min-width:85px">'+r.c+'</span><span style="color:#4b5563">→</span><span style="color:#94a3b8">'+r.s+'</span><span style="color:#4b5563">·</span><span>'+r.a+'</span><span style="color:#4b5563">·</span><span style="color:#22c55e">'+r.cur+'</span></div>';
+  }).join('');
+}
+
+// === MAP ===
+
+var mapZoom = {minLat:11.0, maxLat:18.5, minLng:-63.6, maxLng:-60.2, name:'full'};
+
+function setMapZoom(preset) {
+  var presets = {
+    full:    {minLat:11.0, maxLat:18.5, minLng:-63.6, maxLng:-60.2},
+    grenadines: {minLat:11.8, maxLat:13.5, minLng:-61.8, maxLng:-61.0},
+    windwards:  {minLat:13.5, maxLat:15.0, minLng:-61.6, maxLng:-60.5},
+    leewards:   {minLat:15.0, maxLat:16.8, minLng:-62.4, maxLng:-61.0},
+    north:      {minLat:16.4, maxLat:18.4, minLng:-63.5, maxLng:-61.4},
+  };
+  mapZoom = presets[preset] || presets.full;
+  mapZoom.name = preset;
+  renderMap();
+  // Highlight active zoom button
+  document.querySelectorAll('#zoomControls button').forEach(function(btn){
+    var isActive = btn.textContent.toLowerCase().indexOf(preset) > -1 || 
+                   (preset==='full' && btn.textContent.indexOf('Full')>-1);
+    btn.style.borderColor = isActive ? '#f9fafb' : '#374151';
+    btn.style.color = isActive ? '#f9fafb' : btn.style.color;
+  });
+}
+
+function renderMap() {
+  var W=800,H=750,PAD=35;
+  var minLat=mapZoom.minLat, maxLat=mapZoom.maxLat, minLng=mapZoom.minLng, maxLng=mapZoom.maxLng;
+  function toX(lng){return PAD+((lng-minLng)/(maxLng-minLng))*(W-PAD*2);}
+  function toY(lat){return PAD+((maxLat-lat)/(maxLat-minLat))*(H-PAD*2);}
+  var visLegs=[1,2,3].filter(function(l){return legFilter[l];});
+
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;background:linear-gradient(180deg,#060e1f,#091428,#0a1a30);border-radius:10px;border:1px solid #1e3a5f">';
+  svg += '<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0d2847" stroke-width="0.3"/></pattern></defs>';
+  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#grid)" opacity="0.5"/>';
+
+  // Grid
+  var latStart = Math.ceil(minLat), latEnd = Math.floor(maxLat);
+  for(var glat=latStart;glat<=latEnd;glat++){var lat=glat;
+    svg += '<line x1="'+PAD+'" y1="'+toY(lat)+'" x2="'+(W-PAD)+'" y2="'+toY(lat)+'" stroke="#0f2e52" stroke-width="0.5"/>';
+    svg += '<text x="'+(PAD-3)+'" y="'+(toY(lat)+3)+'" fill="#1e4a7a" font-size="7" text-anchor="end" font-family="DM Mono,monospace">'+lat+'°N</text>';
+  }
+  var lngStart = Math.ceil(Math.abs(maxLng)); var lngEnd = Math.floor(Math.abs(minLng));
+  for(var glng=lngEnd;glng<=lngStart;glng++){var lng=-glng;
+    svg += '<line x1="'+toX(lng)+'" y1="'+PAD+'" x2="'+toX(lng)+'" y2="'+(H-PAD)+'" stroke="#0f2e52" stroke-width="0.5"/>';
+    svg += '<text x="'+toX(lng)+'" y="'+(H-PAD+12)+'" fill="#1e4a7a" font-size="7" text-anchor="middle" font-family="DM Mono,monospace">'+Math.abs(lng)+'°W</text>';
+  }
+
+  // Islands
+  var skipLabels = ["Iles Saintes","Statia","Saba","St Barths","Carriacou","Union","Bequia","Basse-Terre","Grande-Terre","Tobago"];
+  ISLANDS.forEach(function(isl){
+    var d = isl.pts.map(function(p,j){return (j===0?'M':'L')+toX(p[1])+','+toY(p[0]);}).join(' ')+'Z';
+    svg += '<path d="'+d+'" fill="#0c2a1e" stroke="#1a5e3a" stroke-width="1" opacity="0.8"/>';
+    if(skipLabels.indexOf(isl.name)===-1){
+      var cx=isl.pts.reduce(function(s,p){return s+p[1];},0)/isl.pts.length;
+      var cy=isl.pts.reduce(function(s,p){return s+p[0];},0)/isl.pts.length;
+      svg += '<text x="'+toX(cx)+'" y="'+toY(cy)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">'+isl.name+'</text>';
+    }
+  });
+  // Manual Guadeloupe label
+  svg += '<text x="'+toX(-61.50)+'" y="'+toY(16.10)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">Guadeloupe</text>';
+
+  // Trinidad starting point
+  if(visLegs.indexOf(1)>-1) {
+    var tx=toX(TRINIDAD_START.lng), ty=toY(TRINIDAD_START.lat);
+    svg += '<circle cx="'+tx+'" cy="'+ty+'" r="4" fill="#1a5e3a" stroke="#060e1f" stroke-width="1"/>';
+    svg += '<text x="'+(tx+6)+'" y="'+(ty+3)+'" fill="#1a5e3a" font-size="6" font-family="DM Mono,monospace" opacity="0.8">START</text>';
+    // Interactive segment: Trinidad to stop 1
+    var s1 = STOPS[0];
+    if(s1 && s1.lat) {
+      var sx2=toX(s1.lng), sy2=toY(s1.lat);
+      var smx=(tx+sx2)/2, smy=(ty+sy2)/2;
+      svg += '<g class="seg" onmouseover="this.classList.add(\'seg-hover\')" onmouseout="this.classList.remove(\'seg-hover\')">';
+      svg += '<line x1="'+tx+'" y1="'+ty+'" x2="'+sx2+'" y2="'+sy2+'" stroke="transparent" stroke-width="18" style="cursor:pointer"/>';
+      svg += '<line class="seg-line" x1="'+tx+'" y1="'+ty+'" x2="'+sx2+'" y2="'+sy2+'" stroke="'+LEG_INFO[1].color+'" stroke-width="2.5" opacity="0.7" style="pointer-events:none"/>';
+      svg += '<g class="seg-label" style="pointer-events:none">';
+      svg += '<rect x="'+(smx-22)+'" y="'+(smy-7)+'" width="44" height="14" rx="3" fill="#111827" opacity="0.85"/>';
+      svg += '<text x="'+smx+'" y="'+(smy+3)+'" fill="#9ca3af" font-size="6" text-anchor="middle" font-family="DM Mono,monospace">85NM ~13h</text>';
+      svg += '</g>';
+      svg += '</g>';
+    }
+  }
+
+  // Routes as individual hoverable segments
+  visLegs.forEach(function(legNum){
+    var ls = STOPS.filter(function(s){return s.leg===legNum&&s.lat;});
+    if(ls.length<2) return;
+    var legColor = LEG_INFO[legNum].color;
+    var isDash = legNum===3;
+    var sw = isDash ? '1.5' : '2.5';
+
+    for(var i=0;i<ls.length-1;i++){
+      var a=ls[i], b=ls[i+1];
+      var ax=toX(a.lng),ay=toY(a.lat),bx=toX(b.lng),by=toY(b.lat);
+      var mx=(ax+bx)/2, my=(ay+by)/2;
+      var nmVal = b.nm ? parseInt(b.nm.replace('~','')) : 0;
+      var hrs = nmVal > 0 ? Math.round(nmVal/6.5) : 0;
+      var showLabel = nmVal >= 8 || mapZoom.name !== 'full';
+      var label = nmVal > 0 ? nmVal+'NM ~'+hrs+'h' : '';
+
+      svg += '<g class="seg" onmouseover="this.classList.add(\'seg-hover\')" onmouseout="this.classList.remove(\'seg-hover\')">';
+      // Invisible fat hit area
+      svg += '<line x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="transparent" stroke-width="18" style="cursor:pointer"/>';
+      // Visible route line
+      svg += '<line class="seg-line" x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="'+legColor+'" stroke-width="'+sw+'" stroke-dasharray="'+(isDash?'6,4':'')+'" opacity="0.6" style="pointer-events:none"/>';
+      // Distance label
+      if(label && showLabel) {
+        var lw = label.length*4.5+10;
+        svg += '<g class="seg-label" style="pointer-events:none">';
+        svg += '<rect x="'+(mx-lw/2)+'" y="'+(my-7)+'" width="'+lw+'" height="14" rx="3" fill="#111827" opacity="0.8"/>';
+        svg += '<text x="'+mx+'" y="'+(my+2)+'" fill="#6b7280" font-size="5.5" text-anchor="middle" font-family="DM Mono,monospace">'+label+'</text>';
+        svg += '</g>';
+      }
+      // Hidden large hover label (shown only on hover)
+      if(label) {
+        var hlw = label.length*7+16;
+        svg += '<g class="seg-label-hover" style="pointer-events:none;opacity:0">';
+        svg += '<rect x="'+(mx-hlw/2)+'" y="'+(my-12)+'" width="'+hlw+'" height="24" rx="5" fill="#111827" stroke="'+legColor+'" stroke-width="1.5" filter="drop-shadow(0 2px 8px rgba(0,0,0,0.6))"/>';
+        svg += '<text x="'+mx+'" y="'+(my+4)+'" fill="#f9fafb" font-size="9" font-weight="700" text-anchor="middle" font-family="DM Mono,monospace">⛵ '+label+'</text>';
+        svg += '</g>';
+      }
+      svg += '</g>';
+    }
+  });
+
+  // Connectors (phase transitions) — also interactive
+  var connectors = [];
+  if(visLegs.indexOf(1)>-1 && visLegs.indexOf(2)>-1){
+    var e1=STOPS.filter(function(s){return s.leg===1&&s.lat;});e1=e1[e1.length-1];
+    var s2=STOPS.filter(function(s){return s.leg===2&&s.lat;})[0];
+    if(e1&&s2) connectors.push({a:e1,b:s2,color:LEG_INFO[2].color,nm:30,label:'Phase transition'});
+  }
+  if(visLegs.indexOf(2)>-1 && visLegs.indexOf(3)>-1){
+    var e2=STOPS.filter(function(s){return s.leg===2&&s.lat;});e2=e2[e2.length-1];
+    var s3=STOPS.filter(function(s){return s.leg===3&&s.lat;})[0];
+    if(e2&&s3) connectors.push({a:e2,b:s3,color:LEG_INFO[3].color,nm:0,label:'Phase transition'});
+  }
+  connectors.forEach(function(c){
+    var ax=toX(c.a.lng),ay=toY(c.a.lat),bx=toX(c.b.lng),by=toY(c.b.lat);
+    svg += '<g class="seg" onmouseover="this.classList.add(\'seg-hover\')" onmouseout="this.classList.remove(\'seg-hover\')">';
+    svg += '<line x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="transparent" stroke-width="18" style="cursor:pointer"/>';
+    svg += '<line class="seg-line" x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="'+c.color+'" stroke-width="2" stroke-dasharray="6,4" opacity="0.6" style="pointer-events:none"/>';
+    svg += '</g>';
+  });
+
+  // Stop markers — store positions for HTML hover overlay
+  var markerPositions = [];
+  STOPS.filter(function(s){return s.lat&&visLegs.indexOf(s.leg)>-1;}).forEach(function(s){
+    var x=toX(s.lng),y=toY(s.lat),color=getPhaseColor(s.phase),r=s.natureAwe===5?9:6;
+    var ox=0,oy=0;
+    if(s.id===28){ox=14;oy=-12;}
+    var fx=x+ox, fy=y+oy;
+    // Shelter indicator color
+    var sh=SHELTER[s.id]||'good';
+    var shStroke=sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
+    // Transcendent glow
+    if(s.natureAwe===5){
+      svg += '<circle cx="'+fx+'" cy="'+fy+'" r="'+(r+6)+'" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.3"><animate attributeName="r" values="'+(r+4)+';'+(r+8)+';'+(r+4)+'" dur="3s" repeatCount="indefinite"/></circle>';
+    }
+    // Shelter ring (outer)
+    svg += '<circle cx="'+fx+'" cy="'+fy+'" r="'+(r+2)+'" fill="none" stroke="'+shStroke+'" stroke-width="1.5" opacity="0.6"/>';
+    // Main marker
+    svg += '<circle cx="'+fx+'" cy="'+fy+'" r="'+r+'" fill="'+color+'" stroke="#060e1f" stroke-width="2" style="cursor:pointer" onclick="openPhotoModal('+s.id+')" onmouseover="showMapTip('+s.id+',event)" onmouseout="hideMapTip()"/>';
+    svg += '<text x="'+fx+'" y="'+(fy+3.5)+'" fill="#fff" font-size="'+(r>7?'9':'8')+'" text-anchor="middle" font-family="DM Mono,monospace" font-weight="700" style="pointer-events:none">'+s.id+'</text>';
+    markerPositions.push({id:s.id,x:fx,y:fy});
+  });
+  window._markerPositions = markerPositions;
+
+  svg += '<text x="'+(W/2)+'" y="16" fill="#1e4a7a" font-size="8" text-anchor="middle" font-family="DM Mono,monospace" letter-spacing="0.15em">BLUE MOON — THE GRAND CARIBBEAN VOYAGE</text>';
+
+  // === TOP LAYER: All hover targets drawn last so they're above everything ===
+  // Trinidad → Stop 1
+  if(visLegs.indexOf(1)>-1) {
+    var s1=STOPS[0];
+    if(s1&&s1.lat) {
+      var tx=toX(TRINIDAD_START.lng),ty=toY(TRINIDAD_START.lat);
+      svg += '<line x1="'+tx+'" y1="'+ty+'" x2="'+toX(s1.lng)+'" y2="'+toY(s1.lat)+'" stroke="transparent" stroke-width="20" style="cursor:pointer" onmouseover="showRouteTip(0,1,85,13.1,event)" onmouseout="hideRouteTip()"/>';
+      var mx=(tx+toX(s1.lng))/2, my=(ty+toY(s1.lat))/2;
+      svg += '<circle cx="'+mx+'" cy="'+my+'" r="2.5" fill="'+LEG_INFO[1].color+'" opacity="0.5"/>';
+    }
+  }
+  // All route segments
+  visLegs.forEach(function(legNum){
+    var ls=STOPS.filter(function(s){return s.leg===legNum&&s.lat;});
+    for(var i=0;i<ls.length-1;i++){
+      var a=ls[i],b=ls[i+1];
+      var nmVal=parseInt((b.nm||'0').replace('~',''));
+      if(nmVal>0){
+        var hrs=(nmVal/6.5).toFixed(1);
+        svg += '<line x1="'+toX(a.lng)+'" y1="'+toY(a.lat)+'" x2="'+toX(b.lng)+'" y2="'+toY(b.lat)+'" stroke="transparent" stroke-width="20" style="cursor:pointer" onmouseover="showRouteTip('+a.id+','+b.id+','+nmVal+','+hrs+',event)" onmouseout="hideRouteTip()"/>';
+        var mx=(toX(a.lng)+toX(b.lng))/2,my=(toY(a.lat)+toY(b.lat))/2;
+        svg += '<circle cx="'+mx+'" cy="'+my+'" r="2.5" fill="'+LEG_INFO[legNum].color+'" opacity="0.5"/>';
+      }
+    }
+  });
+
+
+  // === TOPMOST LAYER: Stop marker click zones (above route hover targets) ===
+  STOPS.filter(function(s){return s.lat&&visLegs.indexOf(s.leg)>-1;}).forEach(function(s){
+    var x=toX(s.lng),y=toY(s.lat);
+    var ox=0,oy=0;
+    if(s.id===28){ox=14;oy=-12;}
+    // Large invisible click target circle
+    svg += '<circle cx="'+(x+ox)+'" cy="'+(y+oy)+'" r="14" fill="transparent" style="cursor:pointer" onclick="openPhotoModal('+s.id+')" onmouseover="showMapTip('+s.id+',event)" onmouseout="hideMapTip()"/>';
+  });
+
+  svg += '</svg>';
+  document.getElementById('mapContainer').innerHTML = svg;
+  // Add mousemove tracker for smooth tooltip positioning
+  var svgEl = document.getElementById('mapContainer').querySelector('svg');
+  if(svgEl) {
+    svgEl.addEventListener('mousemove', function(e) {
+      var tip = document.getElementById('mapTip');
+      if(tip.style.display === 'block') {
+        var mx=e.clientX, my=e.clientY;
+        var tw=320, th=tip.offsetHeight;
+        var left=mx+16, top=my-th/2;
+        if(left+tw>window.innerWidth-10) left=mx-tw-16;
+        if(top<10) top=10;
+        if(top+th>window.innerHeight-10) top=window.innerHeight-th-10;
+        tip.style.left=left+'px';
+        tip.style.top=top+'px';
+      }
+    });
+  }
+}
+
+function renderMapControls() {
+  var html = '';
+  [1,2,3].forEach(function(leg){
+    var checked = legFilter[leg] ? 'checked' : '';
+    var color = legFilter[leg] ? LEG_INFO[leg].color : '#4b5563';
+    html += '<label class="mono"><input type="checkbox" '+checked+' onchange="toggleLeg('+leg+')" style="accent-color:'+LEG_INFO[leg].color+'"><span style="color:'+color+';font-weight:600">'+LEG_INFO[leg].label.replace("Phase ","P")+'</span></label>';
+  });
+  document.getElementById('mapControls').innerHTML = html;
+}
+
+function toggleLeg(leg) {
+  legFilter[leg] = !legFilter[leg];
+  renderMapControls();
+  renderMap();
+}
+
+function mapClick(id) {
+  var stop = STOPS.find(function(s){return s.id===id;});
+  currentLeg = stop ? stop.leg : 0;
+  expandedId = id;
+  showView('list');
+  setTimeout(function(){
+    var el = document.getElementById('card-'+id);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+  }, 100);
+}
+
+// === VIEW MANAGEMENT ===
+
+function showView(view) {
+  currentView = view;
+  updateTabs();
+  if(view === 'map') {
+    document.getElementById('mapView').classList.remove('hidden');
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('legBar').classList.add('hidden');
+    document.getElementById('qrefSection').classList.add('hidden');
+    document.getElementById('hurricaneSection').classList.add('hidden');
+    renderMapControls();
+    renderMap();
+  } else {
+    document.getElementById('mapView').classList.add('hidden');
+    document.getElementById('listView').classList.remove('hidden');
+    document.getElementById('qrefSection').classList.remove('hidden');
+    document.getElementById('hurricaneSection').classList.remove('hidden');
+    updateLegBar();
+    renderList();
+  }
+}
+
+function showList(leg) {
+  currentLeg = leg;
+  expandedId = null;
+  showView('list');
+}
+
+function toggleCard(id) {
+  expandedId = expandedId === id ? null : id;
+  renderList();
+}
+
+function updateTabs() {
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.classList.remove('active');
+    if(currentView==='map' && t.dataset.view==='map') t.classList.add('active');
+    if(currentView==='list' && t.dataset.view==='list' && parseInt(t.dataset.leg)===currentLeg) t.classList.add('active');
+  });
+  // Set border colors
+  document.querySelectorAll('.tab').forEach(function(t){
+    if(t.classList.contains('active')){
+      if(t.dataset.view==='map') t.style.borderBottomColor='#22c55e';
+      else {
+        var l = parseInt(t.dataset.leg);
+        t.style.borderBottomColor = l===0?'#0ea5e9':LEG_INFO[l].color;
+      }
+    } else {
+      t.style.borderBottomColor = 'transparent';
+    }
+  });
+}
+
+function updateLegBar() {
+  var bar = document.getElementById('legBar');
+  if(currentLeg > 0 && LEG_INFO[currentLeg]) {
+    var li = LEG_INFO[currentLeg];
+    bar.innerHTML = '<span class="mono" style="font-size:11px;font-weight:700;color:'+li.color+'">'+li.dates+'</span><span class="mono" style="font-size:10px;color:#64748b;background:#1f2937;padding:2px 6px;border-radius:4px">'+li.days+'</span><span style="font-size:11px;color:#94a3b8">'+li.desc+'</span>';
+    bar.style.background = li.color + '08';
+    bar.classList.remove('hidden');
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+
+function openPhotoModal(id) {
+  var s = STOPS.find(function(st){return st.id===id;});
+  if(!s) return;
+  var color = getPhaseColor(s.phase);
+  var sh = SHELTER[s.id] || 'good';
+  var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
+  var shLabel = sh==='good'?'Good protection':sh==='moderate'?'Moderate — check conditions':'Exposed — settled weather only!';
+  
+  var h = '';
+  h += '<div style="margin-top:40px">';
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+  h += '<div style="width:28px;height:28px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff" class="mono">'+s.id+'</div>';
+  h += '<span class="serif" style="font-size:20px;font-weight:700;color:#f9fafb">'+escHtml(s.name)+'</span>';
+  h += '</div>';
+  h += '<div class="mono" style="font-size:10px;color:#6b7280;margin-bottom:8px">'+escHtml(s.island)+' · '+escHtml(s.days)+' · '+s.dayCount+' days · '+escHtml(s.stayRec)+'</div>';
+  // Action buttons
+  h += '<div style="display:flex;gap:6px;margin-bottom:12px">';
+  if(s.lat) {
+    h += '<a href="https://www.google.com/maps?q='+s.lat+','+s.lng+'&z=14&t=h" target="_blank" rel="noopener" style="flex:1;text-decoration:none;border-radius:6px;background:#0f172a;border:1px solid #1e3a5f;padding:8px 6px;text-align:center" class="mono"><span style="font-size:10px;font-weight:700;color:#0ea5e9">📍 Maps</span></a>';
+    h += '<a href="'+photoSearchUrl(s.name, s.island)+'" target="_blank" rel="noopener" style="flex:1;text-decoration:none;border-radius:6px;background:#0f172a;border:1px solid #1a5e3a;padding:8px 6px;text-align:center" class="mono"><span style="font-size:10px;font-weight:700;color:#22c55e">📷 Photos</span></a>';
+  }
+  h += '<button onclick="closeModal();mapClick('+s.id+')" style="flex:1;font-size:10px;color:#f59e0b;background:#0f172a;padding:8px 6px;border-radius:6px;font-weight:600;border:1px solid #92400e;cursor:pointer;text-align:center" class="mono">📋 Details</button>';
+  h += '</div>';
+  
+  // Satellite image
+  if(s.lat) {
+    h += '<div style="border-radius:8px;overflow:hidden;border:1px solid #1e293b;margin-bottom:8px">';
+    // Photo gallery
+    var photos = PHOTOS[s.id];
+    if(photos && photos.length > 0) {
+      photos.forEach(function(p){
+        h += '<div style="margin-bottom:8px"><img src="'+p.url+'" alt="'+escHtml(p.cap)+'" style="width:100%;height:auto;max-height:300px;object-fit:cover;border-radius:8px;border:1px solid #1e293b;display:block;background:#0f172a" loading="lazy" onerror="this.parentNode.style.display=\'none\'"><div class="mono" style="font-size:9px;color:#6b7280;margin-top:3px;text-align:center">'+escHtml(p.cap)+'</div></div>';
+      });
+    }
+    h += '</div>';
+  }
+  
+  // Protection status
+  h += '<div style="background:#0f172a;border-radius:6px;padding:8px 12px;border:1px solid #1e293b;margin-bottom:8px">';
+  h += '<span class="mono" style="font-size:10px;color:'+shColor+';font-weight:700">🛡️ ANCHORAGE: '+shLabel.toUpperCase()+'</span>';
+  h += '</div>';
+  
+  // Nature description
+  h += '<div style="background:'+color+'08;border-radius:6px;padding:10px 12px;border-left:3px solid '+color+';margin-bottom:8px">';
+  h += '<div class="mono" style="font-size:9px;color:'+color+';font-weight:700;text-transform:uppercase;margin-bottom:4px">🌿 '+escHtml(s.highlight)+'</div>';
+  h += '<div style="font-size:13px;color:#e5e7eb;line-height:1.6">'+escHtml(s.nature)+'</div>';
+  h += '</div>';
+  
+
+  
+  h += '</div>';
+  
+  document.getElementById('modalContent').innerHTML = h;
+  document.getElementById('photoModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('photoModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+
+function showMapTip(id, evt) {
+  var s = STOPS.find(function(st){return st.id===id;});
+  if(!s) return;
+  var tip = document.getElementById('mapTip');
+  var color = getPhaseColor(s.phase);
+  var sh = SHELTER[s.id]||'good';
+  var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
+  var shText = sh==='good'?'Good shelter':sh==='moderate'?'Moderate':' Exposed!';
+  var shIcon = sh==='good'?'🛡️':sh==='moderate'?'⚠️':'🔴';
+  var naweLbl = ["","Skip","Pleasant","Beautiful","Stunning","TRANSCENDENT"][s.natureAwe];
+  var naweClr = ["","#6b7280","#22c55e","#3b82f6","#a855f7","#f59e0b"][s.natureAwe];
+
+  var h = '';
+  // Header
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+  h += '<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0" class="mono">'+s.id+'</div>';
+  h += '<div><div class="serif" style="font-size:14px;font-weight:700;color:#f9fafb;line-height:1.2">'+escHtml(s.name)+'</div>';
+  h += '<div class="mono" style="font-size:9px;color:'+color+'">'+escHtml(s.island)+'</div></div>';
+  h += '</div>';
+  // Stats row
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+  h += '<span class="mono" style="font-size:9px;color:#9ca3af;background:#1f2937;padding:2px 6px;border-radius:4px">'+escHtml(s.days)+'</span>';
+  h += '<span class="mono" style="font-size:9px;color:#e2e8f0;background:#1f2937;padding:2px 6px;border-radius:4px;font-weight:700">'+s.dayCount+' '+(s.dayCount===1?'day':'days')+'</span>';
+  if(s.nm&&s.nm!=='—') h += '<span class="mono" style="font-size:9px;color:#9ca3af;background:#1f2937;padding:2px 6px;border-radius:4px">'+escHtml(s.nm)+' NM</span>';
+  h += '<span class="mono" style="font-size:9px;color:'+shColor+';background:#1f2937;padding:2px 6px;border-radius:4px;font-weight:700">'+shIcon+' '+shText+'</span>';
+  h += '</div>';
+  // Nature rating
+  h += '<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">';
+  for(var i=1;i<=5;i++) h += '<div style="width:6px;height:14px;border-radius:2px;background:'+(i<=s.natureAwe?naweClr:'#1f2937')+'"></div>';
+  h += '<span class="mono" style="font-size:9px;font-weight:700;color:'+naweClr+';text-transform:uppercase">'+naweLbl+'</span>';
+  h += '</div>';
+  // Highlight
+  h += '<div style="font-size:11px;color:#d1d5db;line-height:1.4;border-left:2px solid '+color+';padding-left:8px">'+escHtml(s.highlight)+'</div>';
+  // Clearance pill
+  if(s.clearance.action!=='NONE') {
+    var ac=s.clearance.action.includes("IN")&&s.clearance.action.includes("OUT")?"#fbbf24":s.clearance.action.includes("IN")?"#4ade80":"#f87171";
+    h += '<div style="margin-top:6px"><span class="mono" style="font-size:8px;font-weight:700;color:'+ac+';background:'+ac+'15;padding:2px 6px;border-radius:3px">🛂 '+escHtml(s.clearance.action)+' · '+escHtml(s.clearance.system)+'</span></div>';
+  }
+  // Click hint
+  h += '<div class="mono" style="font-size:8px;color:#4b5563;margin-top:6px;text-align:center">Click for satellite photos & full details</div>';
+
+  tip.innerHTML = h;
+  tip.style.display = 'block';
+  
+  // Position tooltip near cursor but keep on screen
+  var mx = evt.clientX, my = evt.clientY;
+  var tw = 320, th = tip.offsetHeight;
+  var left = mx + 16;
+  var top = my - th/2;
+  if(left + tw > window.innerWidth - 10) left = mx - tw - 16;
+  if(top < 10) top = 10;
+  if(top + th > window.innerHeight - 10) top = window.innerHeight - th - 10;
+  tip.style.left = left + 'px';
+  tip.style.top = top + 'px';
+}
+
+function hideMapTip() {
+  document.getElementById('mapTip').style.display = 'none';
+}
+
+
+function showRouteTip(fromId, toId, nm, hrs, evt) {
+  var tip = document.getElementById('mapTip');
+  var fromStop = fromId === 0 ? {name:'Chaguaramas, Trinidad',id:0} : STOPS.find(function(s){return s.id===fromId;});
+  var toStop = STOPS.find(function(s){return s.id===toId;});
+  if(!toStop) return;
+  
+  var hrsNum = parseFloat(hrs);
+  var hrsWhole = Math.floor(hrsNum);
+  var minsRem = Math.round((hrsNum - hrsWhole) * 60);
+  var timeStr = hrsWhole + 'h ' + minsRem + 'm';
+  
+  var h = '';
+  h += '<div style="text-align:center">';
+  // From → To
+  h += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">';
+  h += '<span class="mono" style="font-size:12px;color:#94a3b8;font-weight:600">'+escHtml(fromStop.name)+'</span>';
+  h += '<span style="font-size:16px">⛵</span>';
+  h += '<span class="mono" style="font-size:12px;color:#f9fafb;font-weight:600">'+escHtml(toStop.name)+'</span>';
+  h += '</div>';
+  // Big numbers
+  h += '<div style="display:flex;justify-content:center;gap:24px;margin-bottom:8px">';
+  h += '<div><div class="mono" style="font-size:28px;font-weight:900;color:#0ea5e9;line-height:1">'+nm+'</div><div class="mono" style="font-size:10px;color:#6b7280;margin-top:2px">NAUTICAL MILES</div></div>';
+  h += '<div><div class="mono" style="font-size:28px;font-weight:900;color:#f59e0b;line-height:1">'+timeStr+'</div><div class="mono" style="font-size:10px;color:#6b7280;margin-top:2px">AT 6.5 KNOTS</div></div>';
+  h += '</div>';
+  // Context
+  h += '<div class="mono" style="font-size:8px;color:#4b5563">Blue Moon cruising speed estimate</div>';
+  h += '</div>';
+  
+  tip.innerHTML = h;
+  tip.style.display = 'block';
+  tip.style.maxWidth = '380px';
+  
+  var mx=evt.clientX, my=evt.clientY;
+  var tw=380, th=tip.offsetHeight;
+  var left=mx+16, top=my-th/2;
+  if(left+tw>window.innerWidth-10) left=mx-tw-16;
+  if(top<10) top=10;
+  if(top+th>window.innerHeight-10) top=window.innerHeight-th-10;
+  tip.style.left=left+'px';
+  tip.style.top=top+'px';
+}
+
+function hideRouteTip() {
+  var tip = document.getElementById('mapTip');
+  tip.style.display = 'none';
+  tip.style.maxWidth = '320px';
+}
+
+// === INIT ===
+renderQref();
+showView('map');
+</script>
+
+<!-- PHOTO MODAL -->
+<div id="photoModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:1000;overflow-y:auto;-webkit-overflow-scrolling:touch" onclick="if(event.target===this)closeModal()">
+  <div style="max-width:600px;margin:20px auto;padding:16px;position:relative">
+    <button onclick="closeModal()" style="position:sticky;top:0;float:right;background:#1f2937;border:none;color:#f9fafb;font-size:18px;width:36px;height:36px;border-radius:50%;cursor:pointer;z-index:10">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+</body>
+</html>
