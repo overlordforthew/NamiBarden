@@ -43,7 +43,8 @@ const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 const r2 = (R2_ENDPOINT && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY) ? new S3Client({
   region: 'auto',
   endpoint: R2_ENDPOINT,
-  credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY }
+  credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
+  forcePathStyle: true
 }) : null;
 
 // ─── Course config ───
@@ -51,31 +52,51 @@ const COURSES = {
   'course-1': {
     name: '愛を引き寄せる心の授業',
     lessons: [
-      { id: 'lesson-1', title: '美しい心と苦悩の心' },
-      { id: 'lesson-2', title: '意識の4ステップ' },
-      { id: 'lesson-3', title: 'なぜパートナーが欲しいのか 〜理想像の罠〜' },
-      { id: 'lesson-4', title: 'デートがうまくいかない本当の理由' },
-      { id: 'lesson-5', title: '運命の相手はどこにいる？' },
-      { id: 'lesson-6', title: '魅力的な自分を作る5つの心得' },
-      { id: 'lesson-7', title: '心を通わせるコミュニケーション術' },
-      { id: 'lesson-8', title: '引き寄せの法則 〜ビジョンボード実践〜' }
+      { id: 'promo',     title: 'プロモーション動画' },
+      { id: 'lesson-1',  title: 'はじめに' },
+      { id: 'lesson-2',  title: '二つの心の状態 (1A)' },
+      { id: 'lesson-3',  title: '二つの心の状態 (2)' },
+      { id: 'lesson-4',  title: '４つのステップ' },
+      { id: 'lesson-5',  title: 'なぜパートナーが欲しいのか (A)' },
+      { id: 'lesson-6',  title: 'なぜパートナーが欲しいのか (NEW)' },
+      { id: 'lesson-7',  title: 'デートがうまくいかない理由' },
+      { id: 'lesson-8',  title: '運命の相手はどこに？' },
+      { id: 'lesson-9',  title: '魅力的な自分を作る５つの心の...' },
+      { id: 'lesson-10', title: 'パートナーと心を通わせるコツ (1)' },
+      { id: 'lesson-11', title: 'パートナーと心を通わせるコツ (2)' },
+      { id: 'lesson-12', title: '引き寄せの法則は本当 (1)' },
+      { id: 'lesson-13', title: '引き寄せの法則は本当 (2)' }
     ]
   },
   'course-2': {
     name: '愛を深める心の授業',
     lessons: [
-      { id: 'lesson-1', title: '意見の食い違いをどう乗り越える？' },
-      { id: 'lesson-2', title: 'パートナーを一番にできていますか？' },
-      { id: 'lesson-3', title: '5つの愛の言語' },
-      { id: 'lesson-4', title: '男性性と女性性の法則' },
-      { id: 'lesson-5', title: '家ではどちらの顔でいる？' },
-      { id: 'lesson-6', title: 'あなたのセックスがうまくいかないワケ' },
-      { id: 'lesson-7', title: '価値観が合わないときどうすれば？' },
-      { id: 'lesson-8', title: '裏切り・不倫を乗り越える方法' },
-      { id: 'lesson-9', title: '複数パートナーについて考える' },
-      { id: 'lesson-10', title: '相手を許す方法' },
-      { id: 'lesson-11', title: '別れ・離婚する前に気をつけること' },
-      { id: 'bonus-meditation', title: '愛の瞑想（ボーナス）' }
+      { id: 'lesson-1',  title: '意見の食い違いを解決しよう' },
+      { id: 'lesson-2',  title: 'パートナーを一番にできるか' },
+      { id: 'lesson-3',  title: 'パートナーの愛の言語を知る' },
+      { id: 'lesson-4',  title: '男性性と女性性' },
+      { id: 'lesson-5',  title: '男性性と女性性 (1)' },
+      { id: 'lesson-6',  title: '男性性と女性性 (2)' },
+      { id: 'lesson-7',  title: '家ではどちらの顔でいることが多い？' },
+      { id: 'lesson-8',  title: 'セックスがうまくいかないワケ' },
+      { id: 'lesson-9',  title: 'セックスがうまくいかないワケ (1)' },
+      { id: 'lesson-10', title: 'セックスがうまくいかないワケ (2)' },
+      { id: 'lesson-11', title: 'セックスがうまくいかないワケ (2A)' },
+      { id: 'lesson-12', title: 'セックスがうまくいかないワケ (3)' },
+      { id: 'lesson-13', title: '価値観が合わないときはどうすれば？' },
+      { id: 'lesson-14', title: '価値観が合わないときはどうすれば？(A)' },
+      { id: 'lesson-15', title: '人生のピンチを乗り越える方法 (1)' },
+      { id: 'lesson-16', title: '人生のピンチを乗り越える方法 (2)' },
+      { id: 'lesson-17', title: '複数のパートナーをもつことについて (1)' },
+      { id: 'lesson-18', title: '複数のパートナーをもつことについて (2)' },
+      { id: 'lesson-19', title: '怒りの手紙' },
+      { id: 'lesson-20', title: '相手を許す方法' },
+      { id: 'lesson-21', title: '相手を許す方法 (1)' },
+      { id: 'lesson-22', title: '愛の規模' },
+      { id: 'lesson-23', title: '離婚・別れるときに気を付けること' },
+      { id: 'lesson-24', title: '離婚・別れるときに気を付けること (1)' },
+      { id: 'lesson-25', title: '離婚・別れるときに気を付けること (2)' },
+      { id: 'lesson-26', title: '最後に' }
     ]
   }
 };
@@ -795,12 +816,16 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
 
     const r2Key = `courses/${courseId}/${lessonId}/${filePath}`;
 
-    // .ts segments → 302 redirect to signed R2 URL
+    // .ts segments → stream from R2 through proxy
     if (filePath.endsWith('.ts')) {
-      const signedUrl = await getSignedUrl(r2, new GetObjectCommand({
-        Bucket: R2_BUCKET, Key: r2Key
-      }), { expiresIn: 300 }); // 5 min
-      return res.redirect(302, signedUrl);
+      const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
+      res.set('Content-Type', 'video/mp2t');
+      if (obj.ContentLength) res.set('Content-Length', String(obj.ContentLength));
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      obj.Body.transformToWebStream().pipeTo(
+        new WritableStream({ write(chunk) { res.write(chunk); }, close() { res.end(); } })
+      );
+      return;
     }
 
     // .m3u8 playlists → fetch from R2, rewrite URLs to go through our proxy
