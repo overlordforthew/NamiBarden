@@ -794,20 +794,21 @@ app.get('/api/courses/:courseId/lessons', async (req, res) => {
   }
 });
 
-// ─── GET /api/promo/:courseId/hls/* — Public promo video (no token required) ───
-app.get('/api/promo/:courseId/hls/*', async (req, res) => {
+// ─── GET /api/preview/:courseId/:lessonId/hls/* — Public preview videos (no token required) ───
+const PREVIEW_LESSONS = { 'course-1': ['promo', 'lesson-2'] };
+app.get('/api/preview/:courseId/:lessonId/hls/*', async (req, res) => {
   try {
     if (!r2) return res.status(503).json({ error: 'Video hosting not configured' });
     const ip = getIP(req);
-    if (!rateLimit(`promo-hls:${ip}`, 100, 60000)) {
+    if (!rateLimit(`preview-hls:${ip}`, 100, 60000)) {
       return res.status(429).json({ error: 'Too many requests' });
     }
-    const { courseId } = req.params;
+    const { courseId, lessonId } = req.params;
     const filePath = req.params[0];
-    // Only allow course-1 promo for now
-    if (courseId !== 'course-1') return res.status(404).json({ error: 'Not found' });
+    const allowed = PREVIEW_LESSONS[courseId];
+    if (!allowed || !allowed.includes(lessonId)) return res.status(404).json({ error: 'Not found' });
 
-    const r2Key = `courses/${courseId}/promo/${filePath}`;
+    const r2Key = `courses/${courseId}/${lessonId}/${filePath}`;
 
     if (filePath.endsWith('.ts')) {
       const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
@@ -823,7 +824,7 @@ app.get('/api/promo/:courseId/hls/*', async (req, res) => {
     if (filePath.endsWith('.m3u8')) {
       const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
       let body = await obj.Body.transformToString();
-      const baseApiPath = `/api/promo/${courseId}/hls`;
+      const baseApiPath = `/api/preview/${courseId}/${lessonId}/hls`;
       const dir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
       body = body.replace(/^(?!#)(.+)$/gm, (match, line) => {
         const trimmed = line.trim();
