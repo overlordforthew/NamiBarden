@@ -57,15 +57,14 @@ const COURSES = {
       { id: 'lesson-2',  title: '二つの心の状態 (1A)' },
       { id: 'lesson-3',  title: '二つの心の状態 (2)' },
       { id: 'lesson-4',  title: '４つのステップ' },
-      { id: 'lesson-5',  title: 'なぜパートナーが欲しいのか (A)' },
-      { id: 'lesson-6',  title: 'なぜパートナーが欲しいのか (NEW)' },
-      { id: 'lesson-7',  title: 'デートがうまくいかない理由' },
-      { id: 'lesson-8',  title: '運命の相手はどこに？' },
-      { id: 'lesson-9',  title: '魅力的な自分を作る５つの心の...' },
-      { id: 'lesson-10', title: 'パートナーと心を通わせるコツ (1)' },
-      { id: 'lesson-11', title: 'パートナーと心を通わせるコツ (2)' },
-      { id: 'lesson-12', title: '引き寄せの法則は本当 (1)' },
-      { id: 'lesson-13', title: '引き寄せの法則は本当 (2)' }
+      { id: 'lesson-5',  title: 'なぜパートナーが欲しいのか (NEW)' },
+      { id: 'lesson-6',  title: 'デートがうまくいかない理由' },
+      { id: 'lesson-7',  title: '運命の相手はどこに？' },
+      { id: 'lesson-8',  title: '魅力的な自分を作る５つの心の...' },
+      { id: 'lesson-9', title: 'パートナーと心を通わせるコツ (1)' },
+      { id: 'lesson-10', title: 'パートナーと心を通わせるコツ (2)' },
+      { id: 'lesson-11', title: '引き寄せの法則は本当 (1)' },
+      { id: 'lesson-12', title: '引き寄せの法則は本当 (2)' }
     ]
   },
   'course-2': {
