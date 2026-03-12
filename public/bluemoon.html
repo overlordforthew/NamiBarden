@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
 <title>Blue Moon — The Grand Caribbean Voyage</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -401,6 +400,38 @@ function shelterIcon(id) {
 // Trinidad start point (not in STOPS since it's the departure, not an anchorage)
 var TRINIDAD_START = {lat: 10.42, lng: -61.63};
 
+
+var SERVICES = {
+  1:  {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'GYS/Grenada Marine fuel dock. Full services at St George\'s.'},
+  2:  {fuel:'dock',water:'dock',provision:true,laundry:false,gas:false, notes:'Carriacou Marine fuel dock (SOL diesel+gas) in Tyrrel Bay. Open Mon-Sat 8-17:30, Sun 8-14.'},
+  3:  {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'No services. Remote bay, no land access. Stock up in Carriacou.'},
+  4:  {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'Marine park, no services. Boat boys sell ice, bread, lobster. Carry all water+fuel.'},
+  5:  {fuel:false,water:'jerry',provision:false,laundry:false,gas:false, notes:'Small village, limited water from shore. No fuel dock.'},
+  6:  {fuel:'dock',water:'dock',provision:true,laundry:false,gas:false, notes:'Canouan marina has fuel+water. Small provisions available.'},
+  7:  {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'Uninhabited islands. No services whatsoever. Carry everything.'},
+  8:  {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Bequia has fuel at Daffodil Marine. Good provisioning in Port Elizabeth. LPG available.'},
+  9:  {fuel:false,water:'jerry',provision:false,laundry:false,gas:false, notes:'Remote anchorage. Bring all fuel. Water from streams ashore (treat first).'},
+  10: {fuel:'jerry',water:'jerry',provision:true,laundry:false,gas:false, notes:'No fuel dock at Soufrière mooring field. Jerry can diesel from gas station ashore. Basic provisions.'},
+  11: {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'Snorkeling stop only. No services at Anse Cochon.'},
+  12: {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'MAJOR FUEL STOP. Rodney Bay Marina high-speed fuel dock. Full provisioning, chandlery, water, LPG.'},
+  13: {fuel:false,water:'jerry',provision:true,laundry:false,gas:false, notes:'No fuel dock. Small shops in village. Water from restaurants ashore.'},
+  14: {fuel:'jerry',water:'jerry',provision:true,laundry:false,gas:false, notes:'No marine fuel dock. Jerry cans from gas station. Small market in town.'},
+  15: {fuel:'jerry',water:'jerry',provision:true,laundry:true,gas:true, notes:'No fuel dock at moorings. Jerry cans from PAYS boat boys or gas station in town. Good provisioning.'},
+  16: {fuel:false,water:'jerry',provision:true,laundry:false,gas:false, notes:'No fuel dock in Les Saintes. Small shops, restaurants, bakeries. Limited water.'},
+  17: {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'Marine reserve anchorage. No services at Pigeon Island. Stock up before.'},
+  18: {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'MAJOR FUEL STOP. Falmouth Harbour Marina — diesel at 700L/min, water, full services. Nelson\'s Dockyard nearby.'},
+  19: {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'No services on Barbuda. Carry all fuel+water from Antigua. Uncle Roddy\'s for lobster.'},
+  20: {fuel:'dock',water:'dock',provision:true,laundry:false,gas:false, notes:'Gustavia has fuel dock. Pricey but quality diesel. Good provisioning (expensive — it\'s St Barths!).'},
+  21: {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'MAJOR FUEL STOP. Simpson Bay has multiple fuel docks, marinas, chandleries. Island Water World. Best prices in region.'},
+  22: {fuel:'jerry',water:'jerry',provision:true,laundry:false,gas:false, notes:'Fort Bay has small dock — jerry can fuel possible. Very limited provisions in The Bottom.'},
+  23: {fuel:'jerry',water:'jerry',provision:true,laundry:false,gas:false, notes:'Open roadstead. Jerry can fuel from gas station. Small provisions in town.'},
+  24: {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Port Zante/Basseterre — fuel dock available. RAM\'s Supermarket for provisioning. Water at marina.'},
+  25: {fuel:false,water:'jerry',provision:true,laundry:false,gas:false, notes:'No fuel dock on Nevis. Superfoods for provisioning. Water from restaurants.'},
+  26: {fuel:'jerry',water:'jerry',provision:true,laundry:false,gas:false, notes:'Little Bay only. Very limited fuel (jerry cans). Small shops. Carry reserves from Antigua.'},
+  27: {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Jolly Harbour fuel dock nearby. Full provisioning. Multiple marinas around Antigua.'},
+  28: {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Same as #18 — Falmouth Harbour Marina. Top up before onward passage.'}
+};
+
 var PHOTOS = {"1": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Molinere_Underwater_Sculpture_Park.jpg/800px-Molinere_Underwater_Sculpture_Park.jpg", "cap": "Molinere Underwater Sculpture Park"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Grand_Anse_Beach_Grenada.jpg/800px-Grand_Anse_Beach_Grenada.jpg", "cap": "Grand Anse Beach, Grenada"}], "2": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Sandy_Island%2C_Carriacou.jpg/800px-Sandy_Island%2C_Carriacou.jpg", "cap": "Sandy Island, Carriacou"}], "4": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Tobago_Cays.jpg/800px-Tobago_Cays.jpg", "cap": "Tobago Cays from above"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Green_sea_turtle_Tobago_Cays.jpg/800px-Green_sea_turtle_Tobago_Cays.jpg", "cap": "Swimming with green turtles"}], "9": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Cumberland_Bay_SVG.jpg/800px-Cumberland_Bay_SVG.jpg", "cap": "Cumberland Bay, St. Vincent"}], "10": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/The_Pitons%2C_St_Lucia.jpg/800px-The_Pitons%2C_St_Lucia.jpg", "cap": "The Pitons at sunset"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Gros_and_Petit_Pitons.jpg/800px-Gros_and_Petit_Pitons.jpg", "cap": "Gros & Petit Pitons from the sea"}], "13": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Diamond_Rock_Martinique.jpg/800px-Diamond_Rock_Martinique.jpg", "cap": "Diamond Rock, Martinique"}], "15": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Indian_River_Dominica.jpg/800px-Indian_River_Dominica.jpg", "cap": "Indian River, Dominica"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Champagne_Reef_Dominica.jpg/800px-Champagne_Reef_Dominica.jpg", "cap": "Champagne Reef bubbles"}], "16": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Les_Saintes_Islands.jpg/800px-Les_Saintes_Islands.jpg", "cap": "\u00celes des Saintes from above"}], "17": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Ilets_Pigeon_Reserve_Cousteau.jpg/800px-Ilets_Pigeon_Reserve_Cousteau.jpg", "cap": "Cousteau Reserve, Pigeon Islands"}], "18": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nelsons_Dockyard_Antigua.jpg/800px-Nelsons_Dockyard_Antigua.jpg", "cap": "Nelson's Dockyard, English Harbour"}], "19": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Barbuda_pink_sand_beach.jpg/800px-Barbuda_pink_sand_beach.jpg", "cap": "Pink sand beach, Barbuda"}], "22": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Saba_Island.jpg/800px-Saba_Island.jpg", "cap": "Saba rising from the sea"}], "26": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Soufri\u00e8reHillsMontserrat.jpg/800px-Soufri\u00e8reHillsMontserrat.jpg", "cap": "Soufri\u00e8re Hills volcano, Montserrat"}]};
 
 var natureLabels = ["","Skip","Pleasant","Beautiful","Stunning","TRANSCENDENT"];
@@ -461,6 +492,26 @@ function renderCard(s) {
     bodyHtml += '<div style="margin-top:4px;display:flex;align-items:center;gap:6px"><span class="mono" style="font-size:9px;color:'+shColor+';font-weight:700">🛡️ ANCHORAGE: '+shLabel.toUpperCase()+'</span></div>';
     bodyHtml += '</div>';
   }
+  // Services
+  var svc = SERVICES[s.id];
+  if(svc) {
+    bodyHtml += '<div style="background:#0a1628;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;margin-bottom:6px">';
+    bodyHtml += '<div class="mono" style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:4px;letter-spacing:0.1em">SERVICES</div>';
+    var svcs = [];
+    if(svc.fuel==='dock') svcs.push('<span style="color:#22c55e">⛽ Fuel Dock</span>');
+    else if(svc.fuel==='jerry') svcs.push('<span style="color:#f59e0b">⛽ Fuel (jerry cans)</span>');
+    else svcs.push('<span style="color:#ef4444">⛽ No Fuel</span>');
+    if(svc.water==='dock') svcs.push('<span style="color:#22c55e">💧 Water Dock</span>');
+    else if(svc.water==='jerry') svcs.push('<span style="color:#f59e0b">💧 Water (jerry)</span>');
+    else svcs.push('<span style="color:#ef4444">💧 No Water</span>');
+    if(svc.provision) svcs.push('<span style="color:#22c55e">🛒 Provisions</span>');
+    else svcs.push('<span style="color:#ef4444">🛒 No Shops</span>');
+    if(svc.gas) svcs.push('<span style="color:#22c55e">🔥 LPG</span>');
+    if(svc.laundry) svcs.push('<span style="color:#22c55e">👕 Laundry</span>');
+    bodyHtml += '<div class="mono" style="font-size:10px;display:flex;flex-wrap:wrap;gap:8px">'+svcs.join('')+'</div>';
+    if(svc.notes) bodyHtml += '<div class="mono" style="font-size:8px;color:#6b7280;margin-top:4px">'+escHtml(svc.notes)+'</div>';
+    bodyHtml += '</div>';
+  }
   // Clearance box
   if(s.clearance.action !== "NONE") {
     bodyHtml += '<div class="box box-clearance"><div class="box-title mono" style="color:#94a3b8">🛂 Clearance — '+escHtml(s.clearance.action)+' · '+escHtml(s.clearance.system)+' · '+escHtml(s.clearance.currency)+'</div><div class="box-detail" style="color:#cbd5e1">'+escHtml(s.clearance.detail)+'</div></div>';
@@ -487,6 +538,7 @@ function renderCard(s) {
           '<span class="day-pill">'+s.dayCount+' '+(s.dayCount===1?'day':'days')+'</span>' +
           '<span>'+shelterIcon(s.id)+'</span>' +
           '<span>'+nmText+'</span>' +
+          (function(){var sv=SERVICES[s.id];if(!sv)return '';var ic='';if(sv.fuel==='dock')ic+='⛽';if(sv.water==='dock')ic+='💧';if(sv.provision)ic+='🛒';return ic?'<span style="font-size:11px;letter-spacing:1px" title="Services available">'+ic+'</span>':'';})() +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
           natureAweHtml(s.natureAwe) +
@@ -558,9 +610,15 @@ function renderMap() {
   function toY(lat){return PAD+((maxLat-lat)/(maxLat-minLat))*(H-PAD*2);}
   var visLegs=[1,2,3].filter(function(l){return legFilter[l];});
 
-  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;background:linear-gradient(180deg,#060e1f,#091428,#0a1a30);border-radius:10px;border:1px solid #1e3a5f">';
-  svg += '<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0d2847" stroke-width="0.3"/></pattern></defs>';
-  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#grid)" opacity="0.5"/>';
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;background:#020810;border-radius:10px;border:1px solid #1e4a7a">';
+  svg += '<defs>';
+  svg += '<radialGradient id="oceanGrad" cx="45%" cy="55%" r="65%"><stop offset="0%" stop-color="#0d2a4a"/><stop offset="55%" stop-color="#071828"/><stop offset="100%" stop-color="#020810"/></radialGradient>';
+  svg += '<linearGradient id="islandGrad" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#2d9a52"/><stop offset="50%" stop-color="#1a6335"/><stop offset="100%" stop-color="#0d3d1c"/></linearGradient>';
+  svg += '<filter id="islandShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000014" flood-opacity="0.8"/></filter>';
+  svg += '<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0d2847" stroke-width="0.3"/></pattern>';
+  svg += '</defs>';
+  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#oceanGrad)"/>';
+  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#grid)" opacity="0.3"/>';
 
   // Grid
   var latStart = Math.ceil(minLat), latEnd = Math.floor(maxLat);
@@ -578,15 +636,16 @@ function renderMap() {
   var skipLabels = ["Iles Saintes","Statia","Saba","St Barths","Carriacou","Union","Bequia","Basse-Terre","Grande-Terre","Tobago"];
   ISLANDS.forEach(function(isl){
     var d = isl.pts.map(function(p,j){return (j===0?'M':'L')+toX(p[1])+','+toY(p[0]);}).join(' ')+'Z';
-    svg += '<path d="'+d+'" fill="#0c2a1e" stroke="#1a5e3a" stroke-width="1" opacity="0.8"/>';
+    svg += '<path d="'+d+'" fill="url(#islandGrad)" stroke="#3dba6a" stroke-width="1.2" filter="url(#islandShadow)" opacity="0.95"/>';
+    svg += '<path d="'+d+'" fill="none" stroke="#6ee89a" stroke-width="0.5" opacity="0.3"/>';
     if(skipLabels.indexOf(isl.name)===-1){
       var cx=isl.pts.reduce(function(s,p){return s+p[1];},0)/isl.pts.length;
       var cy=isl.pts.reduce(function(s,p){return s+p[0];},0)/isl.pts.length;
-      svg += '<text x="'+toX(cx)+'" y="'+toY(cy)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">'+isl.name+'</text>';
+      svg += '<text x="'+toX(cx)+'" y="'+toY(cy)+'" fill="#4ade80" font-size="8" font-weight="500" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.9">'+isl.name+'</text>';
     }
   });
   // Manual Guadeloupe label
-  svg += '<text x="'+toX(-61.50)+'" y="'+toY(16.10)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">Guadeloupe</text>';
+  svg += '<text x="'+toX(-61.50)+'" y="'+toY(16.10)+'" fill="#4ade80" font-size="8" font-weight="500" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.9">Guadeloupe</text>';
 
   // Trinidad starting point
   if(visLegs.indexOf(1)>-1) {
@@ -690,6 +749,10 @@ function renderMap() {
     // Main marker
     svg += '<circle cx="'+fx+'" cy="'+fy+'" r="'+r+'" fill="'+color+'" stroke="#060e1f" stroke-width="2" style="cursor:pointer" onclick="openPhotoModal('+s.id+')" onmouseover="showMapTip('+s.id+',event)" onmouseout="hideMapTip()"/>';
     svg += '<text x="'+fx+'" y="'+(fy+3.5)+'" fill="#fff" font-size="'+(r>7?'9':'8')+'" text-anchor="middle" font-family="DM Mono,monospace" font-weight="700" style="pointer-events:none">'+s.id+'</text>';
+    // Fuel icon for stops with fuel docks
+    if(SERVICES[s.id] && SERVICES[s.id].fuel==='dock') {
+      svg += '<text x="'+(fx+r+4)+'" y="'+(fy-r)+'" font-size="7" style="pointer-events:none">⛽</text>';
+    }
     markerPositions.push({id:s.id,x:fx,y:fy});
   });
   window._markerPositions = markerPositions;
@@ -943,6 +1006,19 @@ function showMapTip(id, evt) {
   h += '</div>';
   // Highlight
   h += '<div style="font-size:11px;color:#d1d5db;line-height:1.4;border-left:2px solid '+color+';padding-left:8px">'+escHtml(s.highlight)+'</div>';
+  // Services
+  var svc = SERVICES[s.id];
+  if(svc) {
+    var si = [];
+    if(svc.fuel==='dock') si.push('<span style="color:#22c55e">⛽Fuel</span>');
+    else if(svc.fuel==='jerry') si.push('<span style="color:#f59e0b">⛽Jerry</span>');
+    if(svc.water==='dock') si.push('<span style="color:#22c55e">💧Water</span>');
+    else if(svc.water==='jerry') si.push('<span style="color:#f59e0b">💧Jerry</span>');
+    if(svc.provision) si.push('<span style="color:#22c55e">🛒Shops</span>');
+    if(svc.gas) si.push('<span style="color:#22c55e">🔥LPG</span>');
+    if(si.length) h += '<div class="mono" style="font-size:9px;margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+si.join('')+'</div>';
+    else h += '<div class="mono" style="font-size:9px;margin-top:5px;color:#ef4444">⚠️ No services — carry reserves</div>';
+  }
   // Clearance pill
   if(s.clearance.action!=='NONE') {
     var ac=s.clearance.action.includes("IN")&&s.clearance.action.includes("OUT")?"#fbbf24":s.clearance.action.includes("IN")?"#4ade80":"#f87171";
