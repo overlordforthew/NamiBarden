@@ -52,7 +52,6 @@ const COURSES = {
   'course-1': {
     name: '愛を引き寄せる心の授業',
     lessons: [
-      { id: 'promo',     title: 'プロモーション動画', desc: 'このコースで何が学べるのか、どのように恋愛・結婚の悩みを解消していけるのかをご紹介します。' },
       { id: 'lesson-1',  title: 'はじめに', desc: 'コースの進め方と、学びを最大限に活かすためのコツをお伝えします。ノートとペンを用意して、心と向き合う旅のスタートです。' },
       { id: 'lesson-2',  title: '二つの心の状態 (1)', desc: '人間の心には「美しい状態」と「苦悩の状態」の2つがあります。恋愛の問題を解消するための、最も基本となるコンセプトを学びます。' },
       { id: 'lesson-3',  title: '二つの心の状態 (2)', desc: '2つの心の状態がどのように恋愛パターンに影響しているかを、さらに深く掘り下げます。' },
@@ -791,6 +790,57 @@ app.get('/api/courses/:courseId/lessons', async (req, res) => {
     res.json({ courseId, name: course.name, lessons: course.lessons });
   } catch (e) {
     console.error('Course lessons error:', e);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── GET /api/promo/:courseId/hls/* — Public promo video (no token required) ───
+app.get('/api/promo/:courseId/hls/*', async (req, res) => {
+  try {
+    if (!r2) return res.status(503).json({ error: 'Video hosting not configured' });
+    const ip = getIP(req);
+    if (!rateLimit(`promo-hls:${ip}`, 100, 60000)) {
+      return res.status(429).json({ error: 'Too many requests' });
+    }
+    const { courseId } = req.params;
+    const filePath = req.params[0];
+    // Only allow course-1 promo for now
+    if (courseId !== 'course-1') return res.status(404).json({ error: 'Not found' });
+
+    const r2Key = `courses/${courseId}/promo/${filePath}`;
+
+    if (filePath.endsWith('.ts')) {
+      const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
+      res.set('Content-Type', 'video/mp2t');
+      if (obj.ContentLength) res.set('Content-Length', String(obj.ContentLength));
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+      obj.Body.transformToWebStream().pipeTo(
+        new WritableStream({ write(chunk) { res.write(chunk); }, close() { res.end(); } })
+      );
+      return;
+    }
+
+    if (filePath.endsWith('.m3u8')) {
+      const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
+      let body = await obj.Body.transformToString();
+      const baseApiPath = `/api/promo/${courseId}/hls`;
+      const dir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
+      body = body.replace(/^(?!#)(.+)$/gm, (match, line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return match;
+        const fullPath = dir ? `${dir}/${trimmed}` : trimmed;
+        return `${baseApiPath}/${fullPath}`;
+      });
+      res.set({ 'Content-Type': 'application/vnd.apple.mpegurl', 'Cache-Control': 'no-cache' });
+      return res.send(body);
+    }
+
+    res.status(400).json({ error: 'Invalid file type' });
+  } catch (e) {
+    if (e.name === 'NoSuchKey' || e.$metadata?.httpStatusCode === 404) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+    console.error('Promo HLS error:', e);
     res.status(500).json({ error: 'Server error' });
   }
 });
