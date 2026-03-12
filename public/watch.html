@@ -166,7 +166,7 @@ body {
 .lesson-list { padding: 8px 0; }
 .lesson-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 12px 20px;
   cursor: pointer;
@@ -203,6 +203,16 @@ body {
   line-height: 1.4;
 }
 .lesson-item.active .lesson-title { color: var(--text-dark); font-weight: 500; }
+.lesson-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lesson-desc {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 /* States */
 .loading-state, .error-state, .resend-state {
@@ -423,7 +433,7 @@ async function loadCourse(courseId) {
     const num = l.id.startsWith('bonus') ? '★' : (i + 1);
     return `<button class="lesson-item" data-lesson="${l.id}" onclick="playLesson('${courseId}','${l.id}',${i})">
       <span class="lesson-num">${num}</span>
-      <span class="lesson-title">${l.title}</span>
+      <span class="lesson-text"><span class="lesson-title">${l.title}</span>${l.desc ? `<span class="lesson-desc">${l.desc}</span>` : ''}</span>
     </button>`;
   }).join('');
 
