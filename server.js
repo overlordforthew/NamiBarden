@@ -64,7 +64,8 @@ const COURSES = {
       { id: 'lesson-11', title: 'パートナーと心を通わせるコツ (2)', desc: '日常の中で深いつながりを育てる具体的な実践法。スモールトークからビッグトークへ、心を通わせる会話の質を高めます。' },
       { id: 'bonus-bigtalk', title: 'Big Talk — 心を深める質問集', type: 'pdf', url: '/bigtalk', desc: '大切な人との会話をもっと深いものにする80の質問集です。カップル、子供、家族・友人、職場の4カテゴリーに分けて、すぐに使える質問をまとめました。ぜひダウンロードして、大切な人との時間に活用してください。' },
       { id: 'lesson-12', title: 'ビジョンを描けば現実になる (1)', desc: '「引き寄せの法則」は本当に機能するのか？漠然と願うだけでは叶わない理由と、ビジョンをクリアにする重要性を学びます。' },
-      { id: 'lesson-13', title: 'ビジョンを描けば現実になる (2)', desc: '実際にビジョンボードを作るワーク。具体的に夢を描き、パートナーシップの理想を形にしていきます。' }
+      { id: 'lesson-13', title: 'ビジョンを描けば現実になる (2)', desc: '実際にビジョンボードを作るワーク。具体的に夢を描き、パートナーシップの理想を形にしていきます。' },
+      { id: 'ending', title: 'コース完了おめでとうございます！', type: 'ending', desc: 'ここまで学んでくださり、ありがとうございます。次のステップへ進む準備はできていますか？' }
     ]
   },
   'course-2': {
@@ -438,8 +439,19 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       return res.status(429).json({ error: 'Too many requests' });
     }
 
-    const { email, name, product, lang } = req.body;
+    const { email, name, product, lang, token: upgradeToken } = req.body;
     const en = lang === 'en';
+
+    // Validate course-2-upgrade: must own course-1
+    if (product === 'course-2-upgrade') {
+      if (!upgradeToken) return res.status(400).json({ error: 'Token required for upgrade' });
+      const check = await pool.query(
+        `SELECT email FROM nb_course_access WHERE access_token = $1 AND course_id = 'course-1' LIMIT 1`,
+        [upgradeToken]
+      );
+      if (check.rows.length === 0) return res.status(403).json({ error: 'Course 1 ownership required' });
+    }
+
     const products = {
       coaching: {
         name: en ? 'Executive Coaching — Monthly Plan' : 'エグゼクティブ・コーチング月額プラン',
@@ -478,6 +490,12 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         description: en ? '19 lessons + bonus meditation (save ¥2,800)' : '全19レッスン＋ボーナス瞑想（2,800円おトク）',
         amount: 14800,
         mode: 'payment'
+      },
+      'course-2-upgrade': {
+        name: COURSES['course-2'].name + (en ? ' (Upgrade)' : '（コース1受講者限定）'),
+        description: en ? 'Special price for Course 1 students (save ¥2,800)' : 'コース1受講者特別価格（¥2,800おトク）',
+        amount: 7000,
+        mode: 'payment'
       }
     };
 
@@ -501,8 +519,12 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         price_data: priceData,
         quantity: 1
       }],
-      success_url: `${SITE_URL}/payment-success${en ? '-en' : ''}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE_URL}/payment-cancel${en ? '-en' : ''}`,
+      success_url: product === 'course-2-upgrade'
+        ? `${SITE_URL}/watch?token=${upgradeToken || ''}&course=course-2`
+        : `${SITE_URL}/payment-success${en ? '-en' : ''}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: product === 'course-2-upgrade'
+        ? `${SITE_URL}/watch?token=${upgradeToken || ''}`
+        : `${SITE_URL}/payment-cancel${en ? '-en' : ''}`,
       locale: 'auto',
       metadata: { product: product || 'coaching' },
       saved_payment_method_options: { payment_method_save: 'disabled' }
@@ -512,7 +534,12 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       sessionParams.invoice_creation = { enabled: true };
     }
 
-    if (email) sessionParams.customer_email = email;
+    if (product === 'course-2-upgrade') {
+      const r = await pool.query(`SELECT email FROM nb_course_access WHERE access_token = $1 LIMIT 1`, [upgradeToken]);
+      if (r.rows[0]?.email) sessionParams.customer_email = r.rows[0].email;
+    } else if (email) {
+      sessionParams.customer_email = email;
+    }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
     res.json({ url: session.url });
@@ -549,7 +576,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
         const product = session.metadata?.product || 'coaching';
 
         // Course purchases (one-time payment)
-        if (['course-1', 'course-2', 'course-bundle'].includes(product)) {
+        if (['course-1', 'course-2', 'course-bundle', 'course-2-upgrade'].includes(product)) {
           const custId = await upsertCustomer(email, name, customerId || `onetime_${session.id}`);
 
           // Record payment
@@ -561,8 +588,20 @@ app.post('/api/stripe/webhook', async (req, res) => {
           );
 
           // Determine which courses to grant — bundle shares one token
-          const courseIds = product === 'course-bundle' ? ['course-1', 'course-2'] : [product];
-          const accessToken = generateToken();
+          const courseIds = product === 'course-bundle' ? ['course-1', 'course-2']
+            : product === 'course-2-upgrade' ? ['course-2'] : [product];
+
+          // For upgrades, reuse existing token so the customer's watch link stays the same
+          let accessToken;
+          if (product === 'course-2-upgrade') {
+            const existing = await pool.query(
+              `SELECT access_token FROM nb_course_access WHERE customer_id = $1 AND course_id = 'course-1' LIMIT 1`,
+              [custId]
+            );
+            accessToken = existing.rows[0]?.access_token || generateToken();
+          } else {
+            accessToken = generateToken();
+          }
 
           for (const courseId of courseIds) {
             await pool.query(

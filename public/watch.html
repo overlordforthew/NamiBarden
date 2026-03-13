@@ -335,6 +335,91 @@ body {
 }
 .pdf-bonus-link:hover { background: var(--brown-deep); }
 
+/* Course Ending / Upsell */
+.course-ending {
+  display: none;
+  text-align: center;
+  padding: 48px 24px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.course-ending.visible { display: block; }
+.course-ending-icon {
+  width: 72px; height: 72px;
+  margin: 0 auto 24px;
+  background: var(--gold-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.course-ending h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+}
+.course-ending p {
+  font-size: 0.92rem;
+  color: var(--text-medium);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.course-ending-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  margin: 28px auto;
+}
+.course-ending-next {
+  background: var(--cream-dark);
+  border: 1px solid var(--cream-darker);
+  border-radius: 4px;
+  padding: 28px 24px;
+  margin-top: 24px;
+}
+.course-ending-next h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+.course-ending-next p {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+.course-ending-price {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.course-ending-price .original {
+  text-decoration: line-through;
+  margin-right: 8px;
+}
+.course-ending-price .discount {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--gold-dark);
+}
+.course-ending-btn {
+  display: inline-block;
+  padding: 14px 40px;
+  background: var(--gold-dark);
+  color: var(--white);
+  text-decoration: none;
+  border: none;
+  border-radius: 2px;
+  font-size: 0.95rem;
+  font-family: var(--font-body-jp);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.course-ending-btn:hover { background: var(--brown-deep); }
+
 /* Responsive */
 @media (max-width: 768px) {
   .watch-layout { grid-template-columns: 1fr; }
@@ -415,6 +500,17 @@ body {
             PDFをダウンロード
           </a>
         </div>
+        <div id="courseEnding" class="course-ending">
+          <div class="course-ending-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2>コース完了おめでとうございます！</h2>
+          <p>ここまで学んでくださり、本当にありがとうございます。あなたの心の旅は、もう始まっています。</p>
+          <div class="course-ending-divider"></div>
+          <div id="endingNextCourse" class="course-ending-next">
+            <!-- Dynamically filled: upgrade or start course 2 -->
+          </div>
+        </div>
       </div>
     </div>
 
@@ -483,13 +579,17 @@ async function loadCourse(courseId) {
   const data = await res.json();
 
   document.getElementById('courseTitle').textContent = data.name;
-  document.getElementById('lessonCount').textContent = `${data.lessons.length}レッスン`;
+  const videoLessons = data.lessons.filter(l => (l.type || 'video') !== 'ending');
+  document.getElementById('lessonCount').textContent = `${videoLessons.length}レッスン`;
 
   const listEl = document.getElementById('lessonList');
+  let lessonNum = 0;
   listEl.innerHTML = data.lessons.map((l, i) => {
-    const num = i + 1;
     const type = l.type || 'video';
     const url = l.url || '';
+    let num;
+    if (type === 'ending') num = '★';
+    else { lessonNum++; num = lessonNum; }
     return `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
       <span class="lesson-num">${num}</span>
       <span class="lesson-text"><span class="lesson-title">${l.title}</span>${l.desc ? `<span class="lesson-desc">${l.desc}</span>` : ''}</span>
@@ -525,20 +625,33 @@ function playLesson(courseId, lessonId, idx) {
   // Update title and description
   const title = activeEl?.querySelector('.lesson-title')?.textContent || '';
   const desc = activeEl?.getAttribute('data-desc') || '';
-  const num = lessonId.startsWith('bonus') ? 'ボーナス' : `レッスン ${idx + 1}`;
+  const lessonTypeForSub = activeEl?.getAttribute('data-type') || 'video';
+  const num = lessonTypeForSub === 'ending' ? '' : lessonId.startsWith('bonus') ? 'ボーナス' : `レッスン ${idx + 1}`;
   document.getElementById('lessonTitle').textContent = title;
   document.getElementById('lessonSub').textContent = num;
   document.getElementById('lessonDesc').textContent = desc;
 
-  // Check if this is a PDF bonus lesson
+  // Check lesson type
   const lessonType = activeEl?.getAttribute('data-type') || 'video';
   const lessonUrl = activeEl?.getAttribute('data-url') || '';
   const pdfBonus = document.getElementById('pdfBonus');
+  const courseEnding = document.getElementById('courseEnding');
   const videoContainer = document.querySelector('.video-container');
 
-  if (lessonType === 'pdf') {
-    // Hide video, show PDF download
+  if (lessonType === 'ending') {
     videoContainer.style.display = 'none';
+    pdfBonus.classList.remove('visible');
+    courseEnding.classList.add('visible');
+    if (hls) { hls.destroy(); hls = null; }
+    video.src = '';
+    renderEndingSection();
+    if (window.innerWidth <= 768) toggleSidebar(false);
+    return;
+  }
+
+  if (lessonType === 'pdf') {
+    videoContainer.style.display = 'none';
+    courseEnding.classList.remove('visible');
     pdfBonus.classList.add('visible');
     pdfBonus.querySelector('.pdf-bonus-link')?.setAttribute('href', lessonUrl);
     if (hls) { hls.destroy(); hls = null; }
@@ -550,6 +663,7 @@ function playLesson(courseId, lessonId, idx) {
   // Normal video lesson
   videoContainer.style.display = '';
   pdfBonus.classList.remove('visible');
+  courseEnding.classList.remove('visible');
 
   // Close mobile sidebar
   if (window.innerWidth <= 768) toggleSidebar(false);
@@ -587,6 +701,45 @@ function playLesson(courseId, lessonId, idx) {
     });
   } else {
     document.getElementById('lessonSub').textContent = 'お使いのブラウザでは動画を再生できません。';
+  }
+}
+
+function renderEndingSection() {
+  const el = document.getElementById('endingNextCourse');
+  const ownsCourse2 = courses.some(c => c.id === 'course-2');
+
+  if (ownsCourse2) {
+    el.innerHTML = `
+      <h3>次のコースが待っています</h3>
+      <p>「愛を深める心の授業」はすでにお持ちです。続けて学びましょう！</p>
+      <button class="course-ending-btn" onclick="switchCourse('course-2')">コース2を始める →</button>
+    `;
+  } else {
+    el.innerHTML = `
+      <h3>次のステップ：愛を深める心の授業</h3>
+      <p>パートナーとの関係をさらに深いレベルで見つめていきます。意見の食い違い、愛の言語、男性性と女性性のバランス、そして親密さの問題まで。</p>
+      <div class="course-ending-price">
+        <span class="original">¥9,800</span>
+        <span class="discount">¥7,000</span>
+        <span>（コース1受講者限定価格）</span>
+      </div>
+      <button class="course-ending-btn" onclick="purchaseCourse2Upgrade()">コース2を特別価格で受講する</button>
+    `;
+  }
+}
+
+async function purchaseCourse2Upgrade() {
+  try {
+    const res = await fetch('/api/stripe/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product: 'course-2-upgrade', token })
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else alert('エラーが発生しました。もう一度お試しください。');
+  } catch {
+    alert('接続エラーが発生しました。');
   }
 }
 
