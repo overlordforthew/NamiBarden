@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big Talk - 心を深める質問集</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Noto+Sans+JP:wght@200;300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    color: #3a3a3a;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 210mm;
+    height: 297mm;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  /* ============================================
+     COVER PAGE
+     ============================================ */
+  .cover {
+    background: #f5f0e8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cover-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+
+  /* Large decorative BT watermark */
+  .cover-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 280px;
+    font-weight: 300;
+    color: rgba(184, 160, 122, 0.07);
+    letter-spacing: 20px;
+    z-index: 0;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* Sage green top accent bar */
+  .cover-accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8mm;
+    background: #5d6b56;
+  }
+
+  /* Bottom tan accent */
+  .cover-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4mm;
+    background: linear-gradient(90deg, #c4a882 0%, #b8a07a 50%, #c4a882 100%);
+  }
+
+  /* Vertical text on cover */
+  .cover-vertical-left {
+    position: absolute;
+    left: 6mm;
+    top: 50%;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-lr;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: #b8a07a;
+    text-transform: uppercase;
+    z-index: 3;
+  }
+
+  .cover-vertical-right {
+    position: absolute;
+    right: 6mm;
+    top: 50%;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-lr;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: #b8a07a;
+    text-transform: uppercase;
+    z-index: 3;
+  }
+
+  .cover-title-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 300;
+    color: #3a3a3a;
+    letter-spacing: 12px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .cover-gold-line {
+    width: 60px;
+    height: 2px;
+    background: #b8a07a;
+    margin: 16px auto;
+  }
+
+  .cover-subtitle {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 300;
+    color: #8b7355;
+    letter-spacing: 8px;
+  }
+
+  .cover-desc {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: #8a8a8a;
+    line-height: 2.2;
+    margin-top: 36px;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cover-author-block {
+    margin-top: 50px;
+  }
+
+  .cover-author-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #5d6b56;
+    letter-spacing: 4px;
+  }
+
+  .cover-author-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 9px;
+    font-weight: 300;
+    color: #b8a07a;
+    letter-spacing: 2px;
+    margin-top: 6px;
+  }
+
+  .cover-website {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    color: #b8a07a;
+    letter-spacing: 3px;
+    margin-top: 16px;
+  }
+
+  /* White frame overlay on cover */
+  .cover-frame {
+    position: absolute;
+    top: 20mm;
+    left: 16mm;
+    right: 16mm;
+    bottom: 20mm;
+    border: 0.5px solid rgba(184, 160, 122, 0.3);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ============================================
+     SECTION PAGES
+     ============================================ */
+
+  /* Section 1: Sage green bg */
+  .section-sage {
+    background: #5d6b56;
+    color: #f5f0e8;
+  }
+
+  /* Section 2: Cream/warm bg */
+  .section-cream {
+    background: #f5f0e8;
+    color: #3a3a3a;
+  }
+
+  /* Section 3: Tan/camel bg */
+  .section-tan {
+    background: #c4a882;
+    color: #fff;
+  }
+
+  /* Section 4: Dark sage bg */
+  .section-darksage {
+    background: #4a5644;
+    color: #f0ebe3;
+  }
+
+  /* Large background number watermark */
+  .section-bg-number {
+    position: absolute;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    line-height: 1;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .section-sage .section-bg-number {
+    bottom: -20px;
+    left: -10px;
+    font-size: 320px;
+    color: rgba(255, 255, 255, 0.05);
+  }
+
+  .section-cream .section-bg-number {
+    bottom: -20px;
+    left: -10px;
+    font-size: 320px;
+    color: rgba(93, 107, 86, 0.06);
+  }
+
+  .section-tan .section-bg-number {
+    bottom: -20px;
+    left: -10px;
+    font-size: 320px;
+    color: rgba(255, 255, 255, 0.1);
+  }
+
+  .section-darksage .section-bg-number {
+    bottom: -20px;
+    left: -10px;
+    font-size: 320px;
+    color: rgba(255, 255, 255, 0.04);
+  }
+
+  /* Vertical accent text on sections */
+  .section-vertical {
+    position: absolute;
+    right: 5mm;
+    top: 50%;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-lr;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+
+  .section-sage .section-vertical { color: rgba(255, 255, 255, 0.15); }
+  .section-cream .section-vertical { color: rgba(93, 107, 86, 0.15); }
+  .section-tan .section-vertical { color: rgba(255, 255, 255, 0.2); }
+  .section-darksage .section-vertical { color: rgba(255, 255, 255, 0.12); }
+
+  /* Content area */
+  .section-content {
+    position: relative;
+    z-index: 2;
+    padding: 22mm 22mm 18mm 22mm;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Section header */
+  .section-header {
+    margin-bottom: 18px;
+  }
+
+  .section-number-small {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+  }
+
+  .section-sage .section-number-small { color: rgba(255, 255, 255, 0.4); }
+  .section-cream .section-number-small { color: #b8a07a; }
+  .section-tan .section-number-small { color: rgba(255, 255, 255, 0.5); }
+  .section-darksage .section-number-small { color: rgba(240, 235, 227, 0.35); }
+
+  .section-title-ja {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 5px;
+    margin-bottom: 4px;
+  }
+
+  .section-title-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .section-sage .section-title-en { color: rgba(255, 255, 255, 0.5); }
+  .section-cream .section-title-en { color: #b8a07a; }
+  .section-tan .section-title-en { color: rgba(255, 255, 255, 0.7); }
+  .section-darksage .section-title-en { color: rgba(240, 235, 227, 0.45); }
+
+  .section-line {
+    width: 40px;
+    height: 2px;
+    margin-bottom: 18px;
+  }
+
+  .section-sage .section-line { background: rgba(255, 255, 255, 0.3); }
+  .section-cream .section-line { background: #b8a07a; }
+  .section-tan .section-line { background: rgba(255, 255, 255, 0.5); }
+  .section-darksage .section-line { background: rgba(240, 235, 227, 0.25); }
+
+  /* Accent stripe along left edge */
+  .section-left-stripe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6mm;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .section-sage .section-left-stripe { background: #4a5644; }
+  .section-cream .section-left-stripe { background: #5d6b56; }
+  .section-tan .section-left-stripe { background: #a08660; }
+  .section-darksage .section-left-stripe { background: #3d4a38; }
+
+  /* Question list */
+  .question-list {
+    list-style: none;
+    padding: 0;
+    flex: 1;
+  }
+
+  .question-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 9.5px;
+    line-height: 1.6;
+  }
+
+  .question-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 500;
+    min-width: 28px;
+    text-align: right;
+    margin-right: 12px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+
+  .section-sage .question-num { color: rgba(255, 255, 255, 0.45); }
+  .section-cream .question-num { color: #b8a07a; }
+  .section-tan .question-num { color: rgba(255, 255, 255, 0.55); }
+  .section-darksage .question-num { color: rgba(240, 235, 227, 0.35); }
+
+  .question-text {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11.5px;
+    font-weight: 300;
+    line-height: 1.7;
+    padding-top: 3px;
+  }
+
+  .section-sage .question-text { color: #f0ebe3; }
+  .section-cream .question-text { color: #4a4a4a; }
+  .section-tan .question-text { color: #fff; }
+  .section-darksage .question-text { color: #e8e3db; }
+
+  /* Footer */
+  .section-footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 22mm;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    z-index: 2;
+  }
+
+  .section-sage .section-footer { color: rgba(255, 255, 255, 0.2); }
+  .section-cream .section-footer { color: #d4c5a9; }
+  .section-tan .section-footer { color: rgba(255, 255, 255, 0.3); }
+  .section-darksage .section-footer { color: rgba(255, 255, 255, 0.15); }
+
+  /* Page number */
+  .page-num {
+    position: absolute;
+    bottom: 10mm;
+    right: 16mm;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+
+  .section-sage .page-num { color: rgba(255, 255, 255, 0.2); }
+  .section-cream .page-num { color: #d4c5a9; }
+  .section-tan .page-num { color: rgba(255, 255, 255, 0.3); }
+  .section-darksage .page-num { color: rgba(255, 255, 255, 0.15); }
+
+  /* White inner frame for cream pages */
+  .section-cream .inner-frame {
+    position: absolute;
+    top: 14mm;
+    left: 14mm;
+    right: 14mm;
+    bottom: 14mm;
+    border: 0.5px solid rgba(184, 160, 122, 0.2);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* ============================================
+     CLOSING PAGE
+     ============================================ */
+  .closing {
+    background: #5d6b56;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #f5f0e8;
+  }
+
+  .closing-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 200px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.04);
+    letter-spacing: 10px;
+    z-index: 0;
+    white-space: nowrap;
+  }
+
+  .closing-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 340px;
+  }
+
+  .closing-ornament {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 32px;
+  }
+
+  .closing-quote {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: #f0ebe3;
+    line-height: 2.4;
+    margin-bottom: 36px;
+  }
+
+  .closing-quote em {
+    font-style: normal;
+    color: #d4c5a9;
+  }
+
+  .closing-line {
+    width: 40px;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 auto 28px;
+  }
+
+  .closing-cta {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    color: rgba(240, 235, 227, 0.5);
+    line-height: 2.2;
+    margin-bottom: 24px;
+  }
+
+  .closing-author {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #f0ebe3;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+  }
+
+  .closing-author-line {
+    width: 30px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 0 auto 10px;
+  }
+
+  .closing-url {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    color: #d4c5a9;
+    letter-spacing: 2px;
+  }
+
+  .closing-vertical {
+    position: absolute;
+    right: 6mm;
+    top: 50%;
+    transform: translateY(-50%) rotate(180deg);
+    writing-mode: vertical-lr;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: rgba(255, 255, 255, 0.1);
+    text-transform: uppercase;
+    z-index: 1;
+  }
+
+  /* Top/bottom accent bars on closing */
+  .closing-top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4mm;
+    background: #c4a882;
+  }
+
+  .closing-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4mm;
+    background: #4a5644;
+  }
+
+  .closing-frame {
+    position: absolute;
+    top: 16mm;
+    left: 16mm;
+    right: 16mm;
+    bottom: 16mm;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Decorative dots pattern */
+  .dot-pattern {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .dot-pattern .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    position: absolute;
+  }
+
+  /* Section description text */
+  .section-desc {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 9.5px;
+    font-weight: 200;
+    line-height: 1.8;
+    margin-bottom: 16px;
+    max-width: 80%;
+  }
+
+  .section-sage .section-desc { color: rgba(255, 255, 255, 0.4); }
+  .section-cream .section-desc { color: #999; }
+  .section-tan .section-desc { color: rgba(255, 255, 255, 0.55); }
+  .section-darksage .section-desc { color: rgba(240, 235, 227, 0.35); }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div class="page cover">
+  <div class="cover-accent-bar"></div>
+  <div class="cover-bottom-bar"></div>
+  <div class="cover-frame"></div>
+  <div class="cover-watermark">BT</div>
+  <div class="cover-vertical-left">Deeper Conversations &mdash; Meaningful Connections</div>
+  <div class="cover-vertical-right">namibarden.com</div>
+  <div class="cover-inner">
+    <div class="cover-title-en">Big Talk</div>
+    <div class="cover-gold-line"></div>
+    <div class="cover-subtitle">心を深める質問集</div>
+    <div class="cover-desc">
+      スモールトークから一歩先へ。<br>
+      大切な人との会話を、もっと深く、<br>
+      もっと意味のあるものに変える<br>
+      80の質問を集めました。
+    </div>
+    <div class="cover-author-block">
+      <div class="cover-author-name">Nami Barden</div>
+      <div class="cover-author-title">意識学ビジネスコーチ</div>
+      <div class="cover-website">namibarden.com</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECTION 1: COUPLES — Sage Green ==================== -->
+<div class="page section-sage">
+  <div class="section-left-stripe"></div>
+  <div class="section-bg-number">01</div>
+  <div class="section-vertical">For Couples</div>
+  <div class="section-content">
+    <div class="section-header">
+      <div class="section-number-small">Section 01</div>
+      <div class="section-title-ja">カップル向け</div>
+      <div class="section-title-en">For Couples</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="section-desc">パートナーとの対話を、もっと深い場所へ。</div>
+    <ol class="question-list">
+      <li class="question-item"><span class="question-num">1.</span><span class="question-text">私たちの関係で一番感謝していることは何？</span></li>
+      <li class="question-item"><span class="question-num">2.</span><span class="question-text">子供の頃、愛されていると一番感じた瞬間は？</span></li>
+      <li class="question-item"><span class="question-num">3.</span><span class="question-text">今の人生で一番怖いと感じていることは？</span></li>
+      <li class="question-item"><span class="question-num">4.</span><span class="question-text">私に言えていない「ありがとう」はある？</span></li>
+      <li class="question-item"><span class="question-num">5.</span><span class="question-text">10年後、どんな二人でいたい？</span></li>
+      <li class="question-item"><span class="question-num">6.</span><span class="question-text">私との関係で、自分が一番成長したと思うところは？</span></li>
+      <li class="question-item"><span class="question-num">7.</span><span class="question-text">最近、一人で抱えている悩みはある？</span></li>
+      <li class="question-item"><span class="question-num">8.</span><span class="question-text">私にもっとしてほしいことは何？</span></li>
+      <li class="question-item"><span class="question-num">9.</span><span class="question-text">二人の関係で「これだけは守りたい」と思うことは？</span></li>
+      <li class="question-item"><span class="question-num">10.</span><span class="question-text">人生で一番後悔していることは何？</span></li>
+      <li class="question-item"><span class="question-num">11.</span><span class="question-text">幸せって、あなたにとってどういう状態？</span></li>
+      <li class="question-item"><span class="question-num">12.</span><span class="question-text">私と出会って、自分の中で変わったことは？</span></li>
+      <li class="question-item"><span class="question-num">13.</span><span class="question-text">最近、心が満たされた瞬間はいつだった？</span></li>
+      <li class="question-item"><span class="question-num">14.</span><span class="question-text">もし何の制限もなかったら、どんな人生を送りたい？</span></li>
+      <li class="question-item"><span class="question-num">15.</span><span class="question-text">私に対して我慢していることはある？</span></li>
+      <li class="question-item"><span class="question-num">16.</span><span class="question-text">あなたが一番大切にしている価値観は？</span></li>
+      <li class="question-item"><span class="question-num">17.</span><span class="question-text">愛されていると実感するのはどんな時？</span></li>
+      <li class="question-item"><span class="question-num">18.</span><span class="question-text">二人の間で「もっとこうだったら」と思うことは？</span></li>
+      <li class="question-item"><span class="question-num">19.</span><span class="question-text">人生の最後の日、何をして過ごしたい？</span></li>
+      <li class="question-item"><span class="question-num">20.</span><span class="question-text">今この瞬間、私に伝えたいことは？</span></li>
+    </ol>
+  </div>
+  <div class="section-footer">namibarden.com</div>
+  <div class="page-num">02</div>
+</div>
+
+<!-- ==================== SECTION 2: KIDS — Cream ==================== -->
+<div class="page section-cream">
+  <div class="section-left-stripe"></div>
+  <div class="inner-frame"></div>
+  <div class="section-bg-number">02</div>
+  <div class="section-vertical">For Kids</div>
+  <div class="section-content">
+    <div class="section-header">
+      <div class="section-number-small">Section 02</div>
+      <div class="section-title-ja">子供向け</div>
+      <div class="section-title-en">For Kids</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="section-desc">子供の心の扉を、やさしく開くきっかけに。</div>
+    <ol class="question-list">
+      <li class="question-item"><span class="question-num">1.</span><span class="question-text">今日一番楽しかったことは何？それはなぜ？</span></li>
+      <li class="question-item"><span class="question-num">2.</span><span class="question-text">もし魔法が使えたら、世界をどう変えたい？</span></li>
+      <li class="question-item"><span class="question-num">3.</span><span class="question-text">お友達にされて一番嬉しかったことは？</span></li>
+      <li class="question-item"><span class="question-num">4.</span><span class="question-text">大きくなったら、どんな人になりたい？</span></li>
+      <li class="question-item"><span class="question-num">5.</span><span class="question-text">最近、悲しかったことや悔しかったことはある？</span></li>
+      <li class="question-item"><span class="question-num">6.</span><span class="question-text">ママ（パパ）のどんなところが好き？</span></li>
+      <li class="question-item"><span class="question-num">7.</span><span class="question-text">学校で一番好きな時間は？その理由は？</span></li>
+      <li class="question-item"><span class="question-num">8.</span><span class="question-text">もし何でも一つ願いが叶うなら、何をお願いする？</span></li>
+      <li class="question-item"><span class="question-num">9.</span><span class="question-text">もし自分だけのスーパーパワーがあったら、何がいい？それで何をする？</span></li>
+      <li class="question-item"><span class="question-num">10.</span><span class="question-text">一番好きな場所はどこ？そこにいるとどんな気持ちになる？</span></li>
+      <li class="question-item"><span class="question-num">11.</span><span class="question-text">怖い夢を見た時、どうやって気持ちを落ち着かせる？</span></li>
+      <li class="question-item"><span class="question-num">12.</span><span class="question-text">お友達と意見が違った時、どうする？</span></li>
+      <li class="question-item"><span class="question-num">13.</span><span class="question-text">自分のことで、一番好きなところは？</span></li>
+      <li class="question-item"><span class="question-num">14.</span><span class="question-text">「大人になるのが楽しみ」って思うことは何？</span></li>
+      <li class="question-item"><span class="question-num">15.</span><span class="question-text">今までで一番びっくりしたことは？</span></li>
+      <li class="question-item"><span class="question-num">16.</span><span class="question-text">もし動物と話せたら、何を聞きたい？</span></li>
+      <li class="question-item"><span class="question-num">17.</span><span class="question-text">「勇気を出した」って思える経験は何かある？</span></li>
+      <li class="question-item"><span class="question-num">18.</span><span class="question-text">家族と過ごす時間で一番好きな瞬間は？</span></li>
+      <li class="question-item"><span class="question-num">19.</span><span class="question-text">もし誰かを元気にしてあげるなら、何をする？</span></li>
+      <li class="question-item"><span class="question-num">20.</span><span class="question-text">寝る前に「今日ありがとう」と思えることは何？</span></li>
+    </ol>
+  </div>
+  <div class="section-footer">namibarden.com</div>
+  <div class="page-num">03</div>
+</div>
+
+<!-- ==================== SECTION 3: FAMILY & FRIENDS — Tan ==================== -->
+<div class="page section-tan">
+  <div class="section-left-stripe"></div>
+  <div class="section-bg-number">03</div>
+  <div class="section-vertical">Family &amp; Friends</div>
+  <div class="section-content">
+    <div class="section-header">
+      <div class="section-number-small">Section 03</div>
+      <div class="section-title-ja">家族・友人向け</div>
+      <div class="section-title-en">For Family &amp; Friends</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="section-desc">身近な人ほど、まだ知らない一面がある。</div>
+    <ol class="question-list">
+      <li class="question-item"><span class="question-num">1.</span><span class="question-text">最近、心から笑った瞬間はいつ？</span></li>
+      <li class="question-item"><span class="question-num">2.</span><span class="question-text">人生で一番影響を受けた人は誰？</span></li>
+      <li class="question-item"><span class="question-num">3.</span><span class="question-text">今の自分に点数をつけるなら何点？その理由は？</span></li>
+      <li class="question-item"><span class="question-num">4.</span><span class="question-text">子供の頃の夢は何だった？今はどう思う？</span></li>
+      <li class="question-item"><span class="question-num">5.</span><span class="question-text">最近「自分らしいな」と感じた瞬間は？</span></li>
+      <li class="question-item"><span class="question-num">6.</span><span class="question-text">もし人生をやり直せるなら、何を変える？</span></li>
+      <li class="question-item"><span class="question-num">7.</span><span class="question-text">あなたにとって「本当の友達」ってどんな存在？</span></li>
+      <li class="question-item"><span class="question-num">8.</span><span class="question-text">最近、誰かに助けてもらって嬉しかったことは？</span></li>
+      <li class="question-item"><span class="question-num">9.</span><span class="question-text">今一番情熱を感じていることは何？</span></li>
+      <li class="question-item"><span class="question-num">10.</span><span class="question-text">人に言えない「実はこんな一面がある」ってこと、ある？</span></li>
+      <li class="question-item"><span class="question-num">11.</span><span class="question-text">5年後、どんな生活をしていたい？</span></li>
+      <li class="question-item"><span class="question-num">12.</span><span class="question-text">一番大切にしている思い出は何？</span></li>
+      <li class="question-item"><span class="question-num">13.</span><span class="question-text">最近「成長したな」と感じたことは？</span></li>
+      <li class="question-item"><span class="question-num">14.</span><span class="question-text">もしお金も時間も無制限だったら、何をする？</span></li>
+      <li class="question-item"><span class="question-num">15.</span><span class="question-text">人間関係で一番大切にしていることは？</span></li>
+      <li class="question-item"><span class="question-num">16.</span><span class="question-text">最近読んだ本や見た映画で心に残ったものは？</span></li>
+      <li class="question-item"><span class="question-num">17.</span><span class="question-text">自分の弱さを受け入れられるようになった瞬間はある？</span></li>
+      <li class="question-item"><span class="question-num">18.</span><span class="question-text">「これがあるから頑張れる」と思えるものは何？</span></li>
+      <li class="question-item"><span class="question-num">19.</span><span class="question-text">もし世界中の人に一つメッセージを届けられるなら、何を伝える？</span></li>
+      <li class="question-item"><span class="question-num">20.</span><span class="question-text">今、私に聞きたいことはある？</span></li>
+    </ol>
+  </div>
+  <div class="section-footer">namibarden.com</div>
+  <div class="page-num">04</div>
+</div>
+
+<!-- ==================== SECTION 4: CO-WORKERS — Dark Sage ==================== -->
+<div class="page section-darksage">
+  <div class="section-left-stripe"></div>
+  <div class="section-bg-number">04</div>
+  <div class="section-vertical">Co-workers</div>
+  <div class="section-content">
+    <div class="section-header">
+      <div class="section-number-small">Section 04</div>
+      <div class="section-title-ja">職場・同僚向け</div>
+      <div class="section-title-en">For Co-workers &amp; New Acquaintances</div>
+      <div class="section-line"></div>
+    </div>
+    <div class="section-desc">同僚の「人となり」を知る、はじめの一歩。</div>
+    <ol class="question-list">
+      <li class="question-item"><span class="question-num">1.</span><span class="question-text">子供の頃の一番好きな思い出は何ですか？</span></li>
+      <li class="question-item"><span class="question-num">2.</span><span class="question-text">子供の頃、夢中になっていた遊びは何ですか？</span></li>
+      <li class="question-item"><span class="question-num">3.</span><span class="question-text">最近、思わず感動したことはありますか？</span></li>
+      <li class="question-item"><span class="question-num">4.</span><span class="question-text">子供の頃、将来なりたかった職業は何ですか？</span></li>
+      <li class="question-item"><span class="question-num">5.</span><span class="question-text">仕事以外で夢中になっていることはありますか？</span></li>
+      <li class="question-item"><span class="question-num">6.</span><span class="question-text">人生で一番の冒険だったと思う経験は？</span></li>
+      <li class="question-item"><span class="question-num">7.</span><span class="question-text">尊敬している人はいますか？その理由は？</span></li>
+      <li class="question-item"><span class="question-num">8.</span><span class="question-text">魔法のランプがあるとしたら、3つ何をお願いしたい？（お願いの数を無限大にする、というもの以外）</span></li>
+      <li class="question-item"><span class="question-num">9.</span><span class="question-text">最近、新しく挑戦したことはありますか？</span></li>
+      <li class="question-item"><span class="question-num">10.</span><span class="question-text">仕事をする上で、一番大切にしていることは？</span></li>
+      <li class="question-item"><span class="question-num">11.</span><span class="question-text">休日の理想的な過ごし方は？</span></li>
+      <li class="question-item"><span class="question-num">12.</span><span class="question-text">最近読んだ本や観た映画でおすすめはありますか？</span></li>
+      <li class="question-item"><span class="question-num">13.</span><span class="question-text">「これがあるから月曜日も頑張れる」と思えるものは？</span></li>
+      <li class="question-item"><span class="question-num">14.</span><span class="question-text">今まで行ったことのある場所で一番好きだった場所は？</span></li>
+      <li class="question-item"><span class="question-num">15.</span><span class="question-text">人生で失敗から学んだ、一番大きな教訓は？</span></li>
+      <li class="question-item"><span class="question-num">16.</span><span class="question-text">「自分らしいな」と感じるのはどんな時ですか？</span></li>
+      <li class="question-item"><span class="question-num">17.</span><span class="question-text">最近「ありがたいな」と感じたことは何ですか？</span></li>
+      <li class="question-item"><span class="question-num">18.</span><span class="question-text">もし1ヶ月の休暇が取れたら、何をしますか？</span></li>
+      <li class="question-item"><span class="question-num">19.</span><span class="question-text">人との関わりで大切にしていることは？</span></li>
+      <li class="question-item"><span class="question-num">20.</span><span class="question-text">明日が最後の一日だとしたら、誰と何をして過ごしますか？</span></li>
+    </ol>
+  </div>
+  <div class="section-footer">namibarden.com</div>
+  <div class="page-num">05</div>
+</div>
+
+<!-- ==================== CLOSING PAGE ==================== -->
+<div class="page closing">
+  <div class="closing-top-bar"></div>
+  <div class="closing-bottom-bar"></div>
+  <div class="closing-frame"></div>
+  <div class="closing-watermark">Thank You</div>
+  <div class="closing-vertical">Thank You</div>
+  <div class="closing-inner">
+    <div class="closing-ornament">&#x2726;</div>
+    <div class="closing-quote">
+      スモールトークは関係を始める。<br>
+      <em>ビッグトークは関係を深める。</em><br><br>
+      今日、大切な人に<br>
+      一つだけ質問してみてください。
+    </div>
+    <div class="closing-line"></div>
+    <div class="closing-cta">
+      もっと深いつながりを築きたい方へ<br>
+      意識学コーチング・オンラインコース
+    </div>
+    <div class="closing-author">Nami Barden</div>
+    <div class="closing-author-line"></div>
+    <div class="closing-url">namibarden.com</div>
+  </div>
+</div>
+
+</body>
+</html>
