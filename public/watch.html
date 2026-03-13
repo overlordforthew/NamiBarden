@@ -487,8 +487,10 @@ async function loadCourse(courseId) {
 
   const listEl = document.getElementById('lessonList');
   listEl.innerHTML = data.lessons.map((l, i) => {
-    const num = l.id.startsWith('bonus') ? '★' : (i + 1);
-    return `<button class="lesson-item" data-lesson="${l.id}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
+    const num = l.id.startsWith('bonus') ? '📄' : (i + 1);
+    const type = l.type || 'video';
+    const url = l.url || '';
+    return `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
       <span class="lesson-num">${num}</span>
       <span class="lesson-text"><span class="lesson-title">${l.title}</span>${l.desc ? `<span class="lesson-desc">${l.desc}</span>` : ''}</span>
     </button>`;
@@ -528,9 +530,26 @@ function playLesson(courseId, lessonId, idx) {
   document.getElementById('lessonSub').textContent = num;
   document.getElementById('lessonDesc').textContent = desc;
 
-  // Show PDF bonus for lesson-10
+  // Check if this is a PDF bonus lesson
+  const lessonType = activeEl?.getAttribute('data-type') || 'video';
+  const lessonUrl = activeEl?.getAttribute('data-url') || '';
   const pdfBonus = document.getElementById('pdfBonus');
-  pdfBonus.classList.toggle('visible', lessonId === 'lesson-10');
+  const videoContainer = document.querySelector('.video-container');
+
+  if (lessonType === 'pdf') {
+    // Hide video, show PDF download
+    videoContainer.style.display = 'none';
+    pdfBonus.classList.add('visible');
+    pdfBonus.querySelector('.pdf-bonus-link')?.setAttribute('href', lessonUrl);
+    if (hls) { hls.destroy(); hls = null; }
+    video.src = '';
+    if (window.innerWidth <= 768) toggleSidebar(false);
+    return;
+  }
+
+  // Normal video lesson
+  videoContainer.style.display = '';
+  pdfBonus.classList.remove('visible');
 
   // Close mobile sidebar
   if (window.innerWidth <= 768) toggleSidebar(false);
