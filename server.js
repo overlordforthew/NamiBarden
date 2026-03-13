@@ -825,6 +825,7 @@ app.get('/api/preview/:courseId/:lessonId/hls/*', async (req, res) => {
     if (filePath.endsWith('.m3u8')) {
       const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
       let body = await obj.Body.transformToString();
+      body = body.replace(/^\uFEFF/, '');
       const baseApiPath = `/api/preview/${courseId}/${lessonId}/hls`;
       const dir = filePath.includes('/') ? filePath.substring(0, filePath.lastIndexOf('/')) : '';
       body = body.replace(/^(?!#)(.+)$/gm, (match, line) => {
@@ -883,6 +884,7 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
     if (filePath.endsWith('.m3u8')) {
       const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
       let body = await obj.Body.transformToString();
+      body = body.replace(/^\uFEFF/, '');
 
       // Rewrite relative segment/playlist references to go through our proxy
       const baseApiPath = `/api/courses/${courseId}/${lessonId}/hls`;
