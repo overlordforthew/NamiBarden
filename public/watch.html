@@ -487,7 +487,7 @@ async function loadCourse(courseId) {
 
   const listEl = document.getElementById('lessonList');
   listEl.innerHTML = data.lessons.map((l, i) => {
-    const num = l.id.startsWith('bonus') ? '📄' : (i + 1);
+    const num = i + 1;
     const type = l.type || 'video';
     const url = l.url || '';
     return `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
