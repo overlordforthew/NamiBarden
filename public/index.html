@@ -1419,6 +1419,13 @@ html[lang="en"] .footer-logo .logo-sub {
   .contact-links { flex-direction: column; gap: 24px; }
 }
 
+@media (min-width: 769px) {
+  .about .container { align-items: start; }
+  .about-images { margin-top: 80px; }
+  .about-img:first-child { margin-top: 0; }
+  .about-img:last-child { margin-top: 40px; }
+}
+
 /* ========== LANGUAGE TOGGLE ========== */
 [data-lang="en"] { display: none; }
 html[lang="en"] [data-lang="en"] { display: block; }
