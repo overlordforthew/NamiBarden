@@ -320,25 +320,27 @@ html[lang="en"] .nav-logo .logo-sub {
 }
 .page-hero-image {
   position: relative;
+  display: flex;
+  justify-content: flex-end;
 }
 .page-hero-image img {
-  width: 100%;
-  max-width: 400px;
-  height: 560px;
+  width: 340px;
+  height: 620px;
   object-fit: cover;
-  border-radius: 2px;
+  object-position: center top;
   display: block;
-  margin-left: auto;
+  border-radius: 170px 170px 0 0;
+  position: relative;
+  z-index: 1;
 }
 .hero-img-decoration {
   position: absolute;
-  bottom: -20px; right: -20px;
-  width: 90%;
-  max-width: 420px;
-  height: 90%;
+  bottom: -18px; right: -18px;
+  width: 340px;
+  height: 620px;
   border: 1px solid var(--gold);
-  border-radius: 2px;
-  z-index: -1;
+  border-radius: 170px 170px 0 0;
+  z-index: 0;
 }
 
 /* ========== SECTIONS ========== */
@@ -905,8 +907,8 @@ html[lang="en"] .footer-logo .logo-sub {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  .page-hero-image { margin-top: 20px; }
-  .page-hero-image img { height: auto; max-height: 500px; object-fit: contain; }
+  .page-hero-image { margin-top: 20px; justify-content: center; }
+  .page-hero-image img { width: 280px; height: 500px; border-radius: 140px 140px 0 0; object-fit: cover; }
   .hero-img-decoration { display: none; }
   .page-hero { min-height: auto; padding-bottom: 20px; }
 
