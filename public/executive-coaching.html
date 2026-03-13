@@ -448,6 +448,17 @@ section:nth-child(even) { background: var(--cream-dark); }
 .photo-frame.tall .photo-placeholder { height: 480px; }
 .photo-frame.tall img { object-position: center 25%; }
 
+/* Desktop-only: portrait rectangle for sofa photo */
+@media (min-width: 769px) {
+  .photo-grid-portrait {
+    max-width: 380px !important;
+  }
+  .photo-grid-portrait .photo-frame.tall img {
+    height: 600px;
+    object-position: center center;
+  }
+}
+
 /* ========== FOR WHO ========== */
 .for-who { padding: 100px 0; background: var(--cream); }
 .for-who-grid {
@@ -1095,7 +1106,7 @@ html[lang="en"] .footer-logo .logo-sub {
 <!-- ===== PHOTO SECTION 1 ===== -->
 <div class="photo-section">
   <div class="container">
-    <div class="photo-grid reveal" style="max-width:600px; margin:0 auto;">
+    <div class="photo-grid photo-grid-portrait reveal" style="max-width:600px; margin:0 auto;">
       <div class="photo-frame tall">
         <img src="/images/nami-sofa-notebook.jpg?v=20260228" alt="ナミ・バーデン コーチング" loading="lazy" style="object-position: center center;">
       </div>
