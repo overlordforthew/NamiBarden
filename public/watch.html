@@ -288,6 +288,53 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
+/* PDF Bonus Download */
+.pdf-bonus {
+  display: none;
+  margin-top: 24px;
+  padding: 24px;
+  background: var(--cream-dark);
+  border: 1px solid var(--cream-darker);
+  border-radius: 4px;
+  border-left: 3px solid var(--gold);
+}
+.pdf-bonus.visible { display: block; }
+.pdf-bonus-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--gold-dark);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.pdf-bonus h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+.pdf-bonus p {
+  font-size: 0.88rem;
+  color: var(--text-medium);
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.pdf-bonus-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--gold-dark);
+  color: var(--white);
+  text-decoration: none;
+  border-radius: 2px;
+  font-size: 0.88rem;
+  font-family: var(--font-body-jp);
+  transition: var(--transition);
+}
+.pdf-bonus-link:hover { background: var(--brown-deep); }
+
 /* Responsive */
 @media (max-width: 768px) {
   .watch-layout { grid-template-columns: 1fr; }
@@ -359,6 +406,15 @@ body {
         <h1 id="lessonTitle"></h1>
         <p id="lessonSub"></p>
         <p id="lessonDesc" style="margin-top:12px;font-size:0.92rem;color:var(--text-medium);line-height:1.8;"></p>
+        <div id="pdfBonus" class="pdf-bonus">
+          <div class="pdf-bonus-label">Bonus PDF</div>
+          <h3>Big Talk — 心を深める質問集</h3>
+          <p>大切な人との会話をもっと深いものにする80の質問集です。カップル、子供、家族・友人、職場の4カテゴリーに分けて、すぐに使える質問をまとめました。ぜひダウンロードして、大切な人との時間に活用してください。</p>
+          <a href="/bigtalk" target="_blank" class="pdf-bonus-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            PDFをダウンロード
+          </a>
+        </div>
       </div>
     </div>
 
@@ -471,6 +527,10 @@ function playLesson(courseId, lessonId, idx) {
   document.getElementById('lessonTitle').textContent = title;
   document.getElementById('lessonSub').textContent = num;
   document.getElementById('lessonDesc').textContent = desc;
+
+  // Show PDF bonus for lesson-10
+  const pdfBonus = document.getElementById('pdfBonus');
+  pdfBonus.classList.toggle('visible', lessonId === 'lesson-10');
 
   // Close mobile sidebar
   if (window.innerWidth <= 768) toggleSidebar(false);
