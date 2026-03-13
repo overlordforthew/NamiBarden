@@ -907,10 +907,23 @@ html[lang="en"] .footer-logo .logo-sub {
     grid-template-columns: 1fr;
     gap: 40px;
   }
-  .page-hero-image { margin-top: 20px; display: flex; justify-content: center; }
-  .page-hero-image img { width: 240px; height: 420px; border-radius: 120px 120px 0 0; object-fit: cover; object-position: center top; margin: 0 auto; }
-  .hero-img-decoration { display: none; }
   .page-hero { min-height: auto; padding-bottom: 40px; }
+  .page-hero-image {
+    margin-top: 20px;
+    display: flex !important;
+    justify-content: center !important;
+    position: relative;
+  }
+  .page-hero-image img {
+    width: 220px !important;
+    height: 380px !important;
+    border-radius: 110px 110px 0 0 !important;
+    object-fit: cover !important;
+    object-position: center top !important;
+    margin: 0 auto !important;
+    max-width: 65vw;
+  }
+  .hero-img-decoration { display: none !important; }
 
   .for-who-grid { grid-template-columns: 1fr; }
   .for-who-image { margin-top: 20px; }
