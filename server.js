@@ -496,6 +496,12 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         description: en ? 'Special price for Course 1 students (save ¥2,800)' : 'コース1受講者特別価格（¥2,800おトク）',
         amount: 7000,
         mode: 'payment'
+      },
+      'single-session': {
+        name: en ? 'Single Counseling Session (60 min)' : '単発カウンセリングセッション（60分）',
+        description: en ? 'One-time 60-minute Zoom counseling session with Nami Barden' : 'ナミ・バーデンとの60分間Zoomカウンセリング（単発）',
+        amount: 20000,
+        mode: 'payment'
       }
     };
 
@@ -645,6 +651,46 @@ app.post('/api/stripe/webhook', async (req, res) => {
             `🎓 コース購入!\n${name || email}\n${courseNames}\n¥${amount?.toLocaleString()}`);
 
           console.log(`Stripe: Course ${product} purchased by ${email}`);
+          break;
+        }
+
+        // Single-session or other one-time payments (non-course)
+        if (session.mode === 'payment' && ['single-session', 'certification-lumpsum'].includes(product)) {
+          const custId = await upsertCustomer(email, name, customerId || `onetime_${session.id}`);
+
+          await pool.query(
+            `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
+             VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+             ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
+            [custId, session.payment_intent, null, session.amount_total, session.currency, product]
+          );
+
+          const amount = session.amount_total;
+          const label = product === 'single-session' ? '単発セッション' : 'コーチ認定コース（一括）';
+          sendWhatsApp(NAMI_JID,
+            `💫 ${label}購入!\n${name || email}\n¥${amount?.toLocaleString()}`);
+
+          // Send confirmation email for single session
+          if (product === 'single-session' && email) {
+            try {
+              await transporter.sendMail({
+                from: SMTP_FROM,
+                to: email,
+                subject: '【NamiBarden】単発カウンセリングセッション — お申し込みありがとうございます',
+                html: `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
+                  <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">お申し込みありがとうございます</h2>
+                  <p style="line-height:1.8;margin-bottom:16px;">${name ? escapeHtml(name) + '様' : ''},</p>
+                  <p style="line-height:1.8;margin-bottom:16px;">単発カウンセリングセッション（60分）のお申し込み、誠にありがとうございます。</p>
+                  <p style="line-height:1.8;margin-bottom:16px;">ナミより、24時間以内にメールにてセッション日程の調整をご連絡いたします。</p>
+                  <p style="line-height:1.8;margin-bottom:24px;">ご不明な点がございましたら、このメールにご返信ください。</p>
+                  <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
+                  <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
+                </div>`
+              });
+            } catch (e) { console.error('Single session email failed:', e.message); }
+          }
+
+          console.log(`Stripe: ${product} purchased by ${email}`);
           break;
         }
 
