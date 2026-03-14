@@ -133,19 +133,19 @@ body{background:#030712;color:#f9fafb;font-family:'Inter',-apple-system,sans-ser
 <script>
 const STOPS = [
   // === PHASE 1 ===
-  { id:1, leg:1, phase:"Launch", island:"Trinidad → Carriacou", name:"Tyrrel Bay, Carriacou",
-    days:"Mar 21-23", dayCount:3, nm:"~107", natureAwe:4, stayRec:"2-3 nights", lat:12.469, lng:-61.492,
-    clearance:{ action:"OUT → IN", system:"Paper / SailClear", currency:"EC$",
-      port:"Out: Chaguaramas (paper) · In: Carriacou Marine, Tyrrel Bay",
-      detail:"TRINIDAD OUT: Clear out in person at Chaguaramas — Immigration + Customs. Paper forms (Trinidad does NOT use SailClear). Bring passports, ship papers, PLC form. Hours: Mon-Fri 8am-4pm. Clear out afternoon of Mar 20 — you have 4 hours to depart, so clear after 2pm for a 6pm departure.\n\nOVERNIGHT PASSAGE: 107NM, depart 6pm Mar 20, arrive ~10:30am Mar 21. Trade wind beam reach most of the way.\n\nGRENADA IN: Carriacou Marine customs office, SW side of Tyrrel Bay next to fuel dock. SailClear pre-arrival form 24hrs before. Mon-Fri 8am-4pm, Sat-Sun 9am-1:30pm. Fees: ~EC$75 (Blue Moon is 40-60ft). Fly Q flag until cleared.\n\nFUEL: SOL fuel dock at Carriacou Marine — diesel + gas. Fill up here after the overnight passage." },
-    nature:"Protected bay surrounded by green hills. Carriacou is authentic Caribbean — boatbuilders in Windward, rum shops everywhere, zero cruise ships. Sandy Island is a 10-min dinghy ride for world-class snorkeling.", highlight:"Authentic Carriacou & Sandy Island reef" },
+  { id:1, leg:1, phase:"Launch", island:"Trinidad → Grenada", name:"Chaguaramas to St. George's",
+    days:"Mar 20-22", dayCount:2, nm:"~85", natureAwe:3, stayRec:"2 nights", lat:12.050, lng:-61.752,
+    clearance:{ action:"OUT → IN", system:"SailClear", currency:"EC$",
+      port:"Out: YSATT Chaguaramas · In: St. George's Port Authority",
+      detail:"TRINIDAD OUT: Clear at YSATT/Customs in Chaguaramas. Bring ship papers, passports, insurance. Hours: Mon-Fri 8am-4pm (overtime charges weekends). You know this drill.\n\nGRENADA IN: Port Authority, The Carenage, St. George's. Captain only goes ashore. SailClear pre-arrival form 24hrs before. Fees: ~EC$50 customs + EC$10 immigration. Hours: Mon-Fri 8am-4pm, Sat 8am-12pm. Overtime ~EC$50.\n\nTIP: Register sailclear.com ($25/yr) before departure — pre-load Blue Moon and all crew. Saves time at every SailClear port." },
+    nature:"Sculpture park is eerie and beautiful — art fusing with ocean. Provisioning stop more than wilderness.", highlight:"Underwater Sculpture Park" },
 
-  { id:2, leg:1, phase:"Grenada", island:"Carriacou", name:"Sandy Island & Hillsborough",
-    days:"Mar 24-25", dayCount:2, nm:"~2", natureAwe:4, stayRec:"1-2 nights", lat:12.488, lng:-61.472,
+  { id:2, leg:1, phase:"Grenada", island:"Grenada → Carriacou", name:"Sandy Island & Tyrrel Bay",
+    days:"Mar 23-25", dayCount:3, nm:"~35", natureAwe:4, stayRec:"2-3 nights", lat:12.488, lng:-61.472,
     clearance:{ action:"OUT", system:"SailClear", currency:"EC$",
-      port:"Out: Tyrrel Bay customs (at Carriacou Marine)",
-      detail:"GRENADA OUT: Same customs office at Carriacou Marine where you cleared in. Submit SailClear departure form. Fees: ~EC$25 departure tax. Mon-Fri 8am-4pm.\n\nIMPORTANT: Clear out of Grenada before entering SVG waters. The border is the channel between Carriacou and Union/Palm Island. Clear out morning of departure day.\n\nEXPLORE: Sandy Island (10 min dinghy), Hillsborough town (bus or taxi), Windward village for traditional boatbuilding, Paradise Beach." },
-    nature:"Sandy Island is a tiny palm-fringed cay with world-class reef — desert island perfection. Windward village has traditional boatbuilders crafting vessels by eye. Hillsborough for local markets.", highlight:"Sandy Island snorkeling & Windward boatbuilders" },
+      port:"Out: Tyrrel Bay customs (at marina)",
+      detail:"GRENADA OUT: Customs & Immigration at Tyrrel Bay — small office at the south end of the bay near the boatyard. Submit SailClear departure form. Fees: ~EC$25 departure tax. Hours: Mon-Fri 8am-4pm.\n\nALTERNATIVE: Hillsborough (main town, Carriacou) also has customs — slightly more formal but same process.\n\nIMPORTANT: You must clear out of Grenada before entering SVG waters. The border is the channel between Carriacou and Union/Palm Island." },
+    nature:"Tiny palm-fringed cay with world-class reef. Desert island fantasy. Carriacou is unspoiled with rolling green hills.", highlight:"Sandy Island — desert island perfection" },
 
   { id:3, leg:1, phase:"S. Grenadines", island:"Union Island", name:"Chatham Bay",
     days:"Mar 26-27", dayCount:2, nm:"~12", natureAwe:3, stayRec:"1-2 nights", lat:12.597, lng:-61.453,
@@ -402,7 +402,7 @@ var TRINIDAD_START = {lat: 10.42, lng: -61.63};
 
 
 var SERVICES = {
-  1:  {fuel:'dock',water:'dock',provision:true,laundry:false,gas:false, notes:'Carriacou Marine fuel dock (SOL diesel+gas) in Tyrrel Bay. Mon-Sat 8-17:30, Sun 8-14. Provisions at small shops in Tyrrel Bay & Hillsborough.'},
+  1:  {fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'GYS/Grenada Marine fuel dock. Full services at St George\'s.'},
   2:  {fuel:'dock',water:'dock',provision:true,laundry:false,gas:false, notes:'Carriacou Marine fuel dock (SOL diesel+gas) in Tyrrel Bay. Open Mon-Sat 8-17:30, Sun 8-14.'},
   3:  {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'No services. Remote bay, no land access. Stock up in Carriacou.'},
   4:  {fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'Marine park, no services. Boat boys sell ice, bread, lobster. Carry all water+fuel.'},
@@ -610,9 +610,15 @@ function renderMap() {
   function toY(lat){return PAD+((maxLat-lat)/(maxLat-minLat))*(H-PAD*2);}
   var visLegs=[1,2,3].filter(function(l){return legFilter[l];});
 
-  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;background:linear-gradient(180deg,#060e1f,#091428,#0a1a30);border-radius:10px;border:1px solid #1e3a5f">';
-  svg += '<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0d2847" stroke-width="0.3"/></pattern></defs>';
-  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#grid)" opacity="0.5"/>';
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;background:#020810;border-radius:10px;border:1px solid #1e4a7a">';
+  svg += '<defs>';
+  svg += '<radialGradient id="oceanGrad" cx="45%" cy="55%" r="65%"><stop offset="0%" stop-color="#0d2a4a"/><stop offset="55%" stop-color="#071828"/><stop offset="100%" stop-color="#020810"/></radialGradient>';
+  svg += '<linearGradient id="islandGrad" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0%" stop-color="#2d9a52"/><stop offset="50%" stop-color="#1a6335"/><stop offset="100%" stop-color="#0d3d1c"/></linearGradient>';
+  svg += '<filter id="islandShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000014" flood-opacity="0.8"/></filter>';
+  svg += '<pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0d2847" stroke-width="0.3"/></pattern>';
+  svg += '</defs>';
+  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#oceanGrad)"/>';
+  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#grid)" opacity="0.3"/>';
 
   // Grid
   var latStart = Math.ceil(minLat), latEnd = Math.floor(maxLat);
@@ -630,15 +636,16 @@ function renderMap() {
   var skipLabels = ["Iles Saintes","Statia","Saba","St Barths","Carriacou","Union","Bequia","Basse-Terre","Grande-Terre","Tobago"];
   ISLANDS.forEach(function(isl){
     var d = isl.pts.map(function(p,j){return (j===0?'M':'L')+toX(p[1])+','+toY(p[0]);}).join(' ')+'Z';
-    svg += '<path d="'+d+'" fill="#0c2a1e" stroke="#1a5e3a" stroke-width="1" opacity="0.8"/>';
+    svg += '<path d="'+d+'" fill="url(#islandGrad)" stroke="#3dba6a" stroke-width="1.2" filter="url(#islandShadow)" opacity="0.95"/>';
+    svg += '<path d="'+d+'" fill="none" stroke="#6ee89a" stroke-width="0.5" opacity="0.3"/>';
     if(skipLabels.indexOf(isl.name)===-1){
       var cx=isl.pts.reduce(function(s,p){return s+p[1];},0)/isl.pts.length;
       var cy=isl.pts.reduce(function(s,p){return s+p[0];},0)/isl.pts.length;
-      svg += '<text x="'+toX(cx)+'" y="'+toY(cy)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">'+isl.name+'</text>';
+      svg += '<text x="'+toX(cx)+'" y="'+toY(cy)+'" fill="#4ade80" font-size="8" font-weight="500" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.9">'+isl.name+'</text>';
     }
   });
   // Manual Guadeloupe label
-  svg += '<text x="'+toX(-61.50)+'" y="'+toY(16.10)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">Guadeloupe</text>';
+  svg += '<text x="'+toX(-61.50)+'" y="'+toY(16.10)+'" fill="#4ade80" font-size="8" font-weight="500" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.9">Guadeloupe</text>';
 
   // Trinidad starting point
   if(visLegs.indexOf(1)>-1) {
@@ -758,7 +765,7 @@ function renderMap() {
     var s1=STOPS[0];
     if(s1&&s1.lat) {
       var tx=toX(TRINIDAD_START.lng),ty=toY(TRINIDAD_START.lat);
-      svg += '<line x1="'+tx+'" y1="'+ty+'" x2="'+toX(s1.lng)+'" y2="'+toY(s1.lat)+'" stroke="transparent" stroke-width="20" style="cursor:pointer" onmouseover="showRouteTip(0,1,107,16.5,event)" onmouseout="hideRouteTip()"/>';
+      svg += '<line x1="'+tx+'" y1="'+ty+'" x2="'+toX(s1.lng)+'" y2="'+toY(s1.lat)+'" stroke="transparent" stroke-width="20" style="cursor:pointer" onmouseover="showRouteTip(0,1,85,13.1,event)" onmouseout="hideRouteTip()"/>';
       var mx=(tx+toX(s1.lng))/2, my=(ty+toY(s1.lat))/2;
       svg += '<circle cx="'+mx+'" cy="'+my+'" r="2.5" fill="'+LEG_INFO[1].color+'" opacity="0.5"/>';
     }
