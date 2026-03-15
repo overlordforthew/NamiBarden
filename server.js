@@ -498,8 +498,8 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         mode: 'payment'
       },
       'single-session': {
-        name: en ? 'Single Counseling Session (60 min)' : '単発カウンセリングセッション（60分）',
-        description: en ? 'One-time 60-minute Zoom counseling session with Nami Barden' : 'ナミ・バーデンとの60分間Zoomカウンセリング（単発）',
+        name: en ? 'Private Consultation Session (60 min)' : '心の相談室 — パーソナルセッション（60分）',
+        description: en ? 'A private 60-minute Zoom session with Nami Barden' : 'ナミ・バーデンとの60分プライベートZoomセッション',
         amount: 20000,
         mode: 'payment'
       },
@@ -710,11 +710,11 @@ app.post('/api/stripe/webhook', async (req, res) => {
               await transporter.sendMail({
                 from: SMTP_FROM,
                 to: email,
-                subject: '【NamiBarden】単発カウンセリングセッション — お申し込みありがとうございます',
+                subject: '【NamiBarden】心の相談室 — お申し込みありがとうございます',
                 html: `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
                   <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">お申し込みありがとうございます</h2>
                   <p style="line-height:1.8;margin-bottom:16px;">${name ? escapeHtml(name) + '様' : ''},</p>
-                  <p style="line-height:1.8;margin-bottom:16px;">単発カウンセリングセッション（60分）のお申し込み、誠にありがとうございます。</p>
+                  <p style="line-height:1.8;margin-bottom:16px;">心の相談室 パーソナルセッション（60分）のお申し込み、誠にありがとうございます。</p>
                   <p style="line-height:1.8;margin-bottom:16px;">ナミより、24時間以内にメールにてセッション日程の調整をご連絡いたします。</p>
                   <p style="line-height:1.8;margin-bottom:24px;">ご不明な点がございましたら、このメールにご返信ください。</p>
                   <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
