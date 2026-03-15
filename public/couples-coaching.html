@@ -479,14 +479,14 @@ revealElements.forEach(el => observer.observe(el));
 
 // ─── PAYMENT BUTTONS → STRIPE CHECKOUT ───
 (function() {
-  function handlePay(btn, plan) {
+  function handlePay(btn, product) {
     btn.addEventListener('click', function() {
       btn.disabled = true;
       btn.style.opacity = '0.6';
       fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product: 'coaching', plan: plan, lang: 'ja' })
+        body: JSON.stringify({ product: product, lang: 'ja' })
       })
       .then(function(r) { return r.json(); })
       .then(function(data) {
@@ -508,8 +508,8 @@ revealElements.forEach(el => observer.observe(el));
 
   var monthlyBtn = document.getElementById('payBtnMonthly');
   var lumpBtn = document.getElementById('payBtnLump');
-  if (monthlyBtn) handlePay(monthlyBtn, 'monthly');
-  if (lumpBtn) handlePay(lumpBtn, 'lump');
+  if (monthlyBtn) handlePay(monthlyBtn, 'couples-monthly');
+  if (lumpBtn) handlePay(lumpBtn, 'couples-lumpsum');
 })();
 
 // ─── SCHEDULING MODAL (after payment) ───

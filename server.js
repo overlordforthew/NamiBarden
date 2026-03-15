@@ -502,6 +502,19 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         description: en ? 'One-time 60-minute Zoom counseling session with Nami Barden' : 'ナミ・バーデンとの60分間Zoomカウンセリング（単発）',
         amount: 20000,
         mode: 'payment'
+      },
+      'couples-monthly': {
+        name: en ? 'Couples Coaching — Monthly Plan' : 'カップルコーチング — 月額プラン',
+        description: en ? '6-month couples coaching program (¥25,000/month)' : '6ヶ月カップルコーチング（月額¥25,000）',
+        amount: 25000,
+        mode: 'subscription',
+        recurring: { interval: 'month', interval_count: 1 }
+      },
+      'couples-lumpsum': {
+        name: en ? 'Couples Coaching — One-Time Payment' : 'カップルコーチング — 一括払い',
+        description: en ? '6-month couples coaching program (save ¥25,000)' : '6ヶ月カップルコーチング一括払い（¥25,000お得）',
+        amount: 125000,
+        mode: 'payment'
       }
     };
 
@@ -513,7 +526,8 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       product_data: { name: prod.name, description: prod.description },
       unit_amount: prod.amount
     };
-    if (prod.interval) priceData.recurring = { interval: prod.interval };
+    if (prod.recurring) priceData.recurring = prod.recurring;
+    else if (prod.interval) priceData.recurring = { interval: prod.interval };
 
     const sessionParams = {
       mode: prod.mode,
@@ -524,13 +538,15 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       }],
       success_url: product === 'course-2-upgrade'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}&course=course-2`
-        : product === 'single-session'
-        ? `${SITE_URL}/consultation${en ? '-en' : ''}?paid=1&session_id={CHECKOUT_SESSION_ID}`
+        : product === 'single-session' || product?.startsWith('couples-')
+        ? `${SITE_URL}/${product?.startsWith('couples-') ? 'couples-coaching' : ('consultation' + (en ? '-en' : ''))}?paid=1&session_id={CHECKOUT_SESSION_ID}`
         : `${SITE_URL}/payment-success${en ? '-en' : ''}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: product === 'course-2-upgrade'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}`
         : product === 'single-session'
         ? `${SITE_URL}/consultation${en ? '-en' : ''}`
+        : product?.startsWith('couples-')
+        ? `${SITE_URL}/couples-coaching`
         : `${SITE_URL}/payment-cancel${en ? '-en' : ''}`,
       locale: 'auto',
       metadata: { product: product || 'coaching' },
@@ -564,7 +580,7 @@ app.get('/api/stripe/verify-session', async (req, res) => {
   if (!session_id || typeof session_id !== 'string') return res.json({ valid: false });
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    const sessionProducts = ['single-session', 'coaching'];
+    const sessionProducts = ['single-session', 'couples-monthly', 'couples-lumpsum'];
     res.json({ valid: session.payment_status === 'paid' && sessionProducts.includes(session.metadata?.product) });
   } catch {
     res.json({ valid: false });
