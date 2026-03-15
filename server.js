@@ -559,6 +559,20 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
   }
 });
 
+// ─── GET /api/stripe/verify-session ───
+// Validates that a Stripe checkout session was actually paid
+app.get('/api/stripe/verify-session', async (req, res) => {
+  if (!stripe) return res.status(503).json({ valid: false });
+  const { session_id } = req.query;
+  if (!session_id || typeof session_id !== 'string') return res.json({ valid: false });
+  try {
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    res.json({ valid: session.payment_status === 'paid' });
+  } catch {
+    res.json({ valid: false });
+  }
+});
+
 // ─── POST /api/stripe/webhook ───
 app.post('/api/stripe/webhook', async (req, res) => {
   if (!stripe) return res.sendStatus(503);

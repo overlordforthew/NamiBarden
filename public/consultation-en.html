@@ -450,9 +450,21 @@ revealElements.forEach(el => observer.observe(el));
   var confirmation = document.getElementById('confirmationOverlay');
 
   if (params.get('paid') === '1' && modal) {
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    history.replaceState(null, '', window.location.pathname);
+    var sid = params.get('session_id');
+    if (sid) {
+      fetch('/api/stripe/verify-session?session_id=' + encodeURIComponent(sid))
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.valid) {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+          }
+          history.replaceState(null, '', window.location.pathname);
+        })
+        .catch(function() { history.replaceState(null, '', window.location.pathname); });
+    } else {
+      history.replaceState(null, '', window.location.pathname);
+    }
   }
 
   if (closeBtn) {

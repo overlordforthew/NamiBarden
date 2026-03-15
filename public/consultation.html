@@ -474,12 +474,23 @@ revealElements.forEach(el => observer.observe(el));
   var statusEl = document.getElementById('scheduleStatus');
   var confirmation = document.getElementById('confirmationOverlay');
 
-  // Show modal if redirected from payment
+  // Show modal if redirected from payment — verify session with server first
   if (params.get('paid') === '1' && modal) {
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    // Clean URL
-    history.replaceState(null, '', window.location.pathname);
+    var sid = params.get('session_id');
+    if (sid) {
+      fetch('/api/stripe/verify-session?session_id=' + encodeURIComponent(sid))
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.valid) {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+          }
+          history.replaceState(null, '', window.location.pathname);
+        })
+        .catch(function() { history.replaceState(null, '', window.location.pathname); });
+    } else {
+      history.replaceState(null, '', window.location.pathname);
+    }
   }
 
   if (closeBtn) {
