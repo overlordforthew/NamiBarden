@@ -518,9 +518,6 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     const sessionParams = {
       mode: prod.mode,
       payment_method_types: ['card'],
-      payment_method_options: {
-        card: { setup_future_usage: prod.mode === 'subscription' ? undefined : null }
-      },
       line_items: [{
         price_data: priceData,
         quantity: 1
