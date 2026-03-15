@@ -564,7 +564,8 @@ app.get('/api/stripe/verify-session', async (req, res) => {
   if (!session_id || typeof session_id !== 'string') return res.json({ valid: false });
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    res.json({ valid: session.payment_status === 'paid' });
+    const sessionProducts = ['single-session', 'coaching'];
+    res.json({ valid: session.payment_status === 'paid' && sessionProducts.includes(session.metadata?.product) });
   } catch {
     res.json({ valid: false });
   }
