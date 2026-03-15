@@ -267,19 +267,20 @@
           セッション後フォローアップ付き
         </div>
       </div>
-      <a href="#consultation" class="btn btn-filled" style="width: 100%;"><span>セッションを予約する</span></a>
+      <button type="button" class="btn btn-filled" id="payBtn" style="width: 100%;"><span>お支払い・セッションを予約する</span></button>
     </div>
   </div>
 </section>
 
-<!-- ===== CONSULTATION / BOOKING FORM ===== -->
-<section class="cta-section" id="consultation">
-  <div class="container" style="position: relative; z-index: 1;">
-    <p class="section-label">Book a Session</p>
-    <h2>セッションを予約する</h2>
-    <p style="margin-bottom: 40px;">ご希望の日時を3つまでお選びください。メールにて日程を確定いたします。</p>
+<!-- ===== SCHEDULING MODAL (shown after payment) ===== -->
+<div id="scheduleModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); overflow-y:auto;">
+  <div style="max-width:520px; margin:60px auto; background:linear-gradient(135deg,#3D4A37,#4A5640); border-radius:12px; padding:48px 36px; position:relative;">
+    <button id="closeModal" style="position:absolute; top:16px; right:20px; background:none; border:none; color:rgba(255,255,255,0.5); font-size:1.4rem; cursor:pointer;">&times;</button>
+    <p class="section-label" style="color:var(--gold); text-align:center;">Payment Complete</p>
+    <h2 style="color:var(--cream); text-align:center; font-size:1.6rem; margin-bottom:8px;">お支払いありがとうございます</h2>
+    <p style="color:rgba(255,255,255,0.7); text-align:center; margin-bottom:32px; font-size:0.92rem;">ご希望の日時をお選びください。日程を調整してご連絡いたします。</p>
 
-    <form id="consultationForm" class="consultation-form" novalidate>
+    <form id="scheduleForm" class="consultation-form" novalidate>
       <div class="consult-form-row">
         <input type="text" name="name" placeholder="お名前 *" required>
         <input type="email" name="email" placeholder="メールアドレス *" required>
@@ -324,14 +325,25 @@
 
       <textarea name="message" placeholder="簡単なご相談内容をお書きください" rows="4"></textarea>
 
-      <button type="submit" class="btn btn-cream" id="consultSubmitBtn" style="margin-top: 24px;">
-        <span>予約を申し込む</span>
+      <button type="submit" class="btn btn-cream" id="scheduleSubmitBtn" style="margin-top: 24px;">
+        <span>予約を送信する</span>
       </button>
-      <p class="consult-note">お申し込み後、メールにて日程を確定いたします。</p>
-      <p id="consultStatus" style="text-align:center; margin-top:12px; display:none;"></p>
+      <p id="scheduleStatus" style="text-align:center; margin-top:12px; display:none;"></p>
     </form>
   </div>
-</section>
+</div>
+
+<!-- ===== CONFIRMATION (shown after scheduling submit) ===== -->
+<div id="confirmationOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2001; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);">
+  <div style="max-width:460px; margin:120px auto; background:var(--cream); border-radius:12px; padding:60px 40px; text-align:center;">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--sage-light); display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold-dark)" stroke-width="2.5" style="width:32px; height:32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+    </div>
+    <h2 style="font-size:1.4rem; margin-bottom:12px; color:var(--text-dark);">ご予約を受け付けました</h2>
+    <p style="color:var(--text-medium); line-height:1.8; margin-bottom:32px;">ご希望の日程を確認の上、メールにてご連絡いたします。<br>お会いできることを楽しみにしています。</p>
+    <a href="/" class="btn btn-filled"><span>トップページに戻る</span></a>
+  </div>
+</div>
 
 <!-- ===== FOOTER ===== -->
 <footer>
@@ -417,11 +429,60 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 revealElements.forEach(el => observer.observe(el));
 
-// ─── CONSULTATION BOOKING FORM ───
+// ─── PAYMENT BUTTON → STRIPE CHECKOUT ───
 (function() {
-  var form = document.getElementById('consultationForm');
-  if (!form) return;
-  var statusEl = document.getElementById('consultStatus');
+  var payBtn = document.getElementById('payBtn');
+  if (payBtn) {
+    payBtn.addEventListener('click', function() {
+      payBtn.disabled = true;
+      payBtn.style.opacity = '0.6';
+      fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: 'single-session', lang: 'ja' })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert('お支払いページの作成に失敗しました。もう一度お試しください。');
+          payBtn.disabled = false;
+          payBtn.style.opacity = '1';
+        }
+      })
+      .catch(function() {
+        alert('お支払いページの作成に失敗しました。もう一度お試しください。');
+        payBtn.disabled = false;
+        payBtn.style.opacity = '1';
+      });
+    });
+  }
+})();
+
+// ─── SCHEDULING MODAL (after payment) ───
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var modal = document.getElementById('scheduleModal');
+  var closeBtn = document.getElementById('closeModal');
+  var form = document.getElementById('scheduleForm');
+  var statusEl = document.getElementById('scheduleStatus');
+  var confirmation = document.getElementById('confirmationOverlay');
+
+  // Show modal if redirected from payment
+  if (params.get('paid') === '1' && modal) {
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    // Clean URL
+    history.replaceState(null, '', window.location.pathname);
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+  }
 
   function showStatus(msg, type) {
     statusEl.textContent = msg;
@@ -429,6 +490,7 @@ revealElements.forEach(el => observer.observe(el));
     statusEl.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#a8e6cf' : 'rgba(255,255,255,0.7)';
   }
 
+  if (!form) return;
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var name = form.querySelector('input[name="name"]').value.trim();
@@ -449,7 +511,7 @@ revealElements.forEach(el => observer.observe(el));
       return;
     }
 
-    var btn = document.getElementById('consultSubmitBtn');
+    var btn = document.getElementById('scheduleSubmitBtn');
     btn.disabled = true;
     btn.style.opacity = '0.6';
     showStatus('送信中...', 'info');
@@ -467,33 +529,33 @@ revealElements.forEach(el => observer.observe(el));
     }
 
     var userMsg = form.querySelector('textarea[name="message"]').value.trim();
-    var msgBody = '【ご希望の日にち】\n' + dates.join('\n');
+    var msgBody = '【お支払い済み — セッション日程調整】\n';
+    msgBody += '【ご希望の日にち】\n' + dates.join('\n');
     msgBody += '\n\n【ご希望の時間帯】' + timeslot;
     if (userMsg) { msgBody += '\n\n【ご相談内容】\n' + userMsg; }
-    msgBody += '\n\n心の相談室ページからのお申し込み';
-
-    var data = {
-      name: name,
-      email: email,
-      subject: '心の相談室 — セッション予約',
-      message: msgBody
-    };
+    msgBody += '\n\n心の相談室ページからのお申し込み（Stripe決済済み）';
 
     fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        subject: '心の相談室 — セッション予約（決済済み）',
+        message: msgBody
+      })
     })
     .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
     .then(function(res) {
       if (res.ok) {
-        form.reset();
-        showStatus('お申し込みありがとうございます！メールにて日程を確定いたします。', 'success');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        confirmation.style.display = 'block';
       } else {
         showStatus(res.data.error || '送信に失敗しました。もう一度お試しください。', 'error');
+        btn.disabled = false;
+        btn.style.opacity = '1';
       }
-      btn.disabled = false;
-      btn.style.opacity = '1';
     })
     .catch(function() {
       showStatus('送信に失敗しました。もう一度お試しください。', 'error');

@@ -527,9 +527,13 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       }],
       success_url: product === 'course-2-upgrade'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}&course=course-2`
+        : product === 'single-session'
+        ? `${SITE_URL}/consultation${en ? '-en' : ''}?paid=1&session_id={CHECKOUT_SESSION_ID}`
         : `${SITE_URL}/payment-success${en ? '-en' : ''}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: product === 'course-2-upgrade'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}`
+        : product === 'single-session'
+        ? `${SITE_URL}/consultation${en ? '-en' : ''}`
         : `${SITE_URL}/payment-cancel${en ? '-en' : ''}`,
       locale: 'auto',
       metadata: { product: product || 'coaching' },

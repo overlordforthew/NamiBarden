@@ -266,19 +266,20 @@
           Post-session follow-up included
         </div>
       </div>
-      <a href="#consultation" class="btn btn-filled" style="width: 100%;"><span>Book a Session</span></a>
+      <button type="button" class="btn btn-filled" id="payBtn" style="width: 100%;"><span>Pay &amp; Book a Session</span></button>
     </div>
   </div>
 </section>
 
-<!-- ===== CONSULTATION FORM ===== -->
-<section class="cta-section" id="consultation">
-  <div class="container" style="position: relative; z-index: 1;">
-    <p class="section-label">Book a Session</p>
-    <h2>Reserve Your Session</h2>
-    <p style="margin-bottom: 40px;">Choose up to three preferred dates. I'll confirm by email.</p>
+<!-- ===== SCHEDULING MODAL (shown after payment) ===== -->
+<div id="scheduleModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2000; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); overflow-y:auto;">
+  <div style="max-width:520px; margin:60px auto; background:linear-gradient(135deg,#3D4A37,#4A5640); border-radius:12px; padding:48px 36px; position:relative;">
+    <button id="closeModal" style="position:absolute; top:16px; right:20px; background:none; border:none; color:rgba(255,255,255,0.5); font-size:1.4rem; cursor:pointer;">&times;</button>
+    <p class="section-label" style="color:var(--gold); text-align:center;">Payment Complete</p>
+    <h2 style="color:var(--cream); text-align:center; font-size:1.6rem; margin-bottom:8px;">Thank You for Your Payment</h2>
+    <p style="color:rgba(255,255,255,0.7); text-align:center; margin-bottom:32px; font-size:0.92rem;">Please select your preferred dates and time. I'll get back to you to arrange the session.</p>
 
-    <form id="consultationForm" class="consultation-form" novalidate>
+    <form id="scheduleForm" class="consultation-form" novalidate>
       <div class="consult-form-row">
         <input type="text" name="name" placeholder="Your Name *" required>
         <input type="email" name="email" placeholder="Email Address *" required>
@@ -322,14 +323,25 @@
 
       <textarea name="message" placeholder="Please share a brief description of what you'd like to discuss." rows="4"></textarea>
 
-      <button type="submit" class="btn btn-cream" id="consultSubmitBtn" style="margin-top: 24px;">
-        <span>Book My Session</span>
+      <button type="submit" class="btn btn-cream" id="scheduleSubmitBtn" style="margin-top: 24px;">
+        <span>Submit Booking</span>
       </button>
-      <p class="consult-note">After booking, I'll confirm the date by email.</p>
-      <p id="consultStatus" style="text-align:center; margin-top:12px; display:none;"></p>
+      <p id="scheduleStatus" style="text-align:center; margin-top:12px; display:none;"></p>
     </form>
   </div>
-</section>
+</div>
+
+<!-- ===== CONFIRMATION (shown after scheduling submit) ===== -->
+<div id="confirmationOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:2001; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);">
+  <div style="max-width:460px; margin:120px auto; background:var(--cream); border-radius:12px; padding:60px 40px; text-align:center;">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--sage-light); display:flex; align-items:center; justify-content:center; margin:0 auto 24px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold-dark)" stroke-width="2.5" style="width:32px; height:32px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+    </div>
+    <h2 style="font-size:1.4rem; margin-bottom:12px; color:var(--text-dark);">Booking Confirmed</h2>
+    <p style="color:var(--text-medium); line-height:1.8; margin-bottom:32px;">I'll review your preferred dates and get back to you by email to confirm your session.<br>Looking forward to meeting you.</p>
+    <a href="/" class="btn btn-filled"><span>Back to Home</span></a>
+  </div>
+</div>
 
 <!-- ===== FOOTER ===== -->
 <footer>
@@ -397,11 +409,58 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 revealElements.forEach(el => observer.observe(el));
 
-// ─── CONSULTATION FORM ───
+// ─── PAYMENT BUTTON → STRIPE CHECKOUT ───
 (function() {
-  var form = document.getElementById('consultationForm');
-  if (!form) return;
-  var statusEl = document.getElementById('consultStatus');
+  var payBtn = document.getElementById('payBtn');
+  if (payBtn) {
+    payBtn.addEventListener('click', function() {
+      payBtn.disabled = true;
+      payBtn.style.opacity = '0.6';
+      fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product: 'single-session', lang: 'en' })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          alert('Failed to create checkout. Please try again.');
+          payBtn.disabled = false;
+          payBtn.style.opacity = '1';
+        }
+      })
+      .catch(function() {
+        alert('Failed to create checkout. Please try again.');
+        payBtn.disabled = false;
+        payBtn.style.opacity = '1';
+      });
+    });
+  }
+})();
+
+// ─── SCHEDULING MODAL (after payment) ───
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var modal = document.getElementById('scheduleModal');
+  var closeBtn = document.getElementById('closeModal');
+  var form = document.getElementById('scheduleForm');
+  var statusEl = document.getElementById('scheduleStatus');
+  var confirmation = document.getElementById('confirmationOverlay');
+
+  if (params.get('paid') === '1' && modal) {
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    history.replaceState(null, '', window.location.pathname);
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+  }
 
   function showStatus(msg, type) {
     statusEl.textContent = msg;
@@ -409,6 +468,7 @@ revealElements.forEach(el => observer.observe(el));
     statusEl.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#a8e6cf' : 'rgba(255,255,255,0.7)';
   }
 
+  if (!form) return;
   form.addEventListener('submit', function(e) {
     e.preventDefault();
     var name = form.querySelector('input[name="name"]').value.trim();
@@ -429,7 +489,7 @@ revealElements.forEach(el => observer.observe(el));
       return;
     }
 
-    var btn = document.getElementById('consultSubmitBtn');
+    var btn = document.getElementById('scheduleSubmitBtn');
     btn.disabled = true;
     btn.style.opacity = '0.6';
     showStatus('Sending...', 'info');
@@ -447,33 +507,33 @@ revealElements.forEach(el => observer.observe(el));
     }
 
     var userMsg = form.querySelector('textarea[name="message"]').value.trim();
-    var msgBody = 'Preferred dates:\n' + dates.join('\n');
+    var msgBody = '[PAID — Session Scheduling]\n';
+    msgBody += 'Preferred dates:\n' + dates.join('\n');
     msgBody += '\n\nPreferred time slot: ' + timeslot;
     if (userMsg) { msgBody += '\n\nDetails:\n' + userMsg; }
-    msgBody += '\n\nSubmitted from the English Private Consultation page';
-
-    var data = {
-      name: name,
-      email: email,
-      subject: 'Private Consultation \u2014 Session Booking',
-      message: msgBody
-    };
+    msgBody += '\n\nSubmitted from Private Consultation page (Stripe payment completed)';
 
     fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        subject: 'Private Consultation \u2014 Session Booking (Paid)',
+        message: msgBody
+      })
     })
     .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
     .then(function(res) {
       if (res.ok) {
-        form.reset();
-        showStatus('Thank you! I\'ll confirm your session date by email.', 'success');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        confirmation.style.display = 'block';
       } else {
         showStatus(res.data.error || 'Something went wrong. Please try again.', 'error');
+        btn.disabled = false;
+        btn.style.opacity = '1';
       }
-      btn.disabled = false;
-      btn.style.opacity = '1';
     })
     .catch(function() {
       showStatus('Connection error. Please try again.', 'error');
