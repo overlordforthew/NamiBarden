@@ -698,7 +698,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
           );
 
           const amount = session.amount_total;
-          const label = product === 'single-session' ? '単発セッション'
+          const label = product === 'single-session' ? 'パーソナルセッション'
             : product === 'couples-lumpsum' ? 'カップルコーチング（一括）'
             : 'コーチ認定コース（一括）';
           sendWhatsApp(NAMI_JID,
