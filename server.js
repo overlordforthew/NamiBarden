@@ -687,7 +687,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
         }
 
         // Single-session or other one-time payments (non-course)
-        if (session.mode === 'payment' && ['single-session', 'certification-lumpsum'].includes(product)) {
+        if (session.mode === 'payment' && ['single-session', 'certification-lumpsum', 'couples-lumpsum'].includes(product)) {
           const custId = await upsertCustomer(email, name, customerId || `onetime_${session.id}`);
 
           await pool.query(
@@ -698,7 +698,9 @@ app.post('/api/stripe/webhook', async (req, res) => {
           );
 
           const amount = session.amount_total;
-          const label = product === 'single-session' ? '単発セッション' : 'コーチ認定コース（一括）';
+          const label = product === 'single-session' ? '単発セッション'
+            : product === 'couples-lumpsum' ? 'カップルコーチング（一括）'
+            : 'コーチ認定コース（一括）';
           sendWhatsApp(NAMI_JID,
             `💫 ${label}購入!\n${name || email}\n¥${amount?.toLocaleString()}`);
 
@@ -743,8 +745,10 @@ app.post('/api/stripe/webhook', async (req, res) => {
           );
 
           // Notify Nami
+          const subLabel = product === 'couples-monthly' ? 'カップルコーチング' : 'コーチング';
+          const subAmount = sub.items.data[0]?.price?.unit_amount;
           sendWhatsApp(NAMI_JID,
-            `💳 新規コーチング契約!\n${name || email}\n¥88,000/月サブスクリプション開始`);
+            `💳 新規${subLabel}契約!\n${name || email}\n¥${subAmount?.toLocaleString() || '??'}/月サブスクリプション開始`);
 
           console.log(`Stripe: New subscription ${sub.id} for ${email}`);
         }
@@ -795,12 +799,21 @@ app.post('/api/stripe/webhook', async (req, res) => {
           [invoice.customer]
         );
         if (custRow.rows.length > 0) {
+          // Look up product name from subscription record
+          let invoiceProduct = 'coaching';
+          if (invoice.subscription) {
+            const subRow = await pool.query(
+              'SELECT product_name FROM nb_subscriptions WHERE stripe_subscription_id = $1',
+              [invoice.subscription]
+            );
+            if (subRow.rows[0]?.product_name) invoiceProduct = subRow.rows[0].product_name;
+          }
           await pool.query(
             `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
              VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
              ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
             [custRow.rows[0].id, invoice.payment_intent, invoice.id,
-             invoice.amount_paid, invoice.currency, 'coaching']
+             invoice.amount_paid, invoice.currency, invoiceProduct]
           );
         }
         console.log(`Stripe: Payment succeeded for invoice ${invoice.id}`);
