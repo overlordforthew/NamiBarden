@@ -239,23 +239,23 @@
     <div class="process-steps">
       <div class="process-step reveal">
         <div class="step-number">01</div>
-        <h3>お支払い</h3>
-        <p>下記の料金プランからお選びいただき、お支払いを完了してください。</p>
+        <h3>まずはご相談</h3>
+        <p>下のフォームからお気軽にご連絡ください。パートナーシップの状況をお聞きし、プログラムが合うかを一緒に確認します。</p>
       </div>
       <div class="process-step reveal reveal-delay-1">
         <div class="step-number">02</div>
-        <h3>日程のご希望をお知らせください</h3>
-        <p>お支払い完了後、ご希望の日時をフォームからお送りください。時間枠：7時、8時、20時、21時（日本時間）</p>
+        <h3>お申し込み・お支払い</h3>
+        <p>ご相談の上、プログラムへのお申し込み・お支払いへ進みます。月額プラン・一括払いからお選びいただけます。</p>
       </div>
       <div class="process-step reveal reveal-delay-2">
         <div class="step-number">03</div>
-        <h3>日程確定</h3>
-        <p>ナミからメールで日時を確定します。Zoomのリンクもお送りします。</p>
+        <h3>月次セッション開始</h3>
+        <p>月1回60分のZoomセッション。意識の4ステップで、関係性を内側から変容させていきます。お一人でも、パートナーと一緒でも大丈夫です。</p>
       </div>
       <div class="process-step reveal reveal-delay-3">
         <div class="step-number">04</div>
-        <h3>セッション当日</h3>
-        <p>60分のZoomセッション。リラックスした環境で、心の中にあることを自由にお話しください。お一人でも、パートナーと一緒でも大丈夫です。</p>
+        <h3>6ヶ月間の変容</h3>
+        <p>毎月のセッションと実践ワークを通じて、表面的な対処ではなく、根本から関係性を変えていきます。</p>
       </div>
     </div>
   </div>
@@ -293,7 +293,9 @@
             実践ワーク付き
           </div>
         </div>
-        <button type="button" class="btn btn-filled" id="payBtnMonthly" style="width: 100%;"><span>月額プランで始める</span></button>
+        <button type="button" class="btn btn-filled" id="payBtnMonthly" style="margin-bottom: 12px; width: 100%;"><span>月額プランで始める</span></button>
+        <p style="text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 20px;">Stripeによる安全なお支払い</p>
+        <a href="#consultation" class="btn btn-filled" style="background: transparent; color: var(--gold-dark); border: 1px solid var(--gold); width: 100%;"><span>まずは無料相談から</span></a>
       </div>
       <!-- Lump Sum (Recommended) -->
       <div class="pricing-card recommended">
@@ -320,19 +322,55 @@
             実践ワーク付き
           </div>
         </div>
-        <button type="button" class="btn btn-gold" id="payBtnLump" style="width: 100%; border: none;"><span>一括払いで申し込む</span></button>
+        <button type="button" class="btn btn-gold" id="payBtnLump" style="margin-bottom: 12px; width: 100%; border: none;"><span>一括払いで申し込む</span></button>
+        <p style="text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 20px;">Stripeによる安全なお支払い</p>
+        <a href="#consultation" class="btn btn-filled" style="background: transparent; color: var(--gold-dark); border: 1px solid var(--gold); width: 100%;"><span>まずは無料相談から</span></a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== CTA SECTION ===== -->
-<section class="cta-section" id="cta">
+<!-- ===== CONSULTATION FORM ===== -->
+<section class="cta-section" id="consultation">
   <div class="container" style="position: relative; z-index: 1;">
     <p class="section-label">Next Step</p>
-    <h2>意識の力で、関係性を変える</h2>
-    <p style="margin-bottom: 40px;">パートナーシップの悩みを、意識の変容を通じて根本から解決しませんか。<br>まずはお支払いの上、セッション日程をお知らせください。</p>
-    <a href="#" class="btn btn-cream" onclick="document.querySelector('.pricing').scrollIntoView({behavior:'smooth'}); return false;"><span>料金プランを見る</span></a>
+    <h2>まず、お話してみませんか。</h2>
+    <p style="margin-bottom: 40px;">6ヶ月のプログラムだからこそ、まずはお気軽にご相談ください。<br>パートナーシップの状況をお聞きし、プログラムが合うかを一緒に確認します。</p>
+
+    <form id="consultationForm" class="consultation-form" novalidate>
+      <div class="consult-form-row">
+        <input type="text" name="name" placeholder="お名前 *" required autocomplete="name">
+        <input type="email" name="email" placeholder="メールアドレス *" required autocomplete="email">
+      </div>
+
+      <p class="consult-label">どんなことでお悩みですか？</p>
+      <div class="consult-topics">
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="パートナーとのコミュニケーション">
+          <span>パートナーとのコミュニケーション</span>
+        </label>
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="繰り返すケンカ・すれ違い">
+          <span>繰り返すケンカ・すれ違い</span>
+        </label>
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="関係を続けるか迷っている">
+          <span>関係を続けるか迷っている</span>
+        </label>
+        <label class="topic-pill">
+          <input type="radio" name="topic" value="その他">
+          <span>その他</span>
+        </label>
+      </div>
+
+      <textarea name="message" placeholder="パートナーシップの状況やお悩みをご自由にお書きください（任意）" rows="3"></textarea>
+
+      <button type="submit" class="btn btn-cream" id="consultSubmitBtn" style="margin-top: 24px;">
+        <span>ご相談を申し込む</span>
+      </button>
+      <p class="consult-note">お申し込み後、メールにてご連絡いたします。</p>
+      <p id="consultStatus" style="text-align:center; margin-top:12px; display:none;"></p>
+    </form>
   </div>
 </section>
 
@@ -476,6 +514,77 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.1 });
 revealElements.forEach(el => observer.observe(el));
+
+// ─── CONSULTATION FORM ───
+(function() {
+  var form = document.getElementById('consultationForm');
+  if (!form) return;
+  var statusEl = document.getElementById('consultStatus');
+
+  function showStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.style.display = 'block';
+    statusEl.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#a8e6cf' : 'rgba(255,255,255,0.7)';
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = form.querySelector('input[name="name"]').value.trim();
+    var email = form.querySelector('input[name="email"]').value.trim();
+    var topicEl = form.querySelector('input[name="topic"]:checked');
+    var topic = topicEl ? topicEl.value : '';
+
+    if (!name || !email) {
+      showStatus('\u304A\u540D\u524D\u3068\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044', 'error');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showStatus('\u6B63\u3057\u3044\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044', 'error');
+      return;
+    }
+    if (!topic) {
+      showStatus('\u76F8\u8AC7\u5185\u5BB9\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044', 'error');
+      return;
+    }
+
+    var btn = document.getElementById('consultSubmitBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    showStatus('\u9001\u4FE1\u4E2D...', 'info');
+
+    var userMsg = form.querySelector('textarea[name="message"]').value.trim();
+    var msgBody = '\u3010\u76F8\u8AC7\u5185\u5BB9\u3011' + topic;
+    if (userMsg) { msgBody += '\n\n\u3010\u30E1\u30C3\u30BB\u30FC\u30B8\u3011\n' + userMsg; }
+    msgBody += '\n\n\u30AB\u30C3\u30D7\u30EB\u30B3\u30FC\u30C1\u30F3\u30B0\u30DA\u30FC\u30B8\u304B\u3089\u306E\u304A\u7533\u3057\u8FBC\u307F';
+
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        subject: '\u30AB\u30C3\u30D7\u30EB\u30B3\u30FC\u30C1\u30F3\u30B0 \u2014 \u7121\u6599\u76F8\u8AC7\u7533\u3057\u8FBC\u307F',
+        message: msgBody
+      })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.ok) {
+        form.reset();
+        showStatus('\u304A\u7533\u3057\u8FBC\u307F\u3042\u308A\u304C\u3068\u3046\u3054\u3056\u3044\u307E\u3059\uFF01\u30E1\u30FC\u30EB\u306B\u3066\u3054\u9023\u7D61\u3044\u305F\u3057\u307E\u3059\u3002', 'success');
+      } else {
+        showStatus(res.data.error || '\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002', 'error');
+      }
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    })
+    .catch(function() {
+      showStatus('\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002', 'error');
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+  });
+})();
 
 // ─── PAYMENT BUTTONS → STRIPE CHECKOUT ───
 (function() {
