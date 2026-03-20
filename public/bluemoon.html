@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Blue Moon — The Grand Caribbean Voyage</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#030712;color:#f9fafb;font-family:'Inter',-apple-system,sans-serif;min-height:100vh}.mono{font-family:'DM Mono',monospace}.serif{font-family:'Playfair Display',Georgia,serif}.header{background:linear-gradient(180deg,#0c1e3a,#030712);padding:28px 16px 20px;text-align:center}.header h1{font-size:clamp(22px,5vw,34px);font-weight:900;background:linear-gradient(135deg,#f9fafb,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 4px}.stats{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:16px}.stat-val{font-size:16px;font-weight:700;color:#e2e8f0}.stat-lbl{font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em}.tabs{display:flex;border-bottom:1px solid #1f2937;overflow-x:auto}.tab{flex:1 0 auto;padding:8px 12px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;background:transparent;color:#6b7280;border:none;border-bottom:2px solid transparent}.tab.active{background:#1e293b;color:#f9fafb}.tab-map{border-right:1px solid #1f2937;font-weight:700}.leg-bar{padding:8px 14px;border-bottom:1px solid #1f2937;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.content{padding:10px 10px 30px;max-width:800px;margin:0 auto}.card{background:#111827;border-radius:10px;border:1px solid #1f2937;overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}.card.expanded{border-color:var(--phase-color)}.card-header{padding:10px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;user-select:none}.card-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.card-name{font-size:15px;font-weight:700;color:#f9fafb}.card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:10px;color:#6b7280}.card-island{font-weight:600}.day-pill{background:#1f2937;padding:0 4px;border-radius:3px}.awe-bar{display:flex;gap:1px}.awe-bar div{width:6px;height:16px;border-radius:2px}.awe-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}.pill{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block}.arrow{font-size:14px;color:#4b5563;transition:transform 0.2s;margin-top:4px}.card.expanded .arrow{transform:rotate(180deg)}.card-body{padding:0 12px 14px 50px;display:flex;flex-direction:column;gap:10px;display:none}.card.expanded .card-body{display:flex}.box{border-radius:6px;padding:10px 12px}.box-clearance{background:#0f172a;border:1px solid #1e293b}.box-nature{border-left:3px solid var(--phase-color)}.box-hurricane{background:rgba(127,29,29,0.08);border:1px solid rgba(127,29,29,0.2)}.box-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}.box-detail{font-size:12px;line-height:1.7;white-space:pre-line}.map-btn{font-size:12px;color:#6b7280;text-decoration:none;display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;background:#1e293b}.map-btn:hover{background:#374151}.map-controls{display:flex;gap:14px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;padding:10px}.map-controls label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px}.map-controls input{width:14px;height:14px;cursor:pointer}.map-legend{display:flex;gap:10px;justify-content:center;margin-bottom:6px;font-size:8px;color:#6b7280}.footer-section{padding:14px;max-width:800px;margin:0 auto;border-top:1px solid #1f2937}.qref-row{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;line-height:2}.hidden{display:none}#photoModal img{transition:opacity 0.3s}#photoModal img[src]{opacity:1}.seg .seg-line{transition:stroke-width 0.2s,opacity 0.2s}.seg .seg-label{transition:opacity 0.2s}.seg .seg-label-hover{transition:opacity 0.2s}.seg-hover .seg-line{stroke-width:5 !important;opacity:1 !important;filter:drop-shadow(0 0 6px currentColor)}.seg-hover .seg-label{opacity:0 !important}.seg-hover .seg-label-hover{opacity:1 !important}</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#030712;color:#f9fafb;font-family:'Inter',-apple-system,sans-serif;min-height:100vh}.mono{font-family:'DM Mono',monospace}.serif{font-family:'Playfair Display',Georgia,serif}.header{background:linear-gradient(180deg,#0c1e3a,#030712);padding:28px 16px 20px;text-align:center}.header h1{font-size:clamp(22px,5vw,34px);font-weight:900;background:linear-gradient(135deg,#f9fafb,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 4px}.stats{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:16px}.stat-val{font-size:16px;font-weight:700;color:#e2e8f0}.stat-lbl{font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em}.tabs{display:flex;border-bottom:1px solid #1f2937;overflow-x:auto}.tab{flex:1 0 auto;padding:8px 12px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;background:transparent;color:#6b7280;border:none;border-bottom:2px solid transparent}.tab.active{background:#1e293b;color:#f9fafb}.tab-map{border-right:1px solid #1f2937;font-weight:700}.leg-bar{padding:8px 14px;border-bottom:1px solid #1f2937;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.content{padding:10px 10px 30px;max-width:800px;margin:0 auto}.card{background:#111827;border-radius:10px;border:1px solid #1f2937;overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}.card.expanded{border-color:var(--phase-color)}.card-header{padding:10px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;user-select:none}.card-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.card-name{font-size:15px;font-weight:700;color:#f9fafb}.card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:10px;color:#6b7280}.card-island{font-weight:600}.day-pill{background:#1f2937;padding:0 4px;border-radius:3px}.awe-bar{display:flex;gap:1px}.awe-bar div{width:6px;height:16px;border-radius:2px}.awe-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}.pill{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block}.arrow{font-size:14px;color:#4b5563;transition:transform 0.2s;margin-top:4px}.card.expanded .arrow{transform:rotate(180deg)}.card-body{padding:0 12px 14px 50px;display:flex;flex-direction:column;gap:10px;display:none}.card.expanded .card-body{display:flex}.box{border-radius:6px;padding:10px 12px}.box-clearance{background:#0f172a;border:1px solid #1e293b}.box-nature{border-left:3px solid var(--phase-color)}.box-hurricane{background:rgba(127,29,29,0.08);border:1px solid rgba(127,29,29,0.2)}.box-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}.box-detail{font-size:12px;line-height:1.7;white-space:pre-line}.map-btn{font-size:12px;color:#6b7280;text-decoration:none;display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;background:#1e293b}.map-btn:hover{background:#374151}.map-controls{display:flex;gap:14px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;padding:10px}.map-controls label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px}.map-controls input{width:14px;height:14px;cursor:pointer}.map-legend{display:flex;gap:10px;justify-content:center;margin-bottom:6px;font-size:8px;color:#6b7280}.footer-section{padding:14px;max-width:800px;margin:0 auto;border-top:1px solid #1f2937}.qref-row{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;line-height:2}.hidden{display:none}#photoModal img{transition:opacity 0.3s}#photoModal img[src]{opacity:1}.leaflet-container{background:#091428}.leaflet-control-zoom a{background:#1e293b;color:#f9fafb;border-color:#374151}.leaflet-control-zoom a:hover{background:#374151}.leaflet-control-attribution{background:rgba(3,7,18,0.7)!important;color:#4b5563!important}.leaflet-control-attribution a{color:#6b7280!important}.leaflet-popup-content-wrapper{background:#111827;color:#f9fafb;border:1px solid #374151;border-radius:10px}.leaflet-popup-tip{background:#111827}.leaflet-popup-close-button{color:#6b7280!important}.leaflet-tooltip{background:#111827;color:#f9fafb;border:1px solid #374151;border-radius:8px;padding:10px;box-shadow:0 8px 32px rgba(0,0,0,0.7)}.leaflet-tooltip-top:before{border-top-color:#374151}.leaflet-tooltip-bottom:before{border-bottom-color:#374151}.leaflet-tooltip-left:before{border-left-color:#374151}.leaflet-tooltip-right:before{border-right-color:#374151}.stop-marker{display:flex;align-items:center;justify-content:center;border-radius:50%;font-family:'DM Mono',monospace;font-weight:700;color:#fff;border:2px solid #060e1f;cursor:pointer;position:relative;z-index:2}.stop-marker-sm{width:24px;height:24px;font-size:10px}.stop-marker-lg{width:32px;height:32px;font-size:12px}.stop-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid #f59e0b;opacity:0.4;animation:glowPulse 3s ease-in-out infinite;pointer-events:none;width:40px;height:40px}@keyframes glowPulse{0%,100%{width:36px;height:36px;opacity:0.3}50%{width:44px;height:44px;opacity:0.5}}.stop-shelter-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid;opacity:0.6;pointer-events:none;z-index:1}.dist-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;background:#111827;border:1px solid #374151;border-radius:4px;padding:2px 6px;color:#9ca3af;white-space:nowrap;pointer-events:none}</style>
 </head>
 <body>
 <!-- HEADER -->
@@ -48,7 +49,7 @@
     <span>--- Phase 3 return</span>
     <span>Tap stop → details</span>
   </div>
-  <div style="text-align:center;font-size:8px;color:#374151;margin-bottom:4px" class="mono">💡 Photos load when you download and open this file in your browser</div><div id="mapContainer" style="position:relative"></div><div id="mapTip" style="display:none;position:fixed;z-index:100;pointer-events:none;max-width:320px;background:#111827;border:1px solid #374151;border-radius:10px;padding:12px;box-shadow:0 8px 32px rgba(0,0,0,0.7)"></div>
+  <div id="mapContainer" style="height:75vh;min-height:500px;border-radius:10px;border:1px solid #1e3a5f;overflow:hidden"></div>
 </div>
 
 <!-- LIST VIEW -->
@@ -73,6 +74,7 @@
 
 <div style="text-align:center;padding:14px;font-size:10px;color:#374151" class="mono">Fair winds, Gil, Nami & Ailie 🌊</div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
 const STOPS = [
   // === PHASE 1 ===
@@ -278,30 +280,6 @@ const LEG_INFO = {
   3: { label:"Phase 3: Return to Antigua", color:"#f59e0b", dates:"May 25 – Jun 20", days:"26 days", desc:"Nature loop: Saba, Nevis, Montserrat — hurricane aware" },
 };
 
-const ISLANDS = [
-  {name:"Trinidad",pts:[[10.04,-61.93],[10.06,-61.84],[10.06,-61.75],[10.08,-61.66],[10.12,-61.58],[10.15,-61.50],[10.18,-61.47],[10.24,-61.40],[10.32,-61.38],[10.40,-61.37],[10.48,-61.39],[10.54,-61.43],[10.58,-61.46],[10.63,-61.47],[10.69,-61.50],[10.72,-61.53],[10.77,-61.58],[10.80,-61.62],[10.83,-61.67],[10.84,-61.72],[10.83,-61.78],[10.82,-61.85],[10.80,-61.90],[10.74,-61.93],[10.68,-61.93],[10.62,-61.92],[10.55,-61.93],[10.48,-61.95],[10.42,-61.96],[10.35,-61.95],[10.28,-61.94],[10.20,-61.95],[10.13,-61.95],[10.07,-61.95]]},
-  {name:"Tobago",pts:[[11.15,-60.84],[11.17,-60.80],[11.19,-60.76],[11.21,-60.73],[11.24,-60.68],[11.27,-60.62],[11.30,-60.56],[11.32,-60.52],[11.33,-60.54],[11.31,-60.60],[11.29,-60.66],[11.27,-60.72],[11.25,-60.76],[11.22,-60.80],[11.19,-60.83],[11.16,-60.85]]},
-  {name:"Grenada",pts:[[11.98,-61.79],[12.00,-61.77],[12.01,-61.73],[12.01,-61.69],[12.02,-61.65],[12.03,-61.62],[12.05,-61.60],[12.08,-61.60],[12.11,-61.60],[12.14,-61.62],[12.17,-61.63],[12.20,-61.65],[12.23,-61.69],[12.24,-61.72],[12.24,-61.75],[12.23,-61.78],[12.21,-61.79],[12.18,-61.80],[12.14,-61.80],[12.10,-61.80],[12.06,-61.80],[12.02,-61.80]]},
-  {name:"Carriacou",pts:[[12.44,-61.49],[12.46,-61.47],[12.47,-61.45],[12.48,-61.43],[12.49,-61.43],[12.50,-61.44],[12.51,-61.45],[12.52,-61.47],[12.51,-61.49],[12.50,-61.50],[12.48,-61.50],[12.46,-61.50]]},
-  {name:"Union",pts:[[12.58,-61.45],[12.59,-61.43],[12.60,-61.42],[12.61,-61.42],[12.62,-61.43],[12.63,-61.44],[12.62,-61.45],[12.61,-61.46],[12.59,-61.46]]},
-  {name:"Bequia",pts:[[12.98,-61.27],[12.99,-61.25],[13.00,-61.23],[13.01,-61.22],[13.02,-61.22],[13.03,-61.23],[13.03,-61.25],[13.02,-61.26],[13.00,-61.27]]},
-  {name:"St Vincent",pts:[[13.08,-61.28],[13.10,-61.25],[13.12,-61.22],[13.14,-61.20],[13.16,-61.18],[13.18,-61.16],[13.20,-61.14],[13.23,-61.13],[13.26,-61.12],[13.29,-61.13],[13.31,-61.14],[13.33,-61.15],[13.35,-61.17],[13.37,-61.19],[13.38,-61.21],[13.38,-61.24],[13.37,-61.26],[13.36,-61.28],[13.34,-61.29],[13.31,-61.30],[13.28,-61.29],[13.25,-61.29],[13.22,-61.30],[13.19,-61.30],[13.16,-61.29],[13.13,-61.29],[13.10,-61.29]]},
-  {name:"St Lucia",pts:[[13.71,-61.07],[13.73,-61.04],[13.74,-61.01],[13.76,-60.97],[13.78,-60.94],[13.80,-60.92],[13.83,-60.89],[13.86,-60.88],[13.89,-60.88],[13.92,-60.89],[13.95,-60.90],[13.98,-60.91],[14.01,-60.93],[14.04,-60.94],[14.07,-60.95],[14.09,-60.97],[14.10,-60.99],[14.10,-61.01],[14.08,-61.03],[14.06,-61.05],[14.04,-61.06],[14.01,-61.07],[13.98,-61.07],[13.95,-61.07],[13.92,-61.07],[13.89,-61.07],[13.86,-61.08],[13.83,-61.08],[13.80,-61.08],[13.77,-61.08],[13.74,-61.08]]},
-  {name:"Martinique",pts:[[14.40,-61.22],[14.42,-61.18],[14.44,-61.14],[14.46,-61.10],[14.48,-61.06],[14.50,-61.02],[14.52,-60.98],[14.55,-60.95],[14.58,-60.92],[14.61,-60.89],[14.64,-60.87],[14.67,-60.85],[14.70,-60.84],[14.73,-60.84],[14.76,-60.85],[14.79,-60.86],[14.82,-60.88],[14.84,-60.90],[14.86,-60.93],[14.87,-60.96],[14.87,-61.00],[14.86,-61.04],[14.86,-61.08],[14.85,-61.11],[14.83,-61.14],[14.80,-61.17],[14.78,-61.19],[14.75,-61.21],[14.72,-61.22],[14.69,-61.23],[14.66,-61.23],[14.63,-61.22],[14.60,-61.22],[14.57,-61.21],[14.54,-61.20],[14.51,-61.20],[14.48,-61.21],[14.45,-61.22],[14.42,-61.22]]},
-  {name:"Dominica",pts:[[15.20,-61.52],[15.22,-61.49],[15.24,-61.46],[15.26,-61.43],[15.28,-61.40],[15.30,-61.38],[15.33,-61.36],[15.36,-61.35],[15.39,-61.34],[15.42,-61.33],[15.45,-61.34],[15.48,-61.35],[15.51,-61.37],[15.53,-61.39],[15.55,-61.41],[15.57,-61.43],[15.59,-61.45],[15.61,-61.44],[15.63,-61.45],[15.64,-61.47],[15.63,-61.49],[15.62,-61.51],[15.60,-61.52],[15.57,-61.53],[15.54,-61.54],[15.51,-61.55],[15.48,-61.55],[15.45,-61.55],[15.42,-61.55],[15.39,-61.54],[15.36,-61.54],[15.33,-61.54],[15.30,-61.54],[15.27,-61.53],[15.24,-61.53]]},
-  {name:"Basse-Terre",pts:[[15.88,-61.80],[15.91,-61.78],[15.94,-61.75],[15.97,-61.72],[16.00,-61.69],[16.03,-61.67],[16.06,-61.65],[16.09,-61.63],[16.12,-61.62],[16.16,-61.59],[16.19,-61.58],[16.22,-61.59],[16.25,-61.61],[16.27,-61.63],[16.29,-61.66],[16.30,-61.69],[16.31,-61.72],[16.30,-61.75],[16.28,-61.77],[16.25,-61.79],[16.22,-61.80],[16.19,-61.80],[16.16,-61.80],[16.13,-61.80],[16.10,-61.80],[16.07,-61.81],[16.04,-61.81],[16.01,-61.81],[15.98,-61.82],[15.95,-61.82],[15.92,-61.82]]},
-  {name:"Grande-Terre",pts:[[16.18,-61.58],[16.20,-61.54],[16.22,-61.50],[16.24,-61.46],[16.25,-61.42],[16.26,-61.38],[16.27,-61.34],[16.28,-61.31],[16.30,-61.28],[16.33,-61.25],[16.35,-61.24],[16.37,-61.26],[16.38,-61.29],[16.37,-61.32],[16.36,-61.36],[16.35,-61.40],[16.34,-61.44],[16.32,-61.48],[16.30,-61.51],[16.28,-61.54],[16.25,-61.56],[16.22,-61.57]]},
-  {name:"Antigua",pts:[[17.00,-61.99],[17.00,-61.95],[17.00,-61.91],[17.00,-61.87],[17.00,-61.83],[17.01,-61.79],[17.01,-61.75],[17.02,-61.72],[17.03,-61.69],[17.05,-61.67],[17.07,-61.66],[17.09,-61.67],[17.11,-61.67],[17.13,-61.68],[17.15,-61.70],[17.16,-61.73],[17.17,-61.76],[17.17,-61.79],[17.17,-61.82],[17.17,-61.85],[17.17,-61.88],[17.16,-61.90],[17.14,-61.91],[17.12,-61.91],[17.10,-61.90],[17.08,-61.90],[17.06,-61.91],[17.04,-61.93],[17.03,-61.95],[17.02,-61.97]]},
-  {name:"Barbuda",pts:[[17.55,-61.89],[17.56,-61.86],[17.57,-61.83],[17.58,-61.80],[17.59,-61.77],[17.61,-61.75],[17.63,-61.74],[17.65,-61.73],[17.67,-61.74],[17.69,-61.76],[17.70,-61.78],[17.71,-61.81],[17.72,-61.84],[17.71,-61.87],[17.70,-61.89],[17.68,-61.90],[17.66,-61.91],[17.64,-61.91],[17.62,-61.91],[17.60,-61.91],[17.58,-61.90]]},
-  {name:"Montserrat",pts:[[16.67,-62.24],[16.69,-62.21],[16.71,-62.19],[16.73,-62.17],[16.75,-62.16],[16.77,-62.17],[16.79,-62.18],[16.80,-62.20],[16.81,-62.22],[16.80,-62.24],[16.79,-62.25],[16.77,-62.25],[16.75,-62.25],[16.73,-62.25],[16.71,-62.25],[16.69,-62.25]]},
-  {name:"Nevis",pts:[[17.09,-62.63],[17.10,-62.61],[17.11,-62.59],[17.12,-62.57],[17.14,-62.56],[17.16,-62.57],[17.17,-62.58],[17.18,-62.60],[17.18,-62.62],[17.17,-62.63],[17.15,-62.64],[17.13,-62.64],[17.11,-62.64]]},
-  {name:"St Kitts",pts:[[17.23,-62.80],[17.24,-62.77],[17.25,-62.74],[17.26,-62.71],[17.28,-62.68],[17.30,-62.66],[17.32,-62.64],[17.34,-62.62],[17.36,-62.61],[17.38,-62.62],[17.39,-62.64],[17.40,-62.66],[17.40,-62.69],[17.40,-62.72],[17.39,-62.75],[17.38,-62.78],[17.36,-62.80],[17.34,-62.81],[17.32,-62.83],[17.30,-62.83],[17.28,-62.83],[17.26,-62.82]]},
-  {name:"Saba",pts:[[17.62,-63.26],[17.63,-63.24],[17.64,-63.23],[17.65,-63.23],[17.65,-63.25],[17.64,-63.27],[17.63,-63.27]]},
-  {name:"Statia",pts:[[17.47,-63.00],[17.48,-62.98],[17.49,-62.97],[17.50,-62.97],[17.51,-62.98],[17.51,-63.00],[17.50,-63.01],[17.49,-63.01]]},
-  {name:"St Barths",pts:[[17.89,-62.87],[17.89,-62.85],[17.90,-62.83],[17.91,-62.82],[17.92,-62.83],[17.93,-62.85],[17.92,-62.87],[17.91,-62.88]]},
-  {name:"St Maarten",pts:[[18.01,-63.13],[18.02,-63.10],[18.03,-63.07],[18.04,-63.04],[18.06,-63.02],[18.07,-63.01],[18.09,-63.02],[18.10,-63.04],[18.11,-63.07],[18.10,-63.09],[18.09,-63.11],[18.07,-63.13],[18.05,-63.14],[18.03,-63.14]]},
-  {name:"Iles Saintes",pts:[[15.85,-61.63],[15.86,-61.61],[15.87,-61.59],[15.88,-61.60],[15.87,-61.62]]},
-];
 
 function getPhaseColor(p) {
   var m={"Launch":"#1a5e3a","Grenada":"#2d7d46","S. Grenadines":"#0ea5e9","N. Grenadines":"#0284c7","Windwards":"#7c3aed","French Islands":"#c026d3","Leewards":"#e11d48","Antigua":"#ea580c","Northbound":"#a855f7","St. Maarten":"#6366f1","Return South":"#f59e0b","Pickup":"#22c55e"};
@@ -522,234 +500,221 @@ function renderQref() {
   }).join('');
 }
 
-// === MAP ===
+// === MAP (Leaflet) ===
 
-var mapZoom = {minLat:11.0, maxLat:18.5, minLng:-63.6, maxLng:-60.2, name:'full'};
+var leafletMap = null;
+var phaseLayerGroups = {1: null, 2: null, 3: null};
+var distLabelGroup = null;
 
 function setMapZoom(preset) {
+  if (!leafletMap) return;
   var presets = {
-    full:    {minLat:11.0, maxLat:18.5, minLng:-63.6, maxLng:-60.2},
-    grenadines: {minLat:11.8, maxLat:13.5, minLng:-61.8, maxLng:-61.0},
-    windwards:  {minLat:13.5, maxLat:15.0, minLng:-61.6, maxLng:-60.5},
-    leewards:   {minLat:15.0, maxLat:16.8, minLng:-62.4, maxLng:-61.0},
-    north:      {minLat:16.4, maxLat:18.4, minLng:-63.5, maxLng:-61.4},
+    full:       [[11.0, -63.6], [18.5, -60.2]],
+    grenadines: [[11.8, -61.8], [13.5, -61.0]],
+    windwards:  [[13.5, -61.6], [15.0, -60.5]],
+    leewards:   [[15.0, -62.4], [16.8, -61.0]],
+    north:      [[16.4, -63.5], [18.4, -61.4]],
   };
-  mapZoom = presets[preset] || presets.full;
-  mapZoom.name = preset;
-  renderMap();
-  // Highlight active zoom button
+  var bounds = presets[preset] || presets.full;
+  leafletMap.fitBounds(bounds, {padding: [20, 20]});
   document.querySelectorAll('#zoomControls button').forEach(function(btn){
-    var isActive = btn.textContent.toLowerCase().indexOf(preset) > -1 || 
+    var isActive = btn.textContent.toLowerCase().indexOf(preset) > -1 ||
                    (preset==='full' && btn.textContent.indexOf('Full')>-1);
     btn.style.borderColor = isActive ? '#f9fafb' : '#374151';
     btn.style.color = isActive ? '#f9fafb' : btn.style.color;
   });
 }
 
-function renderMap() {
-  var W=800,H=750,PAD=35;
-  var minLat=mapZoom.minLat, maxLat=mapZoom.maxLat, minLng=mapZoom.minLng, maxLng=mapZoom.maxLng;
-  function toX(lng){return PAD+((lng-minLng)/(maxLng-minLng))*(W-PAD*2);}
-  function toY(lat){return PAD+((maxLat-lat)/(maxLat-minLat))*(H-PAD*2);}
-  var visLegs=[1,2,3].filter(function(l){return legFilter[l];});
-
-  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;background:linear-gradient(180deg,#060e1f,#091428,#0a1a30);border-radius:10px;border:1px solid #1e3a5f">';
-  svg += '<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0d2847" stroke-width="0.3"/></pattern></defs>';
-  svg += '<rect width="'+W+'" height="'+H+'" fill="url(#grid)" opacity="0.5"/>';
-
-  // Grid
-  var latStart = Math.ceil(minLat), latEnd = Math.floor(maxLat);
-  for(var glat=latStart;glat<=latEnd;glat++){var lat=glat;
-    svg += '<line x1="'+PAD+'" y1="'+toY(lat)+'" x2="'+(W-PAD)+'" y2="'+toY(lat)+'" stroke="#0f2e52" stroke-width="0.5"/>';
-    svg += '<text x="'+(PAD-3)+'" y="'+(toY(lat)+3)+'" fill="#1e4a7a" font-size="7" text-anchor="end" font-family="DM Mono,monospace">'+lat+'°N</text>';
-  }
-  var lngStart = Math.ceil(Math.abs(maxLng)); var lngEnd = Math.floor(Math.abs(minLng));
-  for(var glng=lngEnd;glng<=lngStart;glng++){var lng=-glng;
-    svg += '<line x1="'+toX(lng)+'" y1="'+PAD+'" x2="'+toX(lng)+'" y2="'+(H-PAD)+'" stroke="#0f2e52" stroke-width="0.5"/>';
-    svg += '<text x="'+toX(lng)+'" y="'+(H-PAD+12)+'" fill="#1e4a7a" font-size="7" text-anchor="middle" font-family="DM Mono,monospace">'+Math.abs(lng)+'°W</text>';
-  }
-
-  // Islands
-  var skipLabels = ["Iles Saintes","Statia","Saba","St Barths","Carriacou","Union","Bequia","Basse-Terre","Grande-Terre","Tobago"];
-  ISLANDS.forEach(function(isl){
-    var d = isl.pts.map(function(p,j){return (j===0?'M':'L')+toX(p[1])+','+toY(p[0]);}).join(' ')+'Z';
-    svg += '<path d="'+d+'" fill="#0c2a1e" stroke="#1a5e3a" stroke-width="1" opacity="0.8"/>';
-    if(skipLabels.indexOf(isl.name)===-1){
-      var cx=isl.pts.reduce(function(s,p){return s+p[1];},0)/isl.pts.length;
-      var cy=isl.pts.reduce(function(s,p){return s+p[0];},0)/isl.pts.length;
-      svg += '<text x="'+toX(cx)+'" y="'+toY(cy)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">'+isl.name+'</text>';
-    }
+function initLeafletMap() {
+  if (leafletMap) return;
+  leafletMap = L.map('mapContainer', {
+    center: [14.5, -61.5],
+    zoom: 7,
+    zoomControl: true,
+    attributionControl: true
   });
-  // Manual Guadeloupe label
-  svg += '<text x="'+toX(-61.50)+'" y="'+toY(16.10)+'" fill="#1a5e3a" font-size="6.5" text-anchor="middle" font-family="DM Mono,monospace" opacity="0.7">Guadeloupe</text>';
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(leafletMap);
+  phaseLayerGroups[1] = L.layerGroup().addTo(leafletMap);
+  phaseLayerGroups[2] = L.layerGroup().addTo(leafletMap);
+  phaseLayerGroups[3] = L.layerGroup().addTo(leafletMap);
+  distLabelGroup = L.layerGroup().addTo(leafletMap);
+  buildMapLayers();
+  setMapZoom('full');
+  leafletMap.on('zoomend', function() {
+    var z = leafletMap.getZoom();
+    if (z >= 9) { if (!leafletMap.hasLayer(distLabelGroup)) leafletMap.addLayer(distLabelGroup); }
+    else { if (leafletMap.hasLayer(distLabelGroup)) leafletMap.removeLayer(distLabelGroup); }
+  });
+  setTimeout(function() { leafletMap.invalidateSize(); }, 100);
+}
 
-  // Trinidad starting point
-  if(visLegs.indexOf(1)>-1) {
-    var tx=toX(TRINIDAD_START.lng), ty=toY(TRINIDAD_START.lat);
-    svg += '<circle cx="'+tx+'" cy="'+ty+'" r="4" fill="#1a5e3a" stroke="#060e1f" stroke-width="1"/>';
-    svg += '<text x="'+(tx+6)+'" y="'+(ty+3)+'" fill="#1a5e3a" font-size="6" font-family="DM Mono,monospace" opacity="0.8">START</text>';
-    // Interactive segment: Trinidad to stop 1
-    var s1 = STOPS[0];
-    if(s1 && s1.lat) {
-      var sx2=toX(s1.lng), sy2=toY(s1.lat);
-      var smx=(tx+sx2)/2, smy=(ty+sy2)/2;
-      svg += '<g class="seg" onmouseover="this.classList.add(\'seg-hover\')" onmouseout="this.classList.remove(\'seg-hover\')">';
-      svg += '<line x1="'+tx+'" y1="'+ty+'" x2="'+sx2+'" y2="'+sy2+'" stroke="transparent" stroke-width="18" style="cursor:pointer"/>';
-      svg += '<line class="seg-line" x1="'+tx+'" y1="'+ty+'" x2="'+sx2+'" y2="'+sy2+'" stroke="'+LEG_INFO[1].color+'" stroke-width="2.5" opacity="0.7" style="pointer-events:none"/>';
-      svg += '<g class="seg-label" style="pointer-events:none">';
-      svg += '<rect x="'+(smx-22)+'" y="'+(smy-7)+'" width="44" height="14" rx="3" fill="#111827" opacity="0.85"/>';
-      svg += '<text x="'+smx+'" y="'+(smy+3)+'" fill="#9ca3af" font-size="6" text-anchor="middle" font-family="DM Mono,monospace">85NM ~13h</text>';
-      svg += '</g>';
-      svg += '</g>';
-    }
+function addRouteSegment(from, to, color, dashed, label, info, layerGroup) {
+  var line = L.polyline([from, to], {
+    color: color, weight: dashed ? 2 : 3, opacity: 0.7,
+    dashArray: dashed ? '8,5' : null
+  });
+  if (info && info.nm > 0) {
+    var hrsWhole = Math.floor(info.hrs);
+    var minsRem = Math.round((info.hrs - hrsWhole) * 60);
+    line.bindTooltip(
+      '<div style="text-align:center;font-family:DM Mono,monospace">' +
+      '<div style="font-size:11px;color:#94a3b8;margin-bottom:4px">' + escHtml(info.from) + ' &rarr; ' + escHtml(info.to) + '</div>' +
+      '<div style="font-size:22px;font-weight:900;color:#0ea5e9">' + info.nm + ' NM</div>' +
+      '<div style="font-size:14px;font-weight:700;color:#f59e0b">' + hrsWhole + 'h ' + minsRem + 'm at 6.5kts</div>' +
+      '</div>',
+      {sticky: true, direction: 'top', offset: [0, -10]}
+    );
   }
-
-  // Routes as individual hoverable segments
-  visLegs.forEach(function(legNum){
-    var ls = STOPS.filter(function(s){return s.leg===legNum&&s.lat;});
-    if(ls.length<2) return;
-    var legColor = LEG_INFO[legNum].color;
-    var isDash = legNum===3;
-    var sw = isDash ? '1.5' : '2.5';
-
-    for(var i=0;i<ls.length-1;i++){
-      var a=ls[i], b=ls[i+1];
-      var ax=toX(a.lng),ay=toY(a.lat),bx=toX(b.lng),by=toY(b.lat);
-      var mx=(ax+bx)/2, my=(ay+by)/2;
-      var nmVal = b.nm ? parseInt(b.nm.replace('~','')) : 0;
-      var hrs = nmVal > 0 ? Math.round(nmVal/6.5) : 0;
-      var showLabel = nmVal >= 8 || mapZoom.name !== 'full';
-      var label = nmVal > 0 ? nmVal+'NM ~'+hrs+'h' : '';
-
-      svg += '<g class="seg" onmouseover="this.classList.add(\'seg-hover\')" onmouseout="this.classList.remove(\'seg-hover\')">';
-      // Invisible fat hit area
-      svg += '<line x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="transparent" stroke-width="18" style="cursor:pointer"/>';
-      // Visible route line
-      svg += '<line class="seg-line" x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="'+legColor+'" stroke-width="'+sw+'" stroke-dasharray="'+(isDash?'6,4':'')+'" opacity="0.6" style="pointer-events:none"/>';
-      // Distance label
-      if(label && showLabel) {
-        var lw = label.length*4.5+10;
-        svg += '<g class="seg-label" style="pointer-events:none">';
-        svg += '<rect x="'+(mx-lw/2)+'" y="'+(my-7)+'" width="'+lw+'" height="14" rx="3" fill="#111827" opacity="0.8"/>';
-        svg += '<text x="'+mx+'" y="'+(my+2)+'" fill="#6b7280" font-size="5.5" text-anchor="middle" font-family="DM Mono,monospace">'+label+'</text>';
-        svg += '</g>';
-      }
-      // Hidden large hover label (shown only on hover)
-      if(label) {
-        var hlw = label.length*7+16;
-        svg += '<g class="seg-label-hover" style="pointer-events:none;opacity:0">';
-        svg += '<rect x="'+(mx-hlw/2)+'" y="'+(my-12)+'" width="'+hlw+'" height="24" rx="5" fill="#111827" stroke="'+legColor+'" stroke-width="1.5" filter="drop-shadow(0 2px 8px rgba(0,0,0,0.6))"/>';
-        svg += '<text x="'+mx+'" y="'+(my+4)+'" fill="#f9fafb" font-size="9" font-weight="700" text-anchor="middle" font-family="DM Mono,monospace">⛵ '+label+'</text>';
-        svg += '</g>';
-      }
-      svg += '</g>';
-    }
-  });
-
-  // Connectors (phase transitions) — also interactive
-  var connectors = [];
-  if(visLegs.indexOf(1)>-1 && visLegs.indexOf(2)>-1){
-    var e1=STOPS.filter(function(s){return s.leg===1&&s.lat;});e1=e1[e1.length-1];
-    var s2=STOPS.filter(function(s){return s.leg===2&&s.lat;})[0];
-    if(e1&&s2) connectors.push({a:e1,b:s2,color:LEG_INFO[2].color,nm:30,label:'Phase transition'});
-  }
-  if(visLegs.indexOf(2)>-1 && visLegs.indexOf(3)>-1){
-    var e2=STOPS.filter(function(s){return s.leg===2&&s.lat;});e2=e2[e2.length-1];
-    var s3=STOPS.filter(function(s){return s.leg===3&&s.lat;})[0];
-    if(e2&&s3) connectors.push({a:e2,b:s3,color:LEG_INFO[3].color,nm:0,label:'Phase transition'});
-  }
-  connectors.forEach(function(c){
-    var ax=toX(c.a.lng),ay=toY(c.a.lat),bx=toX(c.b.lng),by=toY(c.b.lat);
-    svg += '<g class="seg" onmouseover="this.classList.add(\'seg-hover\')" onmouseout="this.classList.remove(\'seg-hover\')">';
-    svg += '<line x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="transparent" stroke-width="18" style="cursor:pointer"/>';
-    svg += '<line class="seg-line" x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="'+c.color+'" stroke-width="2" stroke-dasharray="6,4" opacity="0.6" style="pointer-events:none"/>';
-    svg += '</g>';
-  });
-
-  // Stop markers — store positions for HTML hover overlay
-  var markerPositions = [];
-  STOPS.filter(function(s){return s.lat&&visLegs.indexOf(s.leg)>-1;}).forEach(function(s){
-    var x=toX(s.lng),y=toY(s.lat),color=getPhaseColor(s.phase),r=s.natureAwe===5?9:6;
-    var ox=0,oy=0;
-    if(s.id===28){ox=14;oy=-12;}
-    var fx=x+ox, fy=y+oy;
-    // Shelter indicator color
-    var sh=SHELTER[s.id]||'good';
-    var shStroke=sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
-    // Transcendent glow
-    if(s.natureAwe===5){
-      svg += '<circle cx="'+fx+'" cy="'+fy+'" r="'+(r+6)+'" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.3"><animate attributeName="r" values="'+(r+4)+';'+(r+8)+';'+(r+4)+'" dur="3s" repeatCount="indefinite"/></circle>';
-    }
-    // Shelter ring (outer)
-    svg += '<circle cx="'+fx+'" cy="'+fy+'" r="'+(r+2)+'" fill="none" stroke="'+shStroke+'" stroke-width="1.5" opacity="0.6"/>';
-    // Main marker
-    svg += '<circle cx="'+fx+'" cy="'+fy+'" r="'+r+'" fill="'+color+'" stroke="#060e1f" stroke-width="2" style="cursor:pointer" onclick="openPhotoModal('+s.id+')" onmouseover="showMapTip('+s.id+',event)" onmouseout="hideMapTip()"/>';
-    svg += '<text x="'+fx+'" y="'+(fy+3.5)+'" fill="#fff" font-size="'+(r>7?'9':'8')+'" text-anchor="middle" font-family="DM Mono,monospace" font-weight="700" style="pointer-events:none">'+s.id+'</text>';
-    // Fuel icon for stops with fuel docks
-    if(SERVICES[s.id] && SERVICES[s.id].fuel==='dock') {
-      svg += '<text x="'+(fx+r+4)+'" y="'+(fy-r)+'" font-size="7" style="pointer-events:none">⛽</text>';
-    }
-    markerPositions.push({id:s.id,x:fx,y:fy});
-  });
-  window._markerPositions = markerPositions;
-
-  svg += '<text x="'+(W/2)+'" y="16" fill="#1e4a7a" font-size="8" text-anchor="middle" font-family="DM Mono,monospace" letter-spacing="0.15em">BLUE MOON — THE GRAND CARIBBEAN VOYAGE</text>';
-
-  // === TOP LAYER: All hover targets drawn last so they're above everything ===
-  // Trinidad → Stop 1
-  if(visLegs.indexOf(1)>-1) {
-    var s1=STOPS[0];
-    if(s1&&s1.lat) {
-      var tx=toX(TRINIDAD_START.lng),ty=toY(TRINIDAD_START.lat);
-      svg += '<line x1="'+tx+'" y1="'+ty+'" x2="'+toX(s1.lng)+'" y2="'+toY(s1.lat)+'" stroke="transparent" stroke-width="20" style="cursor:pointer" onmouseover="showRouteTip(0,1,107,16.5,event)" onmouseout="hideRouteTip()"/>';
-      var mx=(tx+toX(s1.lng))/2, my=(ty+toY(s1.lat))/2;
-      svg += '<circle cx="'+mx+'" cy="'+my+'" r="2.5" fill="'+LEG_INFO[1].color+'" opacity="0.5"/>';
-    }
-  }
-  // All route segments
-  visLegs.forEach(function(legNum){
-    var ls=STOPS.filter(function(s){return s.leg===legNum&&s.lat;});
-    for(var i=0;i<ls.length-1;i++){
-      var a=ls[i],b=ls[i+1];
-      var nmVal=parseInt((b.nm||'0').replace('~',''));
-      if(nmVal>0){
-        var hrs=(nmVal/6.5).toFixed(1);
-        svg += '<line x1="'+toX(a.lng)+'" y1="'+toY(a.lat)+'" x2="'+toX(b.lng)+'" y2="'+toY(b.lat)+'" stroke="transparent" stroke-width="20" style="cursor:pointer" onmouseover="showRouteTip('+a.id+','+b.id+','+nmVal+','+hrs+',event)" onmouseout="hideRouteTip()"/>';
-        var mx=(toX(a.lng)+toX(b.lng))/2,my=(toY(a.lat)+toY(b.lat))/2;
-        svg += '<circle cx="'+mx+'" cy="'+my+'" r="2.5" fill="'+LEG_INFO[legNum].color+'" opacity="0.5"/>';
-      }
-    }
-  });
-
-
-  // === TOPMOST LAYER: Stop marker click zones (above route hover targets) ===
-  STOPS.filter(function(s){return s.lat&&visLegs.indexOf(s.leg)>-1;}).forEach(function(s){
-    var x=toX(s.lng),y=toY(s.lat);
-    var ox=0,oy=0;
-    if(s.id===28){ox=14;oy=-12;}
-    // Large invisible click target circle
-    svg += '<circle cx="'+(x+ox)+'" cy="'+(y+oy)+'" r="14" fill="transparent" style="cursor:pointer" onclick="openPhotoModal('+s.id+')" onmouseover="showMapTip('+s.id+',event)" onmouseout="hideMapTip()"/>';
-  });
-
-  svg += '</svg>';
-  document.getElementById('mapContainer').innerHTML = svg;
-  // Add mousemove tracker for smooth tooltip positioning
-  var svgEl = document.getElementById('mapContainer').querySelector('svg');
-  if(svgEl) {
-    svgEl.addEventListener('mousemove', function(e) {
-      var tip = document.getElementById('mapTip');
-      if(tip.style.display === 'block') {
-        var mx=e.clientX, my=e.clientY;
-        var tw=320, th=tip.offsetHeight;
-        var left=mx+16, top=my-th/2;
-        if(left+tw>window.innerWidth-10) left=mx-tw-16;
-        if(top<10) top=10;
-        if(top+th>window.innerHeight-10) top=window.innerHeight-th-10;
-        tip.style.left=left+'px';
-        tip.style.top=top+'px';
-      }
+  layerGroup.addLayer(line);
+  if (label) {
+    var midLat = (from[0] + to[0]) / 2;
+    var midLng = (from[1] + to[1]) / 2;
+    var distMarker = L.marker([midLat, midLng], {
+      icon: L.divIcon({ className: '', html: '<div class="dist-label">' + label + '</div>', iconSize: [0, 0], iconAnchor: [0, 0] }),
+      interactive: false
     });
+    distLabelGroup.addLayer(distMarker);
   }
+}
+
+function buildStopTooltipHtml(s) {
+  var color = getPhaseColor(s.phase);
+  var sh = SHELTER[s.id]||'good';
+  var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
+  var shText = sh==='good'?'Good shelter':sh==='moderate'?'Moderate':'Exposed!';
+  var shIcon = sh==='good'?'🛡️':sh==='moderate'?'⚠️':'🔴';
+  var naweLbl = ["","Skip","Pleasant","Beautiful","Stunning","TRANSCENDENT"][s.natureAwe];
+  var naweClr = ["","#6b7280","#22c55e","#3b82f6","#a855f7","#f59e0b"][s.natureAwe];
+  var h = '';
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+  h += '<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0" class="mono">'+s.id+'</div>';
+  h += '<div><div class="serif" style="font-size:14px;font-weight:700;color:#f9fafb;line-height:1.2">'+escHtml(s.name)+'</div>';
+  h += '<div class="mono" style="font-size:9px;color:'+color+'">'+escHtml(s.island)+'</div></div>';
+  h += '</div>';
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+  h += '<span class="mono" style="font-size:9px;color:#9ca3af;background:#1f2937;padding:2px 6px;border-radius:4px">'+escHtml(s.days)+'</span>';
+  h += '<span class="mono" style="font-size:9px;color:#e2e8f0;background:#1f2937;padding:2px 6px;border-radius:4px;font-weight:700">'+s.dayCount+' '+(s.dayCount===1?'day':'days')+'</span>';
+  if(s.nm&&s.nm!=='—') h += '<span class="mono" style="font-size:9px;color:#9ca3af;background:#1f2937;padding:2px 6px;border-radius:4px">'+escHtml(s.nm)+' NM</span>';
+  h += '<span class="mono" style="font-size:9px;color:'+shColor+';background:#1f2937;padding:2px 6px;border-radius:4px;font-weight:700">'+shIcon+' '+shText+'</span>';
+  h += '</div>';
+  h += '<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">';
+  for(var i=1;i<=5;i++) h += '<div style="width:6px;height:14px;border-radius:2px;background:'+(i<=s.natureAwe?naweClr:'#1f2937')+'"></div>';
+  h += '<span class="mono" style="font-size:9px;font-weight:700;color:'+naweClr+';text-transform:uppercase">'+naweLbl+'</span>';
+  h += '</div>';
+  h += '<div style="font-size:11px;color:#d1d5db;line-height:1.4;border-left:2px solid '+color+';padding-left:8px">'+escHtml(s.highlight)+'</div>';
+  var svc = SERVICES[s.id];
+  if(svc) {
+    var si = [];
+    if(svc.fuel==='dock') si.push('<span style="color:#22c55e">⛽Fuel</span>');
+    else if(svc.fuel==='jerry') si.push('<span style="color:#f59e0b">⛽Jerry</span>');
+    if(svc.water==='dock') si.push('<span style="color:#22c55e">💧Water</span>');
+    else if(svc.water==='jerry') si.push('<span style="color:#f59e0b">💧Jerry</span>');
+    if(svc.provision) si.push('<span style="color:#22c55e">🛒Shops</span>');
+    if(svc.gas) si.push('<span style="color:#22c55e">🔥LPG</span>');
+    if(si.length) h += '<div class="mono" style="font-size:9px;margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+si.join('')+'</div>';
+    else h += '<div class="mono" style="font-size:9px;margin-top:5px;color:#ef4444">⚠️ No services — carry reserves</div>';
+  }
+  if(s.clearance.action!=='NONE') {
+    var ac=s.clearance.action.includes("IN")&&s.clearance.action.includes("OUT")?"#fbbf24":s.clearance.action.includes("IN")?"#4ade80":"#f87171";
+    h += '<div style="margin-top:6px"><span class="mono" style="font-size:8px;font-weight:700;color:'+ac+';background:'+ac+'15;padding:2px 6px;border-radius:3px">🛂 '+escHtml(s.clearance.action)+' · '+escHtml(s.clearance.system)+'</span></div>';
+  }
+  h += '<div class="mono" style="font-size:8px;color:#4b5563;margin-top:6px;text-align:center">Click for photos & full details</div>';
+  return h;
+}
+
+function addStopMarker(s) {
+  var color = getPhaseColor(s.phase);
+  var isTranscendent = s.natureAwe === 5;
+  var size = isTranscendent ? 32 : 24;
+  var sh = SHELTER[s.id] || 'good';
+  var shColor = sh==='good' ? '#22c55e' : sh==='moderate' ? '#f59e0b' : '#ef4444';
+  var ringSize = size + 8;
+  var totalSize = ringSize + 12;
+  var html = '<div style="position:relative;width:'+totalSize+'px;height:'+totalSize+'px;display:flex;align-items:center;justify-content:center">';
+  if (isTranscendent) html += '<div class="stop-glow"></div>';
+  html += '<div class="stop-shelter-ring" style="width:'+ringSize+'px;height:'+ringSize+'px;border-color:'+shColor+'"></div>';
+  html += '<div class="stop-marker '+(isTranscendent?'stop-marker-lg':'stop-marker-sm')+'" style="background:'+color+'">'+s.id+'</div>';
+  if (SERVICES[s.id] && SERVICES[s.id].fuel==='dock') {
+    html += '<span style="position:absolute;top:0;right:0;font-size:9px;pointer-events:none">⛽</span>';
+  }
+  html += '</div>';
+  var marker = L.marker([s.lat, s.lng], {
+    icon: L.divIcon({ className: '', html: html, iconSize: [totalSize, totalSize], iconAnchor: [totalSize/2, totalSize/2] }),
+    zIndexOffset: isTranscendent ? 1000 : 500
+  });
+  marker.on('click', function() { openPhotoModal(s.id); });
+  marker.bindTooltip(buildStopTooltipHtml(s), {
+    direction: 'right', offset: [20, 0], maxWidth: 320
+  });
+  phaseLayerGroups[s.leg].addLayer(marker);
+}
+
+function buildMapLayers() {
+  [1,2,3].forEach(function(leg) { phaseLayerGroups[leg].clearLayers(); });
+  distLabelGroup.clearLayers();
+
+  // Trinidad start marker
+  var trinMarker = L.circleMarker([TRINIDAD_START.lat, TRINIDAD_START.lng], {
+    radius: 5, fillColor: '#1a5e3a', fillOpacity: 1, color: '#060e1f', weight: 1
+  }).bindTooltip('START', {permanent: true, direction: 'right', className: 'dist-label', offset: [8, 0]});
+  phaseLayerGroups[1].addLayer(trinMarker);
+
+  // Trinidad → Stop 1
+  var s1 = STOPS[0];
+  if (s1 && s1.lat) {
+    addRouteSegment(
+      [TRINIDAD_START.lat, TRINIDAD_START.lng], [s1.lat, s1.lng],
+      LEG_INFO[1].color, false, '107NM ~16h',
+      {from: 'Chaguaramas, Trinidad', to: s1.name, nm: 107, hrs: 16.5},
+      phaseLayerGroups[1]
+    );
+  }
+
+  // Route segments per phase
+  [1,2,3].forEach(function(legNum) {
+    var ls = STOPS.filter(function(s) { return s.leg === legNum && s.lat; });
+    var isDash = legNum === 3;
+    var legColor = LEG_INFO[legNum].color;
+    for (var i = 0; i < ls.length - 1; i++) {
+      var a = ls[i], b = ls[i+1];
+      var nmVal = b.nm ? parseInt(b.nm.replace('~','')) : 0;
+      var hrs = nmVal > 0 ? nmVal / 6.5 : 0;
+      var label = nmVal > 0 ? nmVal + 'NM ~' + Math.round(hrs) + 'h' : '';
+      addRouteSegment(
+        [a.lat, a.lng], [b.lat, b.lng],
+        legColor, isDash, label,
+        {from: a.name, to: b.name, nm: nmVal, hrs: hrs},
+        phaseLayerGroups[legNum]
+      );
+    }
+  });
+
+  // Phase connectors
+  var e1 = STOPS.filter(function(s){return s.leg===1&&s.lat;}); e1 = e1[e1.length-1];
+  var s2 = STOPS.filter(function(s){return s.leg===2&&s.lat;})[0];
+  if (e1 && s2) {
+    var conn1 = L.polyline([[e1.lat,e1.lng],[s2.lat,s2.lng]], {
+      color: LEG_INFO[2].color, weight: 2, opacity: 0.6, dashArray: '8,5'
+    });
+    phaseLayerGroups[2].addLayer(conn1);
+  }
+  var e2 = STOPS.filter(function(s){return s.leg===2&&s.lat;}); e2 = e2[e2.length-1];
+  var s3 = STOPS.filter(function(s){return s.leg===3&&s.lat;})[0];
+  if (e2 && s3) {
+    var conn2 = L.polyline([[e2.lat,e2.lng],[s3.lat,s3.lng]], {
+      color: LEG_INFO[3].color, weight: 2, opacity: 0.6, dashArray: '8,5'
+    });
+    phaseLayerGroups[3].addLayer(conn2);
+  }
+
+  // Stop markers (on top)
+  STOPS.filter(function(s) { return s.lat; }).forEach(function(s) {
+    addStopMarker(s);
+  });
 }
 
 function renderMapControls() {
@@ -764,8 +729,11 @@ function renderMapControls() {
 
 function toggleLeg(leg) {
   legFilter[leg] = !legFilter[leg];
+  if (leafletMap) {
+    if (legFilter[leg]) leafletMap.addLayer(phaseLayerGroups[leg]);
+    else leafletMap.removeLayer(phaseLayerGroups[leg]);
+  }
   renderMapControls();
-  renderMap();
 }
 
 function mapClick(id) {
@@ -791,7 +759,8 @@ function showView(view) {
     document.getElementById('qrefSection').classList.add('hidden');
     document.getElementById('hurricaneSection').classList.add('hidden');
     renderMapControls();
-    renderMap();
+    if (!leafletMap) { initLeafletMap(); }
+    else { setTimeout(function(){ leafletMap.invalidateSize(); }, 50); }
   } else {
     document.getElementById('mapView').classList.add('hidden');
     document.getElementById('listView').classList.remove('hidden');
@@ -908,128 +877,6 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-
-function showMapTip(id, evt) {
-  var s = STOPS.find(function(st){return st.id===id;});
-  if(!s) return;
-  var tip = document.getElementById('mapTip');
-  var color = getPhaseColor(s.phase);
-  var sh = SHELTER[s.id]||'good';
-  var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
-  var shText = sh==='good'?'Good shelter':sh==='moderate'?'Moderate':' Exposed!';
-  var shIcon = sh==='good'?'🛡️':sh==='moderate'?'⚠️':'🔴';
-  var naweLbl = ["","Skip","Pleasant","Beautiful","Stunning","TRANSCENDENT"][s.natureAwe];
-  var naweClr = ["","#6b7280","#22c55e","#3b82f6","#a855f7","#f59e0b"][s.natureAwe];
-
-  var h = '';
-  // Header
-  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
-  h += '<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0" class="mono">'+s.id+'</div>';
-  h += '<div><div class="serif" style="font-size:14px;font-weight:700;color:#f9fafb;line-height:1.2">'+escHtml(s.name)+'</div>';
-  h += '<div class="mono" style="font-size:9px;color:'+color+'">'+escHtml(s.island)+'</div></div>';
-  h += '</div>';
-  // Stats row
-  h += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
-  h += '<span class="mono" style="font-size:9px;color:#9ca3af;background:#1f2937;padding:2px 6px;border-radius:4px">'+escHtml(s.days)+'</span>';
-  h += '<span class="mono" style="font-size:9px;color:#e2e8f0;background:#1f2937;padding:2px 6px;border-radius:4px;font-weight:700">'+s.dayCount+' '+(s.dayCount===1?'day':'days')+'</span>';
-  if(s.nm&&s.nm!=='—') h += '<span class="mono" style="font-size:9px;color:#9ca3af;background:#1f2937;padding:2px 6px;border-radius:4px">'+escHtml(s.nm)+' NM</span>';
-  h += '<span class="mono" style="font-size:9px;color:'+shColor+';background:#1f2937;padding:2px 6px;border-radius:4px;font-weight:700">'+shIcon+' '+shText+'</span>';
-  h += '</div>';
-  // Nature rating
-  h += '<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">';
-  for(var i=1;i<=5;i++) h += '<div style="width:6px;height:14px;border-radius:2px;background:'+(i<=s.natureAwe?naweClr:'#1f2937')+'"></div>';
-  h += '<span class="mono" style="font-size:9px;font-weight:700;color:'+naweClr+';text-transform:uppercase">'+naweLbl+'</span>';
-  h += '</div>';
-  // Highlight
-  h += '<div style="font-size:11px;color:#d1d5db;line-height:1.4;border-left:2px solid '+color+';padding-left:8px">'+escHtml(s.highlight)+'</div>';
-  // Services
-  var svc = SERVICES[s.id];
-  if(svc) {
-    var si = [];
-    if(svc.fuel==='dock') si.push('<span style="color:#22c55e">⛽Fuel</span>');
-    else if(svc.fuel==='jerry') si.push('<span style="color:#f59e0b">⛽Jerry</span>');
-    if(svc.water==='dock') si.push('<span style="color:#22c55e">💧Water</span>');
-    else if(svc.water==='jerry') si.push('<span style="color:#f59e0b">💧Jerry</span>');
-    if(svc.provision) si.push('<span style="color:#22c55e">🛒Shops</span>');
-    if(svc.gas) si.push('<span style="color:#22c55e">🔥LPG</span>');
-    if(si.length) h += '<div class="mono" style="font-size:9px;margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">'+si.join('')+'</div>';
-    else h += '<div class="mono" style="font-size:9px;margin-top:5px;color:#ef4444">⚠️ No services — carry reserves</div>';
-  }
-  // Clearance pill
-  if(s.clearance.action!=='NONE') {
-    var ac=s.clearance.action.includes("IN")&&s.clearance.action.includes("OUT")?"#fbbf24":s.clearance.action.includes("IN")?"#4ade80":"#f87171";
-    h += '<div style="margin-top:6px"><span class="mono" style="font-size:8px;font-weight:700;color:'+ac+';background:'+ac+'15;padding:2px 6px;border-radius:3px">🛂 '+escHtml(s.clearance.action)+' · '+escHtml(s.clearance.system)+'</span></div>';
-  }
-  // Click hint
-  h += '<div class="mono" style="font-size:8px;color:#4b5563;margin-top:6px;text-align:center">Click for satellite photos & full details</div>';
-
-  tip.innerHTML = h;
-  tip.style.display = 'block';
-  
-  // Position tooltip near cursor but keep on screen
-  var mx = evt.clientX, my = evt.clientY;
-  var tw = 320, th = tip.offsetHeight;
-  var left = mx + 16;
-  var top = my - th/2;
-  if(left + tw > window.innerWidth - 10) left = mx - tw - 16;
-  if(top < 10) top = 10;
-  if(top + th > window.innerHeight - 10) top = window.innerHeight - th - 10;
-  tip.style.left = left + 'px';
-  tip.style.top = top + 'px';
-}
-
-function hideMapTip() {
-  document.getElementById('mapTip').style.display = 'none';
-}
-
-
-function showRouteTip(fromId, toId, nm, hrs, evt) {
-  var tip = document.getElementById('mapTip');
-  var fromStop = fromId === 0 ? {name:'Chaguaramas, Trinidad',id:0} : STOPS.find(function(s){return s.id===fromId;});
-  var toStop = STOPS.find(function(s){return s.id===toId;});
-  if(!toStop) return;
-  
-  var hrsNum = parseFloat(hrs);
-  var hrsWhole = Math.floor(hrsNum);
-  var minsRem = Math.round((hrsNum - hrsWhole) * 60);
-  var timeStr = hrsWhole + 'h ' + minsRem + 'm';
-  
-  var h = '';
-  h += '<div style="text-align:center">';
-  // From → To
-  h += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">';
-  h += '<span class="mono" style="font-size:12px;color:#94a3b8;font-weight:600">'+escHtml(fromStop.name)+'</span>';
-  h += '<span style="font-size:16px">⛵</span>';
-  h += '<span class="mono" style="font-size:12px;color:#f9fafb;font-weight:600">'+escHtml(toStop.name)+'</span>';
-  h += '</div>';
-  // Big numbers
-  h += '<div style="display:flex;justify-content:center;gap:24px;margin-bottom:8px">';
-  h += '<div><div class="mono" style="font-size:28px;font-weight:900;color:#0ea5e9;line-height:1">'+nm+'</div><div class="mono" style="font-size:10px;color:#6b7280;margin-top:2px">NAUTICAL MILES</div></div>';
-  h += '<div><div class="mono" style="font-size:28px;font-weight:900;color:#f59e0b;line-height:1">'+timeStr+'</div><div class="mono" style="font-size:10px;color:#6b7280;margin-top:2px">AT 6.5 KNOTS</div></div>';
-  h += '</div>';
-  // Context
-  h += '<div class="mono" style="font-size:8px;color:#4b5563">Blue Moon cruising speed estimate</div>';
-  h += '</div>';
-  
-  tip.innerHTML = h;
-  tip.style.display = 'block';
-  tip.style.maxWidth = '380px';
-  
-  var mx=evt.clientX, my=evt.clientY;
-  var tw=380, th=tip.offsetHeight;
-  var left=mx+16, top=my-th/2;
-  if(left+tw>window.innerWidth-10) left=mx-tw-16;
-  if(top<10) top=10;
-  if(top+th>window.innerHeight-10) top=window.innerHeight-th-10;
-  tip.style.left=left+'px';
-  tip.style.top=top+'px';
-}
-
-function hideRouteTip() {
-  var tip = document.getElementById('mapTip');
-  tip.style.display = 'none';
-  tip.style.maxWidth = '320px';
-}
 
 // === INIT ===
 renderQref();
