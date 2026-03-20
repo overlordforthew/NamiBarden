@@ -6,7 +6,7 @@
 <title>Blue Moon — The Grand Caribbean Voyage</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#030712;color:#f9fafb;font-family:'Inter',-apple-system,sans-serif;min-height:100vh}.mono{font-family:'DM Mono',monospace}.serif{font-family:'Playfair Display',Georgia,serif}.header{background:linear-gradient(180deg,#0c1e3a,#030712);padding:28px 16px 20px;text-align:center}.header h1{font-size:clamp(22px,5vw,34px);font-weight:900;background:linear-gradient(135deg,#f9fafb,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 4px}.stats{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:16px}.stat-val{font-size:16px;font-weight:700;color:#e2e8f0}.stat-lbl{font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em}.tabs{display:flex;border-bottom:1px solid #1f2937;overflow-x:auto}.tab{flex:1 0 auto;padding:8px 12px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;background:transparent;color:#6b7280;border:none;border-bottom:2px solid transparent}.tab.active{background:#1e293b;color:#f9fafb}.tab-map{border-right:1px solid #1f2937;font-weight:700}.leg-bar{padding:8px 14px;border-bottom:1px solid #1f2937;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.content{padding:10px 10px 30px;max-width:800px;margin:0 auto}.card{background:#111827;border-radius:10px;border:1px solid #1f2937;overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}.card.expanded{border-color:var(--phase-color)}.card-header{padding:10px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;user-select:none}.card-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.card-name{font-size:15px;font-weight:700;color:#f9fafb}.card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:10px;color:#6b7280}.card-island{font-weight:600}.day-pill{background:#1f2937;padding:0 4px;border-radius:3px}.awe-bar{display:flex;gap:1px}.awe-bar div{width:6px;height:16px;border-radius:2px}.awe-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}.pill{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block}.arrow{font-size:14px;color:#4b5563;transition:transform 0.2s;margin-top:4px}.card.expanded .arrow{transform:rotate(180deg)}.card-body{padding:0 12px 14px 50px;display:flex;flex-direction:column;gap:10px;display:none}.card.expanded .card-body{display:flex}.box{border-radius:6px;padding:10px 12px}.box-clearance{background:#0f172a;border:1px solid #1e293b}.box-nature{border-left:3px solid var(--phase-color)}.box-hurricane{background:rgba(127,29,29,0.08);border:1px solid rgba(127,29,29,0.2)}.box-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}.box-detail{font-size:12px;line-height:1.7;white-space:pre-line}.map-btn{font-size:12px;color:#6b7280;text-decoration:none;display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;background:#1e293b}.map-btn:hover{background:#374151}.map-controls{display:flex;gap:14px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;padding:10px}.map-controls label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px}.map-controls input{width:14px;height:14px;cursor:pointer}.map-legend{display:flex;gap:10px;justify-content:center;margin-bottom:6px;font-size:8px;color:#6b7280}.footer-section{padding:14px;max-width:800px;margin:0 auto;border-top:1px solid #1f2937}.qref-row{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;line-height:2}.hidden{display:none}#photoModal img{transition:opacity 0.3s}#photoModal img[src]{opacity:1}.leaflet-container{background:#091428}.leaflet-control-zoom a{background:#1e293b;color:#f9fafb;border-color:#374151}.leaflet-control-zoom a:hover{background:#374151}.leaflet-control-attribution{background:rgba(3,7,18,0.7)!important;color:#4b5563!important}.leaflet-control-attribution a{color:#6b7280!important}.leaflet-popup-content-wrapper{background:#111827;color:#f9fafb;border:1px solid #374151;border-radius:10px}.leaflet-popup-tip{background:#111827}.leaflet-popup-close-button{color:#6b7280!important}.leaflet-tooltip{background:#111827;color:#f9fafb;border:1px solid #374151;border-radius:8px;padding:10px;box-shadow:0 8px 32px rgba(0,0,0,0.7)}.leaflet-tooltip-top:before{border-top-color:#374151}.leaflet-tooltip-bottom:before{border-bottom-color:#374151}.leaflet-tooltip-left:before{border-left-color:#374151}.leaflet-tooltip-right:before{border-right-color:#374151}.stop-marker{display:flex;align-items:center;justify-content:center;border-radius:50%;font-family:'DM Mono',monospace;font-weight:700;color:#fff;border:2px solid #060e1f;cursor:pointer;position:relative;z-index:2}.stop-marker-sm{width:24px;height:24px;font-size:10px}.stop-marker-lg{width:32px;height:32px;font-size:12px}.stop-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid #f59e0b;opacity:0.4;animation:glowPulse 3s ease-in-out infinite;pointer-events:none;width:40px;height:40px}@keyframes glowPulse{0%,100%{width:36px;height:36px;opacity:0.3}50%{width:44px;height:44px;opacity:0.5}}.stop-shelter-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid;opacity:0.6;pointer-events:none;z-index:1}.dist-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;background:#111827;border:1px solid #374151;border-radius:4px;padding:2px 6px;color:#9ca3af;white-space:nowrap;pointer-events:none}</style>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#030712;color:#f9fafb;font-family:'Inter',-apple-system,sans-serif;min-height:100vh}.mono{font-family:'DM Mono',monospace}.serif{font-family:'Playfair Display',Georgia,serif}.header{background:linear-gradient(180deg,#0c1e3a,#030712);padding:28px 16px 20px;text-align:center}.header h1{font-size:clamp(22px,5vw,34px);font-weight:900;background:linear-gradient(135deg,#f9fafb,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 4px}.stats{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:16px}.stat-val{font-size:16px;font-weight:700;color:#e2e8f0}.stat-lbl{font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em}.tabs{display:flex;border-bottom:1px solid #1f2937;overflow-x:auto}.tab{flex:1 0 auto;padding:8px 12px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;background:transparent;color:#6b7280;border:none;border-bottom:2px solid transparent}.tab.active{background:#1e293b;color:#f9fafb}.tab-map{border-right:1px solid #1f2937;font-weight:700}.leg-bar{padding:8px 14px;border-bottom:1px solid #1f2937;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.content{padding:10px 10px 30px;max-width:800px;margin:0 auto}.card{background:#111827;border-radius:10px;border:1px solid #1f2937;overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}.card.expanded{border-color:var(--phase-color)}.card-header{padding:10px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;user-select:none}.card-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;margin-top:2px}.card-name{font-size:15px;font-weight:700;color:#f9fafb}.card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;font-size:10px;color:#6b7280}.card-island{font-weight:600}.day-pill{background:#1f2937;padding:0 4px;border-radius:3px}.awe-bar{display:flex;gap:1px}.awe-bar div{width:6px;height:16px;border-radius:2px}.awe-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em}.pill{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block}.arrow{font-size:14px;color:#4b5563;transition:transform 0.2s;margin-top:4px}.card.expanded .arrow{transform:rotate(180deg)}.card-body{padding:0 12px 14px 50px;display:flex;flex-direction:column;gap:10px;display:none}.card.expanded .card-body{display:flex}.box{border-radius:6px;padding:10px 12px}.box-clearance{background:#0f172a;border:1px solid #1e293b}.box-nature{border-left:3px solid var(--phase-color)}.box-hurricane{background:rgba(127,29,29,0.08);border:1px solid rgba(127,29,29,0.2)}.box-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}.box-detail{font-size:12px;line-height:1.7;white-space:pre-line}.map-btn{font-size:12px;color:#6b7280;text-decoration:none;display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;background:#1e293b}.map-btn:hover{background:#374151}.map-controls{display:flex;gap:14px;justify-content:center;margin-bottom:8px;flex-wrap:wrap;padding:10px}.map-controls label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px}.map-controls input{width:14px;height:14px;cursor:pointer}.map-legend{display:flex;gap:10px;justify-content:center;margin-bottom:6px;font-size:8px;color:#6b7280}.footer-section{padding:14px;max-width:800px;margin:0 auto;border-top:1px solid #1f2937}.qref-row{display:flex;gap:6px;flex-wrap:wrap;font-size:10px;line-height:2}.hidden{display:none}#photoModal img{transition:opacity 0.3s}#photoModal img[src]{opacity:1}.leaflet-container{background:#091428}.leaflet-control-zoom a{background:#1e293b;color:#f9fafb;border-color:#374151}.leaflet-control-zoom a:hover{background:#374151}.leaflet-control-attribution{background:rgba(3,7,18,0.7)!important;color:#4b5563!important}.leaflet-control-attribution a{color:#6b7280!important}.leaflet-popup-content-wrapper{background:#111827;color:#f9fafb;border:1px solid #374151;border-radius:10px}.leaflet-popup-tip{background:#111827}.leaflet-popup-close-button{color:#6b7280!important}.leaflet-tooltip{background:#111827;color:#f9fafb;border:1px solid #374151;border-radius:8px;padding:10px;box-shadow:0 8px 32px rgba(0,0,0,0.7)}.leaflet-tooltip-top:before{border-top-color:#374151}.leaflet-tooltip-bottom:before{border-bottom-color:#374151}.leaflet-tooltip-left:before{border-left-color:#374151}.leaflet-tooltip-right:before{border-right-color:#374151}.stop-marker{display:flex;align-items:center;justify-content:center;border-radius:50%;font-family:'DM Mono',monospace;font-weight:700;color:#fff;border:2px solid #060e1f;cursor:pointer;position:relative;z-index:2}.stop-marker-sm{width:24px;height:24px;font-size:10px}.stop-marker-lg{width:32px;height:32px;font-size:12px}.stop-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid #f59e0b;opacity:0.4;animation:glowPulse 3s ease-in-out infinite;pointer-events:none;width:40px;height:40px}@keyframes glowPulse{0%,100%{width:36px;height:36px;opacity:0.3}50%{width:44px;height:44px;opacity:0.5}}.stop-shelter-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:1.5px solid;opacity:0.6;pointer-events:none;z-index:1}.dist-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;background:#111827;border:1px solid #374151;border-radius:4px;padding:2px 6px;color:#9ca3af;white-space:nowrap;pointer-events:none}.island-label{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:#3b82f6;text-shadow:0 0 4px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.7);white-space:nowrap;pointer-events:none;letter-spacing:0.05em}.country-label{font-family:'DM Mono',monospace;font-size:8px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;pointer-events:none;text-shadow:0 0 4px rgba(0,0,0,0.9)}</style>
 </head>
 <body>
 <!-- HEADER -->
@@ -79,14 +79,14 @@
 const STOPS = [
   // === PHASE 1 ===
   { id:1, leg:1, phase:"Launch", island:"Trinidad → Carriacou", name:"Tyrrel Bay, Carriacou",
-    days:"Mar 21-23", dayCount:3, nm:"~107", natureAwe:4, stayRec:"2-3 nights", lat:12.469, lng:-61.492,
+    days:"Mar 21-23", dayCount:3, nm:"~107", natureAwe:4, stayRec:"2-3 nights", lat:12.460, lng:-61.509,
     clearance:{ action:"OUT → IN", system:"Paper / SailClear", currency:"EC$",
       port:"Out: Chaguaramas (paper) · In: Carriacou Marine, Tyrrel Bay",
       detail:"TRINIDAD OUT: Clear out in person at Chaguaramas — Immigration + Customs. Paper forms (Trinidad does NOT use SailClear). Bring passports, ship papers, PLC form. Hours: Mon-Fri 8am-4pm. Clear out afternoon of Mar 20 — you have 4 hours to depart, so clear after 2pm for a 6pm departure.\n\nOVERNIGHT PASSAGE: 107NM, depart 6pm Mar 20, arrive ~10:30am Mar 21. Trade wind beam reach most of the way.\n\nGRENADA IN: Carriacou Marine customs office, SW side of Tyrrel Bay next to fuel dock. SailClear pre-arrival form 24hrs before. Mon-Fri 8am-4pm, Sat-Sun 9am-1:30pm. Fees: ~EC$75 (Blue Moon is 40-60ft). Fly Q flag until cleared.\n\nFUEL: SOL fuel dock at Carriacou Marine — diesel + gas. Fill up here after the overnight passage." },
     nature:"Protected bay surrounded by green hills. Carriacou is authentic Caribbean — boatbuilders in Windward, rum shops everywhere, zero cruise ships. Sandy Island is a 10-min dinghy ride for world-class snorkeling.", highlight:"Authentic Carriacou & Sandy Island reef" },
 
   { id:2, leg:1, phase:"Grenada", island:"Carriacou", name:"Sandy Island & Hillsborough",
-    days:"Mar 24-25", dayCount:2, nm:"~2", natureAwe:4, stayRec:"1-2 nights", lat:12.488, lng:-61.472,
+    days:"Mar 24-25", dayCount:2, nm:"~2", natureAwe:4, stayRec:"1-2 nights", lat:12.483, lng:-61.456,
     clearance:{ action:"OUT", system:"SailClear", currency:"EC$",
       port:"Out: Tyrrel Bay customs (at Carriacou Marine)",
       detail:"GRENADA OUT: Same customs office at Carriacou Marine where you cleared in. Submit SailClear departure form. Fees: ~EC$25 departure tax. Mon-Fri 8am-4pm.\n\nIMPORTANT: Clear out of Grenada before entering SVG waters. The border is the channel between Carriacou and Union/Palm Island. Clear out morning of departure day.\n\nEXPLORE: Sandy Island (10 min dinghy), Hillsborough town (bus or taxi), Windward village for traditional boatbuilding, Paradise Beach." },
@@ -100,24 +100,24 @@ const STOPS = [
     nature:"Sweeping green crescent with almost no development. Still rebuilding post-Beryl. Real Caribbean.", highlight:"Secluded crescent bay" },
 
   { id:4, leg:1, phase:"S. Grenadines", island:"Tobago Cays", name:"Tobago Cays Marine Park",
-    days:"Mar 28 - Apr 1", dayCount:4, nm:"~8", natureAwe:5, stayRec:"4 nights ★", lat:12.627, lng:-61.357,
+    days:"Mar 28 - Apr 1", dayCount:4, nm:"~8", natureAwe:5, stayRec:"4 nights ★", lat:12.633, lng:-61.350,
     clearance:{ action:"NONE", system:"—", currency:"EC$",
       port:"Within SVG — Marine Park fees only",
       detail:"NO CLEARANCE NEEDED — within SVG.\n\nMARINE PARK FEES: EC$10/person/day + mooring EC$45/night. Rangers patrol daily in boats to collect — have EC$ cash ready. They'll give you a receipt.\n\nMOORING: Pick up a ball between Petit Rameau and Petit Bateau. Arrive early for best position. Don't anchor in the coral — use mooring balls only.\n\nNO GARBAGE DISPOSAL: Pack everything out." },
     nature:"Peak Caribbean. Five uninhabited islands inside horseshoe reef. Water so clear your anchor floats. Turtles glide beneath you. Milky Way blazes at night. The place that makes you go silent.", highlight:"Swimming with turtles in paradise" },
 
   { id:5, leg:1, phase:"S. Grenadines", island:"Mayreau", name:"Salt Whistle & Saline Bay",
-    days:"Apr 2-3", dayCount:2, nm:"~3", natureAwe:4, stayRec:"1-2 nights", lat:12.638, lng:-61.393,
+    days:"Apr 2-3", dayCount:2, nm:"~3", natureAwe:4, stayRec:"1-2 nights", lat:12.645, lng:-61.397,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"Within SVG", detail:"No clearance needed — within SVG." },
     nature:"Hourglass island with powder beaches both sides. Hilltop village gives 360° views. Mopion sandbar — a speck of sand with one umbrella in infinite blue.", highlight:"Mopion sandbar & hilltop panorama" },
 
   { id:6, leg:1, phase:"N. Grenadines", island:"Canouan", name:"Tamarind / Glossy Bay",
-    days:"Apr 4", dayCount:1, nm:"~8", natureAwe:4, stayRec:"1-2 nights", lat:12.717, lng:-61.338,
+    days:"Apr 4", dayCount:1, nm:"~8", natureAwe:4, stayRec:"1-2 nights", lat:12.699, lng:-61.338,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"Within SVG", detail:"No clearance needed — within SVG." },
     nature:"Caribbean's third-largest barrier reef. Immense reef visible breaking from anchorage. Blindingly white beaches against deep green hills.", highlight:"Barrier reef system" },
 
   { id:7, leg:1, phase:"N. Grenadines", island:"Baliceaux & Isle à Quatre", name:"Wild Uninhabited Islands",
-    days:"Apr 5-6", dayCount:2, nm:"~10", natureAwe:5, stayRec:"1-2 nights", lat:12.975, lng:-61.180,
+    days:"Apr 5-6", dayCount:2, nm:"~10", natureAwe:5, stayRec:"1-2 nights", lat:12.949, lng:-61.143,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"Within SVG", detail:"No clearance needed — within SVG. These islands are uninhabited with no facilities. Be completely self-sufficient." },
     nature:"Islands nobody goes to. 320 acres uninhabited volcanic wild: white sand, wild cattle, tortoises. Sacred Garifuna history. Isle à Quatre has caves, panoramic hiking. Untouched reef.", highlight:"Uninhabited islands — total solitude" },
 
@@ -128,67 +128,67 @@ const STOPS = [
     nature:"Charming maritime town, not a nature destination. Here for provisioning, laundry, cold beer.", highlight:"Provisioning hub" },
 
   { id:9, leg:1, phase:"Windwards", island:"St. Vincent", name:"Cumberland Bay / Byahaut",
-    days:"Apr 8-9", dayCount:2, nm:"~15", natureAwe:5, stayRec:"1-2 nights", lat:13.249, lng:-61.268,
+    days:"Apr 8-9", dayCount:2, nm:"~15", natureAwe:5, stayRec:"1-2 nights", lat:13.267, lng:-61.283,
     clearance:{ action:"OUT", system:"SailClear", currency:"EC$",
       port:"Out: Wallilabou or Cumberland customs",
       detail:"SVG OUT: Two options —\n\n1. WALLILABOU BAY: Customs office on the waterfront near the Pirates of the Caribbean set. Small office, straightforward process. SailClear departure form. Fees: ~EC$25 departure tax.\n\n2. CUMBERLAND BAY: Customs officer sometimes available — less reliable hours. Wallilabou is more certain.\n\nIMPORTANT: Once cleared out, you have 24 hours to physically exit SVG waters. Plan: Clear out in the morning, enjoy a final afternoon at anchor, depart at dawn for St. Lucia." },
     nature:"Jaw-dropping. Sheer volcanic cliffs in dense jungle plunge into Caribbean. Waterfalls off cliff faces. Byahaut's underwater cave and 100ft coral wall.", highlight:"Volcanic jungle coast & underwater cave" },
 
   { id:10, leg:1, phase:"Windwards", island:"St. Lucia", name:"Soufrière / The Pitons",
-    days:"Apr 10-13", dayCount:3, nm:"~40", natureAwe:5, stayRec:"3 nights ★", lat:13.800, lng:-61.070,
+    days:"Apr 10-13", dayCount:3, nm:"~40", natureAwe:5, stayRec:"3 nights ★", lat:13.856, lng:-61.057,
     clearance:{ action:"IN", system:"SailClear", currency:"EC$",
       port:"In: Soufrière customs (waterfront)",
       detail:"ST. LUCIA IN: Customs & Immigration on the Soufrière waterfront. Captain goes ashore with passports + SailClear ID + ship papers + insurance.\n\nFees: ~EC$20 customs + marine park fees for Pitons area moorings (~US$15/night from SMMA). Hours: Mon-Fri 8:30am-4:30pm.\n\nTIP: Clear in at Soufrière — it puts you right at the Pitons. If you clear at Rodney Bay instead, you'll waste a day sailing back south. SMMA (Soufrière Marine Management Area) manages moorings between the Pitons — anchoring is restricted to protect the reef." },
     nature:"Two volcanic spires 2,400ft from sea, draped in rainforest, protected reef at base. Anchoring between them at sunset is one of the most dramatic moments in Caribbean sailing.", highlight:"The Pitons — volcanic cathedrals" },
 
   { id:11, leg:1, phase:"Windwards", island:"St. Lucia", name:"Anse Cochon",
-    days:"Apr 14", dayCount:1, nm:"~8", natureAwe:4, stayRec:"1 night", lat:13.876, lng:-61.037,
+    days:"Apr 14", dayCount:1, nm:"~8", natureAwe:4, stayRec:"1 night", lat:13.917, lng:-61.067,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"Within St. Lucia", detail:"No clearance — within St. Lucia. SMMA mooring balls available (~US$15/night)." },
     nature:"Secluded bay with shipwreck and pristine coral gardens. Sea whips, gorgonians, brain coral. Volcanic rock swim-throughs.", highlight:"Coral gardens & shipwreck" },
 
   { id:12, leg:1, phase:"Windwards", island:"St. Lucia", name:"Rodney Bay",
-    days:"Apr 15", dayCount:1, nm:"~15", natureAwe:2, stayRec:"1 night", lat:14.074, lng:-60.953,
+    days:"Apr 15", dayCount:1, nm:"~15", natureAwe:2, stayRec:"1 night", lat:14.083, lng:-60.953,
     clearance:{ action:"OUT", system:"SailClear", currency:"EC$",
       port:"Out: Rodney Bay customs (at marina)",
       detail:"ST. LUCIA OUT: Customs at IGY Rodney Bay Marina. SailClear departure form. Fees: ~EC$20. Hours: Mon-Fri 8:30am-4:30pm.\n\nThis is a full-service marina — fuel, water, laundry, chandlery, supermarkets nearby. Top up on everything before Martinique." },
     nature:"Services stop. Provision, fuel, chandlery. Not nature.", highlight:"Full services & provisioning" },
 
   { id:13, leg:1, phase:"French Islands", island:"Martinique", name:"Anses d'Arlet",
-    days:"Apr 16-17", dayCount:2, nm:"~25", natureAwe:4, stayRec:"1-2 nights", lat:14.497, lng:-61.083,
+    days:"Apr 16-17", dayCount:2, nm:"~25", natureAwe:4, stayRec:"1-2 nights", lat:14.491, lng:-61.083,
     clearance:{ action:"IN", system:"demarches-simplifiees.fr", currency:"EUR",
       port:"In: Online + stamp at Le Marin or Fort-de-France",
       detail:"MARTINIQUE IN (France): Since Sept 2024, clearance is ONLINE.\n\nWEBSITE: demarches-simplifiees.fr/commencer/declaration-clearance-antilles\n\nPROCESS:\n1. Complete the online form before arrival (in French — use Google Translate)\n2. You'll get a digital clearance certificate\n3. Print it and get it stamped at an approved Clearance Point (€5 fee)\n4. Approved points: Le Marin harbour office, Fort-de-France port, others\n\nNOT SailClear — this is a completely different French government system.\n\nCurrency: EURO only. ATMs plentiful at Le Marin.\n\nNOTE: French authorities use AIS and helicopters to track vessels and confirm clearance. Don't skip this.\n\nLE MARIN PROVISIONING: Dinghy to the dock behind the supermarket — roll your cart right down to the boat. Stock up on French cheeses, wine, baguettes." },
     nature:"Turtle central. Swim with relaxed sea turtles in calm clear water. Diamond Rock is dramatic volcanic pinnacle offshore.", highlight:"Turtle encounters & Diamond Rock" },
 
   { id:14, leg:1, phase:"French Islands", island:"Martinique", name:"St-Pierre",
-    days:"Apr 18-19", dayCount:2, nm:"~25", natureAwe:4, stayRec:"1-2 nights", lat:14.737, lng:-61.177,
+    days:"Apr 18-19", dayCount:2, nm:"~25", natureAwe:4, stayRec:"1-2 nights", lat:14.744, lng:-61.176,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"Within Martinique",
       detail:"No clearance — within Martinique/France. There's a clearance computer terminal in the Welcome Center at St-Pierre if you need to process exit paperwork.\n\nRemember: When departing Martinique for Dominica, you need to complete a departure declaration on demarches-simplifiees.fr (or duplicate your arrival submission and change the dates)." },
     nature:"Mt. Pelée obliterated this city in 1902. Ruins underwater and ashore. Drive into mountains for cascading streams, jungle pools.", highlight:"Mt. Pelée & volcanic wrecks" },
 
   { id:15, leg:1, phase:"Leewards", island:"Dominica", name:"Champagne Reef & Portsmouth",
-    days:"Apr 20-24", dayCount:4, nm:"~25", natureAwe:5, stayRec:"4 nights ★", lat:15.574, lng:-61.467,
+    days:"Apr 20-24", dayCount:4, nm:"~25", natureAwe:5, stayRec:"4 nights ★", lat:15.575, lng:-61.462,
     clearance:{ action:"IN + OUT", system:"SailClear", currency:"EC$",
       port:"In/Out: Portsmouth, Prince Rupert Bay",
       detail:"DOMINICA IN: Call PAYS (Portsmouth Association of Yacht Security) on VHF Channel 16 as you enter Prince Rupert Bay. A PAYS boat boy will come out, guide you to a mooring/anchorage, and handle your clearance for a fee (~EC$50-75 for the service).\n\nALTERNATIVELY: Go to the customs office yourself at the commercial dock, south of Portsmouth. SailClear form + passports + ship papers. Hours: Mon-Fri 8am-4pm. Fees: ~EC$25 + port fee.\n\nPAYS SERVICES: Mooring, customs handling, island tours, provisioning, laundry — they do everything. Tip them well (~US$10-20/day). They earn it and the service is genuinely excellent.\n\nDOMINICA OUT: Same process in reverse. PAYS can handle or go to customs yourself. Complete SailClear departure form.\n\nFOR CHAMPAGNE REEF: If you want to anchor near Soufrière/Scotts Head (south end) for reef access, you can clear in at Roseau instead of Portsmouth. Same process." },
     nature:"The Nature Island EARNS the name. Champagne Reef — volcanic bubbles sparkling like diamonds through pristine coral. Boiling Lake through Valley of Desolation. Indian River mangrove canopy. Speechless.", highlight:"Champagne Reef + Boiling Lake" },
 
   { id:16, leg:1, phase:"Leewards", island:"Guadeloupe", name:"Îles des Saintes",
-    days:"Apr 25-27", dayCount:3, nm:"~20", natureAwe:4, stayRec:"2-3 nights", lat:15.862, lng:-61.582,
+    days:"Apr 25-27", dayCount:3, nm:"~20", natureAwe:4, stayRec:"2-3 nights", lat:15.860, lng:-61.585,
     clearance:{ action:"IN", system:"demarches-simplifiees.fr", currency:"EUR",
       port:"In: Les Saintes, Terre-de-Haut",
       detail:"GUADELOUPE IN (France): Same demarches-simplifiees.fr system as Martinique.\n\nWEBSITE: demarches-simplifiees.fr/commencer/declaration-clearance-antilles\n\nAT LES SAINTES: Customs computer in the building just south of the ferry landing on Terre-de-Haut. You can complete the form there if you haven't done it online. Fee: €5-10 for stamp.\n\n⚠️ STRIKES: French island workers strike frequently. If customs at Les Saintes is closed ('Non, we are on strike'), you'll need to divert to mainland Guadeloupe — Deshaies (20 NM) or Pointe-à-Pitre (25 NM). Have a backup plan.\n\nNOTE: Martinique and Guadeloupe are separate French departments — you must clear out of one and into the other even though both are France." },
     nature:"UNESCO beautiful bay. Volcanic archipelago — nine islands, two inhabited. Dramatic underwater terrain.", highlight:"UNESCO bay — volcanic jewels" },
 
   { id:17, leg:1, phase:"Leewards", island:"Guadeloupe", name:"Cousteau Reserve / Deshaies",
-    days:"Apr 28-30", dayCount:2, nm:"~20", natureAwe:5, stayRec:"2 nights ★", lat:16.167, lng:-61.790,
+    days:"Apr 28-30", dayCount:2, nm:"~20", natureAwe:5, stayRec:"2 nights ★", lat:16.306, lng:-61.797,
     clearance:{ action:"OUT", system:"demarches-simplifiees.fr", currency:"EUR",
       port:"Out: Deshaies or Pointe-à-Pitre",
       detail:"GUADELOUPE OUT: Complete departure declaration on demarches-simplifiees.fr. Go into your previous arrival submission, click 'duplicate', change dates and destination.\n\nDESHAIES: Clearance now at the gray building across the bridge from the main dock. Fee: €5 if you have a printed copy, €10 without. The officer there is helpful.\n\nPRINT YOUR ZARPE: If your next stop is outside French territory (Antigua), you need a printed departure certificate (zarpe) stamped at an approved point. Other Caribbean customs will ask for it.\n\nLast French stop — final boulangerie run!" },
     nature:"World-class marine conservation. Ancient barrel sponges older than Christianity. Elkhorn coral regenerating. Carbet Waterfalls 350ft through jungle.", highlight:"Cousteau Reserve — living marine cathedral" },
 
   { id:18, leg:1, phase:"Antigua", island:"Antigua", name:"English Harbour",
-    days:"May 7-11", dayCount:4, nm:"~40", natureAwe:3, stayRec:"4 nights", lat:17.003, lng:-61.765,
+    days:"May 7-11", dayCount:4, nm:"~40", natureAwe:3, stayRec:"4 nights", lat:17.000, lng:-61.767,
     clearance:{ action:"IN", system:"eSeaClear", currency:"EC$",
       port:"In: English Harbour or Jolly Harbour",
       detail:"ANTIGUA IN: Uses eSeaClear (eseaclear.com) — NOT SailClear. Different system, different login.\n\nPROCESS: Register on eseaclear.com, submit arrival form online, then visit FOUR offices in person:\n1. Health/Quarantine\n2. Customs\n3. Immigration\n4. Port Authority\n\nAT ENGLISH HARBOUR: All offices near Nelson's Dockyard. Budget 1-1.5 hours. Fees: ~EC$50 total + National Park fee (~US$5). Hours: Mon-Sat 8am-4:30pm. Overtime available.\n\nAT JOLLY HARBOUR: All offices in one building — sometimes faster. Anchor outside, dinghy in.\n\nIMPORTANT: If you clear in at Jolly Harbour but sail to English Harbour, you're supposed to check in again at Nelson's Dockyard customs and pay the park fee.\n\nNOTE: eSeaClear registration is separate from SailClear — you need both accounts for this trip." },
@@ -196,14 +196,14 @@ const STOPS = [
 
   // === PHASE 2 ===
   { id:19, leg:2, phase:"Northbound", island:"Barbuda", name:"Pink Sand & Frigates",
-    days:"May 11-14", dayCount:3, nm:"~30", natureAwe:5, stayRec:"3 nights ★", lat:17.634, lng:-61.826,
+    days:"May 11-14", dayCount:3, nm:"~30", natureAwe:5, stayRec:"3 nights ★", lat:17.663, lng:-61.864,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"Within Antigua & Barbuda",
       detail:"No clearance needed — Barbuda is part of Antigua & Barbuda. No border crossing.\n\nThere are no customs or immigration facilities on Barbuda. Just sail up and anchor." },
     nature:"17 miles unbroken pink sand — likely to yourselves. Frigate Bird Sanctuary, 8-foot wingspans. Pristine reef. Robinson Crusoe solitude.", highlight:"Pink sand beach + frigate birds",
     hurricane:"Run to English Harbour, Antigua — 30 NM, ~5 hrs" },
 
   { id:20, leg:2, phase:"Northbound", island:"St. Barths", name:"Île Fourchue & Anse Colombier",
-    days:"May 14-16", dayCount:2, nm:"~45", natureAwe:4, stayRec:"2 nights", lat:17.890, lng:-62.852,
+    days:"May 14-16", dayCount:2, nm:"~45", natureAwe:4, stayRec:"2 nights", lat:17.920, lng:-62.870,
     clearance:{ action:"IN + OUT", system:"demarches-simplifiees.fr", currency:"EUR",
       port:"In/Out: Gustavia port office",
       detail:"ST. BARTHS IN+OUT (France): Same demarches-simplifiees.fr system.\n\nWEBSITE: demarches-simplifiees.fr/commencer/declaration-clearance-antilles\n\nGUSTAVIA: Port office near the harbor. Complete online form + get stamped. Fee: ~€7 for 35-45ft vessel.\n\nHours: Mon-Fri 7:30am-12pm, 2pm-5pm. Sat morning only.\n\nTIP: Clear in at Gustavia, then sail to Colombier/Fourchue. Clear out when you return to Gustavia before departing for St. Maarten.\n\nFourchue is uninhabited — no facilities, no clearance point. Bring everything you need." },
@@ -211,7 +211,7 @@ const STOPS = [
     hurricane:"Run to Simpson Bay, SXM — 15 NM, ~3 hrs" },
 
   { id:21, leg:2, phase:"St. Maarten", island:"St. Maarten", name:"Simpson Bay — Batten Repairs",
-    days:"May 17-25", dayCount:8, nm:"~15", natureAwe:2, stayRec:"8 nights (work week)", lat:18.042, lng:-63.085,
+    days:"May 17-25", dayCount:8, nm:"~15", natureAwe:2, stayRec:"8 nights (work week)", lat:18.038, lng:-63.109,
     clearance:{ action:"IN", system:"Dutch direct", currency:"USD",
       port:"In: Simpson Bay or Philipsburg",
       detail:"ST. MAARTEN IN (Dutch side): Straightforward.\n\nSIMPSON BAY: Immigration office near the bridge. Fee: ~US$20. Hours: daily 8am-6pm. Bring passports + ship papers + clearance from last port.\n\nPHILIPSBURG: Alternative — slightly more formal. Immigration + Customs on the waterfront.\n\nBRIDGE: Simpson Bay Bridge opens on schedule (check current times — typically 9:30am, 11:30am, 5:30pm inbound). Outbound times differ. VHF Ch 12 for bridge operations.\n\nFRENCH SIDE (Marigot): If you want to anchor on the French side, that's technically separate clearance via demarches-simplifiees.fr. Most cruisers just clear Dutch side.\n\nMARINE SERVICES: FKG Marine, Electec, Budget Marine all in Simpson Bay Lagoon. Everything Blue Moon needs for battens." },
@@ -220,7 +220,7 @@ const STOPS = [
 
   // === PHASE 3 ===
   { id:22, leg:3, phase:"Return South", island:"Saba", name:"The Unspoiled Queen",
-    days:"May 25-28", dayCount:3, nm:"~25", natureAwe:5, stayRec:"2-3 nights ★", lat:17.634, lng:-63.236,
+    days:"May 25-28", dayCount:3, nm:"~25", natureAwe:5, stayRec:"2-3 nights ★", lat:17.631, lng:-63.256,
     clearance:{ action:"IN + OUT", system:"SailClear + forms", currency:"USD",
       port:"In/Out: Fort Bay harbour",
       detail:"SABA IN+OUT: Fort Bay is the ONLY port of entry.\n\nSYSTEM: SailClear pre-arrival + additional printed forms (download from noonsite.com/place/saba). Bring printed copies.\n\nPROCESS: Anchor/moor, captain goes to harbour office at Fort Bay. Submit forms + passports. Fees: Harbor fee US$20-40 (depending on tonnage) + US$10/person departure tax + Marine Park overnight fee.\n\nHours: Mon-Fri 8am-5pm. Call ahead if arriving weekend.\n\nMOORINGS: Yellow overnight moorings at Wells Bay and Fort Bay (managed by Saba Conservation Foundation). Do NOT anchor in coral or dive zones.\n\nGETTING ASHORE: Only land at Fort Bay harbour. Do NOT attempt to land at Wells Bay, Ladder Bay, or Cove Bay — treacherous in any swell.\n\nDIVING: All diving must be done with a licensed Saba dive shop. Sea Saba and Saba Deep are the two operators. Book in advance.\n\n⚠️ WEATHER: Only visit with <12kt winds forecast. Anchorages are rolly in anything more. Check conditions before committing." },
@@ -228,7 +228,7 @@ const STOPS = [
     hurricane:"⚠️ NO SHELTER. Run to Simpson Bay SXM — 25 NM, ~4 hrs" },
 
   { id:23, leg:3, phase:"Return South", island:"Statia (St. Eustatius)", name:"Oranjestad Roads",
-    days:"May 28-29", dayCount:1, nm:"~17", natureAwe:3, stayRec:"1 night / day stop", lat:17.478, lng:-62.978,
+    days:"May 28-29", dayCount:1, nm:"~17", natureAwe:3, stayRec:"1 night / day stop", lat:17.483, lng:-62.983,
     clearance:{ action:"IN + OUT", system:"SailClear", currency:"USD",
       port:"In/Out: Oranjestad anchorage",
       detail:"STATIA IN+OUT: Anchor in the open roadstead off Oranjestad (Orange Bay). SailClear form + visit customs/immigration office in town.\n\nFees: ~US$10-15. Hours: Mon-Fri 8am-4pm.\n\n⚠️ OPEN ROADSTEAD: Can be very uncomfortable in swell or wrong wind direction. Best as a day stop — if conditions deteriorate, be prepared to leave.\n\nCurrency: USD (Statia is part of Netherlands but uses US dollar)." },
@@ -236,7 +236,7 @@ const STOPS = [
     hurricane:"⚠️ NO SHELTER. Run to Antigua — 60 NM, ~10 hrs" },
 
   { id:24, leg:3, phase:"Return South", island:"St. Kitts", name:"White House Bay / Basseterre",
-    days:"May 29-31", dayCount:2, nm:"~8", natureAwe:4, stayRec:"2 nights", lat:17.303, lng:-62.727,
+    days:"May 29-31", dayCount:2, nm:"~8", natureAwe:4, stayRec:"2 nights", lat:17.252, lng:-62.660,
     clearance:{ action:"IN + OUT", system:"SailClear", currency:"EC$",
       port:"In/Out: Basseterre customs (Port Zante)",
       detail:"ST. KITTS IN+OUT: Customs & Immigration at Port Zante, Basseterre. SailClear form + passports + ship papers.\n\nFees: ~EC$30-50 entry. Hours: Mon-Fri 8am-4pm. Overtime available.\n\nANCHORAGE TIP: White House Bay (south end of St. Kitts) is much calmer than Basseterre for sleeping, but you must clear at Basseterre first. Sail down after clearance.\n\nSt. Kitts and Nevis are ONE federation — once cleared into St. Kitts, you can sail to Nevis without additional clearance." },
@@ -244,14 +244,14 @@ const STOPS = [
     hurricane:"⚠️ LIMITED. St. Kitts Marine Works can haul out. Better: run to Antigua — 55 NM" },
 
   { id:25, leg:3, phase:"Return South", island:"Nevis", name:"Pinney's Beach",
-    days:"May 31 - Jun 2", dayCount:2, nm:"~8", natureAwe:4, stayRec:"2 nights", lat:17.153, lng:-62.610,
+    days:"May 31 - Jun 2", dayCount:2, nm:"~8", natureAwe:4, stayRec:"2 nights", lat:17.158, lng:-62.625,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"Within St. Kitts & Nevis",
       detail:"No clearance needed — within the St. Kitts & Nevis federation.\n\nCross The Narrows between the islands (2 NM). Watch for shallows at the Nevis end — take the north or south channel, not straight through.\n\nPINNEY'S BEACH: Anchor on the leeward side in sand, good holding. Beach bars ashore. The volcano towers above." },
     nature:"Single perfect volcanic cone draped in jungle. Hot springs, plantation ruins reclaimed by forest.", highlight:"Perfect volcanic cone + hot springs",
     hurricane:"⚠️ NO SHELTER. Run to Antigua — 55 NM, ~10 hrs" },
 
   { id:26, leg:3, phase:"Return South", island:"Montserrat", name:"Rendezvous Bay / Little Bay",
-    days:"Jun 2-5", dayCount:3, nm:"~35", natureAwe:5, stayRec:"3 nights ★", lat:16.753, lng:-62.193,
+    days:"Jun 2-5", dayCount:3, nm:"~35", natureAwe:5, stayRec:"3 nights ★", lat:16.802, lng:-62.210,
     clearance:{ action:"IN + OUT", system:"SailClear", currency:"EC$",
       port:"In/Out: Little Bay port office",
       detail:"MONTSERRAT IN+OUT: Little Bay is the ONLY port of entry. SailClear form + passports + ship papers.\n\nSHAMROCK MOORINGS PLUS: Contact in advance — they can pre-arrange clearance, provide moorings, and organize volcano tours. Very helpful outfit. VHF Ch 16.\n\nFees: ~EC$30 + port charges. Hours: Mon-Fri 8am-4pm.\n\nREDUCED FACILITIES: Montserrat has minimal marine services. Be self-sufficient. Basic provisioning available in Brades (taxi ride from Little Bay).\n\nRENDEZVOUS BAY: Anchor here in settled conditions only — the only white sand beach, only reachable by boat. Gorgeous but exposed.\n\nVOLCANO EXCLUSION ZONE: The southern half of the island + 2 NM offshore is a strict exclusion zone. Do NOT enter. Volcano tours can be arranged through Shamrock Moorings or local taxi operators — they have safety training and advance clearance from the Volcano Observatory." },
@@ -259,7 +259,7 @@ const STOPS = [
     hurricane:"⚠️ NO SHELTER. Run to Antigua — 35 NM, ~6 hrs" },
 
   { id:27, leg:3, phase:"Return South", island:"Antigua", name:"Green Island & Coastal Exploring",
-    days:"Jun 6-19", dayCount:14, nm:"~35", natureAwe:3, stayRec:"14 nights", lat:17.060, lng:-61.787,
+    days:"Jun 6-19", dayCount:14, nm:"~35", natureAwe:3, stayRec:"14 nights", lat:17.069, lng:-61.668,
     clearance:{ action:"IN", system:"eSeaClear", currency:"EC$",
       port:"In: English Harbour or Jolly Harbour",
       detail:"ANTIGUA IN (again): Same eSeaClear process as before — you'll need to clear in again since you left the country.\n\neseaclear.com — submit arrival form, then visit the four offices at English Harbour or Jolly Harbour.\n\nYou're home base now. For the next 2 weeks, explore Antigua's coastline staying within easy reach of English Harbour:\n\n• Green Island (east coast) — dinghy ride, uninhabited, coral heads\n• Bird Island (NE) — tiny cay, nesting seabirds, snorkeling\n• Half Moon Bay (east) — wild beach\n• Carlisle Bay — reef snorkeling\n• Five Islands Bay — quiet, good holding" },
@@ -267,7 +267,7 @@ const STOPS = [
     hurricane:"English Harbour / Falmouth — #1 hurricane hole in the Leewards" },
 
   { id:28, leg:3, phase:"Pickup", island:"Antigua", name:"English Harbour — Pick up Ailie!",
-    days:"Jun 20", dayCount:1, nm:"—", natureAwe:5, stayRec:"🎉", lat:17.003, lng:-61.765,
+    days:"Jun 20", dayCount:1, nm:"—", natureAwe:5, stayRec:"🎉", lat:17.000, lng:-61.767,
     clearance:{ action:"NONE", system:"—", currency:"—", port:"You're already here!",
       detail:"No clearance — you're already cleared into Antigua.\n\nCelebrate at Shirley Heights Sunday sunset party — rum punch, steel band, panoramic views of Blue Moon at anchor far below. 🎉" },
     nature:"The nature awe is having your daughter aboard Blue Moon. That's transcendent.", highlight:"🎉 Family reunion on Blue Moon",
@@ -319,7 +319,7 @@ function shelterIcon(id) {
 }
 
 // Trinidad start point (not in STOPS since it's the departure, not an anchorage)
-var TRINIDAD_START = {lat: 10.42, lng: -61.63};
+var TRINIDAD_START = {lat: 10.683, lng: -61.632};
 
 
 var SERVICES = {
@@ -710,6 +710,44 @@ function buildMapLayers() {
     });
     phaseLayerGroups[3].addLayer(conn2);
   }
+
+  // Island & country labels
+  var islandLabels = [
+    {lat:10.55,lng:-61.35,name:'Trinidad',country:'Trinidad & Tobago'},
+    {lat:12.15,lng:-61.68,name:'Grenada',country:'Grenada'},
+    {lat:12.47,lng:-61.45,name:'Carriacou',country:'Grenada'},
+    {lat:12.60,lng:-61.42,name:'Union Island',country:'SVG'},
+    {lat:12.64,lng:-61.36,name:'Tobago Cays',country:'SVG'},
+    {lat:12.65,lng:-61.40,name:'Mayreau',country:'SVG'},
+    {lat:12.72,lng:-61.33,name:'Canouan',country:'SVG'},
+    {lat:12.95,lng:-61.15,name:'Baliceaux',country:'SVG'},
+    {lat:13.00,lng:-61.24,name:'Bequia',country:'SVG'},
+    {lat:13.25,lng:-61.20,name:'St. Vincent',country:'SVG'},
+    {lat:13.88,lng:-60.97,name:'St. Lucia',country:'St. Lucia'},
+    {lat:14.65,lng:-61.02,name:'Martinique',country:'France'},
+    {lat:15.42,lng:-61.36,name:'Dominica',country:'Dominica'},
+    {lat:15.87,lng:-61.58,name:'Les Saintes',country:'France'},
+    {lat:16.20,lng:-61.55,name:'Guadeloupe',country:'France'},
+    {lat:17.08,lng:-61.80,name:'Antigua',country:'Antigua & Barbuda'},
+    {lat:17.65,lng:-61.82,name:'Barbuda',country:'Antigua & Barbuda'},
+    {lat:17.90,lng:-62.83,name:'St. Barths',country:'France'},
+    {lat:18.05,lng:-63.05,name:'St. Maarten',country:'Netherlands/France'},
+    {lat:17.63,lng:-63.23,name:'Saba',country:'Netherlands'},
+    {lat:17.49,lng:-62.97,name:'Statia',country:'Netherlands'},
+    {lat:17.35,lng:-62.73,name:'St. Kitts',country:'St. Kitts & Nevis'},
+    {lat:17.15,lng:-62.58,name:'Nevis',country:'St. Kitts & Nevis'},
+    {lat:16.75,lng:-62.17,name:'Montserrat',country:'UK Territory'},
+  ];
+  var labelGroup = L.layerGroup();
+  islandLabels.forEach(function(il) {
+    var html = '<div style="text-align:center"><div class="island-label">' + il.name + '</div><div class="country-label">' + il.country + '</div></div>';
+    var lbl = L.marker([il.lat, il.lng], {
+      icon: L.divIcon({ className: '', html: html, iconSize: [0, 0], iconAnchor: [0, 0] }),
+      interactive: false, zIndexOffset: -1000
+    });
+    labelGroup.addLayer(lbl);
+  });
+  labelGroup.addTo(leafletMap);
 
   // Stop markers (on top)
   STOPS.filter(function(s) { return s.lat; }).forEach(function(s) {
