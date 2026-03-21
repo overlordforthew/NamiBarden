@@ -144,3 +144,14 @@ CREATE INDEX IF NOT EXISTS idx_course_access_token ON nb_course_access(access_to
 CREATE INDEX IF NOT EXISTS idx_course_access_customer ON nb_course_access(customer_id);
 CREATE INDEX IF NOT EXISTS idx_course_access_course ON nb_course_access(course_id);
 CREATE INDEX IF NOT EXISTS idx_course_access_email ON nb_course_access(email);
+
+-- BlueMoon GPS tracking
+CREATE TABLE IF NOT EXISTS bluemoon_tracks (
+  id SERIAL PRIMARY KEY,
+  lat DOUBLE PRECISION NOT NULL,
+  lng DOUBLE PRECISION NOT NULL,
+  accuracy DOUBLE PRECISION,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_bluemoon_tracks_recorded ON bluemoon_tracks(recorded_at);

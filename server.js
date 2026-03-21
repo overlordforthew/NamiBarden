@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const Stripe = require('stripe');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const WebSocket = require('ws');
 const uuidv4 = () => crypto.randomUUID();
 
 const app = express();
@@ -1698,6 +1699,68 @@ app.post('/api/admin/campaigns/:id/send', authMiddleware, async (req, res) => {
   }
 });
 
+// ─── BlueMoon GPS Tracking ───
+app.post('/api/bluemoon/track', async (req, res) => {
+  try {
+    const { lat, lng, accuracy, recorded_at } = req.body;
+    if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' });
+    const result = await pool.query(
+      'INSERT INTO bluemoon_tracks (lat, lng, accuracy, recorded_at) VALUES ($1, $2, $3, $4) RETURNING id, lat, lng, accuracy, recorded_at',
+      [lat, lng, accuracy || null, recorded_at || new Date().toISOString()]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Track save error:', err.message);
+    res.status(500).json({ error: 'Failed to save track point' });
+  }
+});
+
+app.post('/api/bluemoon/track/batch', async (req, res) => {
+  try {
+    const { points } = req.body;
+    if (!Array.isArray(points) || points.length === 0) return res.status(400).json({ error: 'points array required' });
+    const values = points.map((p, i) => {
+      const off = i * 4;
+      return `($${off+1}, $${off+2}, $${off+3}, $${off+4})`;
+    }).join(', ');
+    const params = points.flatMap(p => [p.lat, p.lng, p.accuracy || null, p.recorded_at || new Date().toISOString()]);
+    const result = await pool.query(
+      `INSERT INTO bluemoon_tracks (lat, lng, accuracy, recorded_at) VALUES ${values} RETURNING id, lat, lng, accuracy, recorded_at`,
+      params
+    );
+    res.json({ saved: result.rows.length });
+  } catch (err) {
+    console.error('Batch track save error:', err.message);
+    res.status(500).json({ error: 'Failed to save track points' });
+  }
+});
+
+app.get('/api/bluemoon/tracks', async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    let query = 'SELECT id, lat, lng, accuracy, recorded_at FROM bluemoon_tracks';
+    const params = [];
+    if (from) { params.push(from); query += ` WHERE recorded_at >= $${params.length}`; }
+    if (to) { params.push(to); query += (params.length > 1 ? ' AND' : ' WHERE') + ` recorded_at <= $${params.length}`; }
+    query += ' ORDER BY recorded_at ASC';
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Track fetch error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch tracks' });
+  }
+});
+
+app.delete('/api/bluemoon/tracks', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM bluemoon_tracks');
+    res.json({ cleared: true });
+  } catch (err) {
+    console.error('Track clear error:', err.message);
+    res.status(500).json({ error: 'Failed to clear tracks' });
+  }
+});
+
 
 // ══════════════════════════════════════
 // HELPERS
@@ -1759,8 +1822,69 @@ async function init() {
   }
 }
 
+// === AIS TRACKING (Blue Moon MMSI 339385000) ===
+const AISSTREAM_KEY = process.env.AISSTREAM_API_KEY;
+const BLUEMOON_MMSI = 339385000;
+let aisReconnectTimer = null;
+let lastAisSave = 0;
+
+function startAisTracking() {
+  if (!AISSTREAM_KEY) { console.log('AIS tracking: no API key, skipping'); return; }
+  console.log('AIS tracking: connecting to AISStream for MMSI', BLUEMOON_MMSI);
+
+  const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
+
+  ws.on('open', () => {
+    console.log('AIS tracking: connected');
+    ws.send(JSON.stringify({
+      APIKey: AISSTREAM_KEY,
+      BoundingBoxes: [[[-90, -180], [90, 180]]],
+      FilterMessageTypes: ['PositionReport', 'StandardClassBCSPositionReport'],
+      FiltersShipMMSI: [String(BLUEMOON_MMSI)]
+    }));
+  });
+
+  ws.on('message', async (data) => {
+    try {
+      const msg = JSON.parse(data);
+      if (!msg.MetaData || msg.MetaData.MMSI !== BLUEMOON_MMSI) return;
+
+      const lat = msg.MetaData.latitude;
+      const lng = msg.MetaData.longitude;
+      if (!lat || !lng || (lat === 0 && lng === 0)) return;
+
+      // Throttle saves to once per 15 minutes
+      const now = Date.now();
+      if (now - lastAisSave < 15 * 60 * 1000) return;
+      lastAisSave = now;
+
+      await pool.query(
+        'INSERT INTO bluemoon_tracks (lat, lng, accuracy, recorded_at) VALUES ($1, $2, $3, NOW())',
+        [lat, lng, 10]
+      );
+      console.log(`AIS track: ${lat.toFixed(4)}, ${lng.toFixed(4)} @ ${new Date().toISOString()}`);
+    } catch (err) {
+      console.error('AIS message error:', err.message);
+    }
+  });
+
+  ws.on('error', (err) => {
+    console.error('AIS tracking error:', err.message);
+  });
+
+  ws.on('close', () => {
+    console.log('AIS tracking: disconnected, reconnecting in 60s');
+    if (aisReconnectTimer) clearTimeout(aisReconnectTimer);
+    aisReconnectTimer = setTimeout(startAisTracking, 60000);
+  });
+}
+
 init().then(() => {
-  app.listen(PORT, '127.0.0.1', () => console.log(`NamiBarden API running on port ${PORT}`));
+  app.listen(PORT, '127.0.0.1', () => {
+    console.log(`NamiBarden API running on port ${PORT}`);
+    // Start AIS tracking after server is up
+    setTimeout(startAisTracking, 5000);
+  });
 }).catch(e => {
   console.error('Init failed:', e);
   process.exit(1);

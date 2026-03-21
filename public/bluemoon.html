@@ -13,12 +13,16 @@
 <div class="header">
   <div class="mono" style="font-size:9px;color:#0ea5e9;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px">Blue Moon · Catana 581</div>
   <h1 class="serif">The Grand Caribbean Voyage</h1>
-  <div class="serif" style="font-size:12px;color:#94a3b8;font-style:italic;margin-bottom:16px">March 20 – June 20, 2026 · 92 Days · 3 Phases</div>
+  <div class="serif" style="font-size:12px;color:#94a3b8;font-style:italic;margin-bottom:16px">March 23 – June 20, 2026 · 89 Days · 3 Phases</div>
   <div class="stats">
     <div><div class="stat-val mono">28</div><div class="stat-lbl mono">Stops</div></div>
     <div><div class="stat-val mono">92</div><div class="stat-lbl mono">Days</div></div>
     <div><div class="stat-val mono">9 ★</div><div class="stat-lbl mono">Transcendent</div></div>
     <div><div class="stat-val mono">~20</div><div class="stat-lbl mono">Borders</div></div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:14px" id="planToggle">
+    <button class="mono" onclick="setPlan('a')" id="planBtnA" style="font-size:10px;padding:6px 16px;border-radius:8px;border:2px solid #f59e0b;background:#f59e0b20;color:#f59e0b;cursor:pointer;font-weight:700">Plan A: Island Return</button>
+    <button class="mono" onclick="setPlan('b')" id="planBtnB" style="font-size:10px;padding:6px 16px;border-radius:8px;border:2px solid #374151;background:transparent;color:#6b7280;cursor:pointer;font-weight:700">Plan B: USVI/BVI Explorer</button>
   </div>
 </div>
 
@@ -48,6 +52,12 @@
     <span style="color:#f59e0b">◉ Transcendent</span>
     <span>--- Phase 3 return</span>
     <span>Tap stop → details</span>
+    <span id="trackStatus" style="color:#374151"></span>
+  </div>
+  <div style="display:flex;gap:6px;justify-content:center;margin-bottom:6px;flex-wrap:wrap">
+    <button class="mono" id="trackBtn" onclick="toggleTracking()" style="font-size:9px;padding:4px 12px;border-radius:6px;border:1px solid #374151;background:#1e293b;color:#6b7280;cursor:pointer;font-weight:600">📡 Start Tracking</button>
+    <button class="mono" onclick="loadTracks()" style="font-size:9px;padding:4px 12px;border-radius:6px;border:1px solid #374151;background:#1e293b;color:#6b7280;cursor:pointer;font-weight:600">🔄 Load Trail</button>
+    <a href="https://www.marinetraffic.com/en/ais/details/ships/mmsi:339385000" target="_blank" rel="noopener" class="mono" style="font-size:9px;padding:4px 12px;border-radius:6px;border:1px solid #0ea5e9;background:#0ea5e915;color:#0ea5e9;cursor:pointer;font-weight:600;text-decoration:none">🚢 AIS Live</a>
   </div>
   <div id="mapContainer" style="height:75vh;min-height:500px;border-radius:10px;border:1px solid #1e3a5f;overflow:hidden"></div>
 </div>
@@ -79,10 +89,10 @@
 const STOPS = [
   // === PHASE 1 ===
   { id:1, leg:1, phase:"Launch", island:"Trinidad → Carriacou", name:"Tyrrel Bay, Carriacou",
-    days:"Mar 21-23", dayCount:3, nm:"~107", natureAwe:4, stayRec:"2-3 nights", lat:12.460, lng:-61.509,
+    days:"Mar 24-26", dayCount:3, nm:"~107", natureAwe:4, stayRec:"2-3 nights", lat:12.460, lng:-61.509,
     clearance:{ action:"OUT → IN", system:"Paper / SailClear", currency:"EC$",
       port:"Out: Chaguaramas (paper) · In: Carriacou Marine, Tyrrel Bay",
-      detail:"TRINIDAD OUT: Clear out in person at Chaguaramas — Immigration + Customs. Paper forms (Trinidad does NOT use SailClear). Bring passports, ship papers, PLC form. Hours: Mon-Fri 8am-4pm. Clear out afternoon of Mar 20 — you have 4 hours to depart, so clear after 2pm for a 6pm departure.\n\nOVERNIGHT PASSAGE: 107NM, depart 6pm Mar 20, arrive ~10:30am Mar 21. Trade wind beam reach most of the way.\n\nGRENADA IN: Carriacou Marine customs office, SW side of Tyrrel Bay next to fuel dock. SailClear pre-arrival form 24hrs before. Mon-Fri 8am-4pm, Sat-Sun 9am-1:30pm. Fees: ~EC$75 (Blue Moon is 40-60ft). Fly Q flag until cleared.\n\nFUEL: SOL fuel dock at Carriacou Marine — diesel + gas. Fill up here after the overnight passage." },
+      detail:"TRINIDAD OUT: Clear out in person at Chaguaramas — Immigration + Customs. Paper forms (Trinidad does NOT use SailClear). Bring passports, ship papers, PLC form. Hours: Mon-Fri 8am-4pm. Clear out afternoon of Mar 23 — you have 4 hours to depart, so clear after 2pm for a 6pm departure.\n\nOVERNIGHT PASSAGE: 107NM, depart 6pm Mar 23, arrive ~10:30am Mar 24. Trade wind beam reach most of the way.\n\nGRENADA IN: Carriacou Marine customs office, SW side of Tyrrel Bay next to fuel dock. SailClear pre-arrival form 24hrs before. Mon-Fri 8am-4pm, Sat-Sun 9am-1:30pm. Fees: ~EC$75 (Blue Moon is 40-60ft). Fly Q flag until cleared.\n\nFUEL: SOL fuel dock at Carriacou Marine — diesel + gas. Fill up here after the overnight passage." },
     nature:"Protected bay surrounded by green hills. Carriacou is authentic Caribbean — boatbuilders in Windward, rum shops everywhere, zero cruise ships. Sandy Island is a 10-min dinghy ride for world-class snorkeling.", highlight:"Authentic Carriacou & Sandy Island reef" },
 
   { id:2, leg:1, phase:"Grenada", island:"Carriacou", name:"Sandy Island & Hillsborough",
@@ -274,20 +284,100 @@ const STOPS = [
     hurricane:"Safest harbor in the Leewards." },
 ];
 
+var STOPS_PLAN_B_PHASE3 = [
+  { id:122, leg:3, phase:"USVI", island:"St. Thomas, USVI", name:"Charlotte Amalie & Red Hook",
+    days:"May 27-29", dayCount:2, nm:"~85", natureAwe:3, stayRec:"2 nights", lat:18.337, lng:-64.930,
+    clearance:{ action:"IN", system:"CBP ROAM app", currency:"USD",
+      port:"In: Crown Bay or Red Hook",
+      detail:"USVI IN (USA): Use the CBP ROAM app — submit arrival form before docking. Then clear at Crown Bay Marina or Red Hook customs.\n\nDOCUMENTS: Passports for all aboard, ship papers, last port clearance (zarpe from BVI or SXM).\n\nFees: ~$25-50 customs user fee. Immigration free for US citizens.\n\nHours: Crown Bay 8am-5pm daily. Red Hook 8am-4:30pm Mon-Fri.\n\nNOTE: USVI is unincorporated US territory. US citizens don't need passports but Blue Moon crew will need them. Foreign-flagged vessels must clear customs." },
+    nature:"Stunning harbor surrounded by green hills. Magens Bay is world-famous. Red Hook has the ferry to St. John. Good provisioning.", highlight:"Historic harbor + Magens Bay",
+    hurricane:"Protected harbors available. Hurricane holes at Benner Bay." },
+
+  { id:123, leg:3, phase:"USVI", island:"St. John, USVI", name:"Cruz Bay & Trunk Bay",
+    days:"May 29 - Jun 1", dayCount:3, nm:"~4", natureAwe:5, stayRec:"3 nights ★", lat:18.338, lng:-64.793,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within USVI", detail:"No clearance — within USVI." },
+    nature:"Two-thirds national park. Trunk Bay's underwater snorkel trail is world-class. Waterlemon Cay — swim with turtles in crystal water. Cinnamon Bay ruins. Pristine beyond belief.", highlight:"National park — underwater snorkel trail",
+    hurricane:"Cruz Bay has decent protection." },
+
+  { id:124, leg:3, phase:"BVI", island:"Norman Island, BVI", name:"The Bight & The Caves",
+    days:"Jun 1-2", dayCount:1, nm:"~12", natureAwe:4, stayRec:"1 night", lat:18.318, lng:-64.621,
+    clearance:{ action:"IN", system:"BVI SailClear", currency:"USD",
+      port:"In: Must clear at official port first (Sopers Hole or Road Town)",
+      detail:"BVI IN: Clear at Sopers Hole (West End) or Road Town customs BEFORE anchoring at Norman Island.\n\nBVI uses SailClear (sailclear.com). Submit pre-arrival form, then visit customs + immigration in person.\n\nFees: Cruising permit ~$4/person/day. Customs $10-15. National park mooring fees.\n\nHours: Sopers Hole 8:30am-4:30pm. Road Town 8:30am-4:30pm.\n\nAfter clearing, you're good for all BVI." },
+    nature:"The real Treasure Island. Snorkel the sea caves — rays of light through volcanic rock, schools of fish, corals. The Indians — four pinnacles with incredible snorkeling.", highlight:"Treasure Island caves + The Indians",
+    hurricane:"Moderate protection in The Bight." },
+
+  { id:125, leg:3, phase:"BVI", island:"Virgin Gorda, BVI", name:"The Baths & Spanish Town",
+    days:"Jun 2-4", dayCount:2, nm:"~20", natureAwe:5, stayRec:"2 nights ★", lat:18.432, lng:-64.365,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within BVI", detail:"No clearance — within BVI." },
+    nature:"Cathedral-like boulder grottoes at The Baths — house-sized granite boulders forming pools, tunnels, and shafts of light. Spring Bay and Devil's Bay equally stunning. Gorda Peak for panoramic views.", highlight:"The Baths — granite cathedral grottoes",
+    hurricane:"Spanish Town has some protection." },
+
+  { id:126, leg:3, phase:"BVI", island:"Anegada, BVI", name:"Setting Point & Loblolly Bay",
+    days:"Jun 4-6", dayCount:2, nm:"~15", natureAwe:5, stayRec:"2 nights ★", lat:18.727, lng:-64.349,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within BVI", detail:"No clearance — within BVI.\n\n⚠️ NAVIGATION: Anegada is flat (28ft max elevation) — you can't see it until close. Horseshoe Reef is the 4th largest barrier reef in the world and has claimed 300+ ships. Approach ONLY via the marked channel from the south. GPS waypoints essential. Do NOT approach at night." },
+    nature:"Flat coral island unlike anywhere else in the Caribbean. Wild flamingos wade in salt ponds. Loblolly Bay — endless white sand, zero crowds. Lobster capital of the BVI. Stargazing is transcendent.", highlight:"Flamingos + Horseshoe Reef + lobster",
+    hurricane:"⚠️ NO SHELTER. Flat island, no protection. Leave immediately if anything develops." },
+
+  { id:127, leg:3, phase:"BVI", island:"Jost Van Dyke, BVI", name:"White Bay & Great Harbour",
+    days:"Jun 6-8", dayCount:2, nm:"~25", natureAwe:4, stayRec:"2 nights", lat:18.443, lng:-64.753,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within BVI (customs available at Great Harbour)", detail:"No clearance needed if already cleared into BVI.\n\nJost Van Dyke has a customs office at Great Harbour if you need to clear out of BVI before heading to USVI or elsewhere." },
+    nature:"Barefoot Caribbean at its finest. White Bay — the beach that launched a thousand Instagram posts. Soggy Dollar Bar (swim ashore). Foxy's in Great Harbour. Bubbly Pool on the east end.", highlight:"White Bay + Soggy Dollar Bar",
+    hurricane:"Limited protection. Run to Tortola or St. Thomas." },
+
+  { id:128, leg:3, phase:"BVI", island:"Tortola, BVI", name:"Cane Garden Bay & Sopers Hole",
+    days:"Jun 8-9", dayCount:1, nm:"~5", natureAwe:3, stayRec:"1 night", lat:18.425, lng:-64.647,
+    clearance:{ action:"OUT", system:"BVI SailClear", currency:"USD",
+      port:"Out: Sopers Hole (West End) or Road Town",
+      detail:"BVI OUT: Clear out at Sopers Hole or Road Town customs. SailClear departure form.\n\nSopers Hole is convenient if heading south to St. Kitts. Good provisioning at Road Town before departure.\n\nOvernight passage to St. Kitts: ~110NM, ~17 hours at 6.5kts." },
+    nature:"Cane Garden Bay is a gorgeous crescent. BVI capital area at Road Town. Provisioning stop before the passage south.", highlight:"Cane Garden Bay + provisioning",
+    hurricane:"Road Harbour and Nanny Cay have good hurricane protection." },
+
+  { id:129, leg:3, phase:"Return South", island:"St. Kitts", name:"White House Bay / Basseterre",
+    days:"Jun 10-12", dayCount:2, nm:"~110", natureAwe:4, stayRec:"2 nights", lat:17.252, lng:-62.660,
+    clearance:{ action:"IN + OUT", system:"SailClear", currency:"EC$",
+      port:"In/Out: Basseterre customs (Port Zante)",
+      detail:"ST. KITTS IN+OUT: Customs & Immigration at Port Zante, Basseterre. SailClear form + passports + ship papers.\n\nFees: ~EC$30-50 entry. Hours: Mon-Fri 8am-4pm.\n\nANCHORAGE TIP: White House Bay (south end of St. Kitts) is much calmer than Basseterre. Clear at Basseterre first, then sail down.\n\nBRIMSTONE HILL: UNESCO fortress, absolutely worth the visit." },
+    nature:"Brimstone Hill Fortress — UNESCO, volcanic bluff with views to Saba, Statia, Montserrat. Southeast Peninsula has wild beaches.", highlight:"Brimstone Hill + volcanic beaches",
+    hurricane:"⚠️ LIMITED. Run to Antigua — 55 NM" },
+
+  { id:130, leg:3, phase:"Return South", island:"Nevis", name:"Pinney's Beach",
+    days:"Jun 12-14", dayCount:2, nm:"~8", natureAwe:4, stayRec:"2 nights", lat:17.158, lng:-62.625,
+    clearance:{ action:"NONE", system:"—", currency:"—", port:"Within St. Kitts & Nevis",
+      detail:"No clearance needed — within the St. Kitts & Nevis federation.\n\nCross The Narrows between the islands (2 NM)." },
+    nature:"Single perfect volcanic cone draped in jungle. Hot springs, plantation ruins reclaimed by forest. Pinney's Beach is quintessential Caribbean.", highlight:"Perfect volcanic cone + hot springs",
+    hurricane:"⚠️ NO SHELTER. Run to Antigua — 55 NM" },
+
+  { id:131, leg:3, phase:"Pickup", island:"Antigua", name:"English Harbour — Pick up Ailie!",
+    days:"Jun 15-20", dayCount:5, nm:"~55", natureAwe:5, stayRec:"5 nights 🎉", lat:17.000, lng:-61.767,
+    clearance:{ action:"IN", system:"eSeaClear", currency:"EC$",
+      port:"In: English Harbour or Jolly Harbour",
+      detail:"ANTIGUA IN: Same eSeaClear process. Submit arrival form at eseaclear.com, then visit the four offices at English Harbour.\n\nYou're home base now. Explore Antigua's coastline — Green Island, Bird Island, Half Moon Bay — before Ailie arrives Jun 20." },
+    nature:"The nature awe is having your daughter aboard Blue Moon. That's transcendent. Explore 365 beaches by dinghy while waiting.", highlight:"🎉 Family reunion on Blue Moon",
+    hurricane:"English Harbour / Falmouth — #1 hurricane hole in the Leewards" },
+];
+
 const LEG_INFO = {
-  1: { label:"Phase 1: Trinidad → Antigua", color:"#0ea5e9", dates:"Mar 20 – May 7", days:"48 days", desc:"Northbound through Grenadines, Windwards & Leewards" },
+  1: { label:"Phase 1: Trinidad → Antigua", color:"#0ea5e9", dates:"Mar 23 – May 7", days:"45 days", desc:"Northbound through Grenadines, Windwards & Leewards" },
   2: { label:"Phase 2: Antigua → St. Maarten", color:"#a855f7", dates:"May 11 – May 25", days:"14 days", desc:"Leisurely north via Barbuda & St. Barths + batten repairs" },
   3: { label:"Phase 3: Return to Antigua", color:"#f59e0b", dates:"May 25 – Jun 20", days:"26 days", desc:"Nature loop: Saba, Nevis, Montserrat — hurricane aware" },
 };
 
+var LEG_INFO_B = {
+  1: LEG_INFO[1],
+  2: LEG_INFO[2],
+  3: { label:"Phase 3: USVI/BVI Explorer", color:"#10b981", dates:"May 27 – Jun 20", days:"24 days", desc:"Virgin Islands + St. Kitts & Nevis — nature & culture" },
+};
+
 
 function getPhaseColor(p) {
-  var m={"Launch":"#1a5e3a","Grenada":"#2d7d46","S. Grenadines":"#0ea5e9","N. Grenadines":"#0284c7","Windwards":"#7c3aed","French Islands":"#c026d3","Leewards":"#e11d48","Antigua":"#ea580c","Northbound":"#a855f7","St. Maarten":"#6366f1","Return South":"#f59e0b","Pickup":"#22c55e"};
+  var m={"Launch":"#1a5e3a","Grenada":"#2d7d46","S. Grenadines":"#0ea5e9","N. Grenadines":"#0284c7","Windwards":"#7c3aed","French Islands":"#c026d3","Leewards":"#e11d48","Antigua":"#ea580c","Northbound":"#a855f7","St. Maarten":"#6366f1","Return South":"#f59e0b","Pickup":"#22c55e","USVI":"#ef4444","BVI":"#3b82f6"};
   return m[p]||"#666";
 }
 
 var SHELTER = {1:"good",2:"good",3:"moderate",4:"good",5:"good",6:"good",7:"exposed",8:"good",9:"good",10:"good",11:"good",12:"good",13:"moderate",14:"exposed",15:"good",16:"good",17:"moderate",18:"good",19:"good",20:"moderate",21:"good",22:"exposed",23:"exposed",24:"moderate",25:"moderate",26:"moderate",27:"good",28:"good"};
 
+var SHELTER_B = {122:"good",123:"good",124:"moderate",125:"moderate",126:"exposed",127:"moderate",128:"good",129:"moderate",130:"moderate",131:"good"};
 
 // Satellite image URL - use Google Maps static embed (no API key needed for embed)
 function satUrl(lat, lng, w, h, zoom) {
@@ -311,7 +401,7 @@ function photoSearchUrl(name, island) {
 
 // Shelter icon
 function shelterIcon(id) {
-  var s = SHELTER[id] || 'good';
+  var s = getShelter(id) || 'good';
   if(s==='good') return '<span style="color:#22c55e" title="Good protection">🛡️</span>';
   if(s==='moderate') return '<span style="color:#f59e0b" title="Moderate — check conditions">⚠️</span>';
   if(s==='exposed') return '<span style="color:#ef4444" title="Exposed — settled weather only!">🔴</span>';
@@ -355,6 +445,90 @@ var SERVICES = {
 
 var PHOTOS = {"1": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Molinere_Underwater_Sculpture_Park.jpg/800px-Molinere_Underwater_Sculpture_Park.jpg", "cap": "Molinere Underwater Sculpture Park"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Grand_Anse_Beach_Grenada.jpg/800px-Grand_Anse_Beach_Grenada.jpg", "cap": "Grand Anse Beach, Grenada"}], "2": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Sandy_Island%2C_Carriacou.jpg/800px-Sandy_Island%2C_Carriacou.jpg", "cap": "Sandy Island, Carriacou"}], "4": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Tobago_Cays.jpg/800px-Tobago_Cays.jpg", "cap": "Tobago Cays from above"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Green_sea_turtle_Tobago_Cays.jpg/800px-Green_sea_turtle_Tobago_Cays.jpg", "cap": "Swimming with green turtles"}], "9": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Cumberland_Bay_SVG.jpg/800px-Cumberland_Bay_SVG.jpg", "cap": "Cumberland Bay, St. Vincent"}], "10": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/The_Pitons%2C_St_Lucia.jpg/800px-The_Pitons%2C_St_Lucia.jpg", "cap": "The Pitons at sunset"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Gros_and_Petit_Pitons.jpg/800px-Gros_and_Petit_Pitons.jpg", "cap": "Gros & Petit Pitons from the sea"}], "13": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Diamond_Rock_Martinique.jpg/800px-Diamond_Rock_Martinique.jpg", "cap": "Diamond Rock, Martinique"}], "15": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Indian_River_Dominica.jpg/800px-Indian_River_Dominica.jpg", "cap": "Indian River, Dominica"}, {"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Champagne_Reef_Dominica.jpg/800px-Champagne_Reef_Dominica.jpg", "cap": "Champagne Reef bubbles"}], "16": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Les_Saintes_Islands.jpg/800px-Les_Saintes_Islands.jpg", "cap": "\u00celes des Saintes from above"}], "17": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Ilets_Pigeon_Reserve_Cousteau.jpg/800px-Ilets_Pigeon_Reserve_Cousteau.jpg", "cap": "Cousteau Reserve, Pigeon Islands"}], "18": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Nelsons_Dockyard_Antigua.jpg/800px-Nelsons_Dockyard_Antigua.jpg", "cap": "Nelson's Dockyard, English Harbour"}], "19": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Barbuda_pink_sand_beach.jpg/800px-Barbuda_pink_sand_beach.jpg", "cap": "Pink sand beach, Barbuda"}], "22": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Saba_Island.jpg/800px-Saba_Island.jpg", "cap": "Saba rising from the sea"}], "26": [{"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Soufri\u00e8reHillsMontserrat.jpg/800px-Soufri\u00e8reHillsMontserrat.jpg", "cap": "Soufri\u00e8re Hills volcano, Montserrat"}]};
 
+var SERVICES_B = {
+  122:{fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Crown Bay and Red Hook marinas — full service fuel docks, water, chandleries, supermarkets. Major provisioning stop.'},
+  123:{fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'National park. No marina services. Carry everything from St. Thomas. Mooring balls available.'},
+  124:{fuel:false,water:false,provision:false,laundry:false,gas:false, notes:'Uninhabited island. No services. Mooring balls available at The Bight.'},
+  125:{fuel:'dock',water:'dock',provision:true,laundry:false,gas:false, notes:'Virgin Gorda Yacht Harbour at Spanish Town — fuel dock, water, small provisions.'},
+  126:{fuel:false,water:'jerry',provision:true,laundry:false,gas:false, notes:'Very limited. Small shops at Setting Point. No fuel dock — carry reserves.'},
+  127:{fuel:false,water:false,provision:true,laundry:false,gas:false, notes:'Beach bars but no marina services. Small shops at Great Harbour.'},
+  128:{fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Nanny Cay and Road Town — full marina services, fuel docks, supermarkets. Major provisioning before passage south.'},
+  129:{fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Port Zante/Basseterre — fuel dock available. RAM\'s Supermarket for provisioning.'},
+  130:{fuel:false,water:'jerry',provision:true,laundry:false,gas:false, notes:'No fuel dock on Nevis. Superfoods for provisioning. Water from restaurants.'},
+  131:{fuel:'dock',water:'dock',provision:true,laundry:true,gas:true, notes:'Falmouth Harbour Marina — diesel, water, full services. Nelson\'s Dockyard nearby.'}
+};
+
+var PHOTOS_B = {};
+
+var currentPlan = 'a';
+
+function getActiveStops() {
+  if (currentPlan === 'a') return STOPS;
+  var base = STOPS.filter(function(s) { return s.leg !== 3; });
+  // Plan B: stop 21 gets 10 days instead of 8
+  base = base.map(function(s) {
+    if (s.id === 21) {
+      var copy = {};
+      for (var k in s) copy[k] = s[k];
+      copy.dayCount = 10;
+      copy.days = "May 17-27";
+      copy.stayRec = "10 nights (work week + buffer)";
+      return copy;
+    }
+    return s;
+  });
+  return base.concat(STOPS_PLAN_B_PHASE3);
+}
+
+function getActiveLegInfo() {
+  return currentPlan === 'a' ? LEG_INFO : LEG_INFO_B;
+}
+
+function getShelter(id) {
+  if (currentPlan === 'b' && SHELTER_B[id] !== undefined) return SHELTER_B[id];
+  return SHELTER[id];
+}
+
+function getServices(id) {
+  if (currentPlan === 'b' && SERVICES_B[id] !== undefined) return SERVICES_B[id];
+  return SERVICES[id];
+}
+
+function getPhotos(id) {
+  if (currentPlan === 'b' && PHOTOS_B[id] !== undefined) return PHOTOS_B[id];
+  return PHOTOS[id];
+}
+
+function setPlan(plan) {
+  currentPlan = plan;
+  var btnA = document.getElementById('planBtnA');
+  var btnB = document.getElementById('planBtnB');
+  if (plan === 'a') {
+    btnA.style.borderColor = '#f59e0b'; btnA.style.background = '#f59e0b20'; btnA.style.color = '#f59e0b';
+    btnB.style.borderColor = '#374151'; btnB.style.background = 'transparent'; btnB.style.color = '#6b7280';
+  } else {
+    btnB.style.borderColor = '#10b981'; btnB.style.background = '#10b98120'; btnB.style.color = '#10b981';
+    btnA.style.borderColor = '#374151'; btnA.style.background = 'transparent'; btnA.style.color = '#6b7280';
+  }
+  var stops = getActiveStops();
+  var transcendent = stops.filter(function(s){return s.natureAwe===5;}).length;
+  document.querySelector('.stats').innerHTML =
+    '<div><div class="stat-val mono">' + stops.length + '</div><div class="stat-lbl mono">Stops</div></div>' +
+    '<div><div class="stat-val mono">92</div><div class="stat-lbl mono">Days</div></div>' +
+    '<div><div class="stat-val mono">' + transcendent + ' ★</div><div class="stat-lbl mono">Transcendent</div></div>' +
+    '<div><div class="stat-val mono">~20</div><div class="stat-lbl mono">Borders</div></div>';
+  if (currentView === 'map') {
+    buildMapLayers();
+  } else {
+    renderList();
+  }
+  renderMapControls();
+}
+
+function displayNum(id) {
+  return id >= 122 ? id - 100 : id;
+}
+
 var natureLabels = ["","Skip","Pleasant","Beautiful","Stunning","TRANSCENDENT"];
 var natureColors = ["","#6b7280","#22c55e","#3b82f6","#a855f7","#f59e0b"];
 var currentView = "list";
@@ -393,7 +567,7 @@ function renderCard(s) {
     bodyHtml += '<div style="margin-bottom:4px">';
     
     // Photo gallery (loads in real browser, not in claude sandbox)
-    var photos = PHOTOS[s.id];
+    var photos = getPhotos(s.id);
     if(photos && photos.length > 0) {
       bodyHtml += '<div style="display:flex;gap:4px;overflow-x:auto;margin-bottom:6px;padding-bottom:4px;-webkit-overflow-scrolling:touch">';
       photos.forEach(function(p){
@@ -404,17 +578,18 @@ function renderCard(s) {
     bodyHtml += '<div style="display:flex;gap:6px;margin-bottom:6px">';
     bodyHtml += '<a href="https://www.google.com/maps?q='+s.lat+','+s.lng+'&z=15&t=h" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#0ea5e9">📍 Maps</span></a>';
     bodyHtml += '<a href="'+photoSearchUrl(s.name, s.island)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#22c55e">📷 Photos</span></a>';
-    bodyHtml += '<a href="https://www.google.com/maps?q='+s.lat+','+s.lng+'&z=11&t=h" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#a855f7">🌍 Wide View</span></a>';
+    bodyHtml += '<a href="https://map.openseamap.org/?zoom=13&lat='+s.lat+'&lon='+s.lng+'&layers=B0000TFFFFTF" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#a855f7">⚓ Sea Chart</span></a>';
+    bodyHtml += '<a href="https://www.google.com/search?q='+encodeURIComponent(s.name+' '+s.island+' site:navily.com')+'" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="flex:1;text-decoration:none;border-radius:5px;background:#0f172a;border:1px solid #1e293b;padding:6px;text-align:center" class="mono"><span style="font-size:9px;font-weight:700;color:#f59e0b">⛵ Navily</span></a>';
     bodyHtml += '</div>';
     // Shelter indicator
-    var sh = SHELTER[s.id] || 'good';
+    var sh = getShelter(s.id) || 'good';
     var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
     var shLabel = sh==='good'?'Good protection':sh==='moderate'?'Moderate — check conditions':' Exposed — settled weather only!';
     bodyHtml += '<div style="margin-top:4px;display:flex;align-items:center;gap:6px"><span class="mono" style="font-size:9px;color:'+shColor+';font-weight:700">🛡️ ANCHORAGE: '+shLabel.toUpperCase()+'</span></div>';
     bodyHtml += '</div>';
   }
   // Services
-  var svc = SERVICES[s.id];
+  var svc = getServices(s.id);
   if(svc) {
     bodyHtml += '<div style="background:#0a1628;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;margin-bottom:6px">';
     bodyHtml += '<div class="mono" style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:4px;letter-spacing:0.1em">SERVICES</div>';
@@ -448,7 +623,7 @@ function renderCard(s) {
 
   return '<div class="card'+(isExp?' expanded':'')+'" style="--phase-color:'+color+'" id="card-'+s.id+'" onclick="toggleCard('+s.id+')">' +
     '<div class="card-header">' +
-      '<div class="card-num" style="background:'+color+'">'+s.id+'</div>' +
+      '<div class="card-num" style="background:'+color+'">'+displayNum(s.id)+'</div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">' +
           '<span class="card-name serif">'+escHtml(s.name)+'</span>' + mapLink +
@@ -459,7 +634,7 @@ function renderCard(s) {
           '<span class="day-pill">'+s.dayCount+' '+(s.dayCount===1?'day':'days')+'</span>' +
           '<span>'+shelterIcon(s.id)+'</span>' +
           '<span>'+nmText+'</span>' +
-          (function(){var sv=SERVICES[s.id];if(!sv)return '';var ic='';if(sv.fuel==='dock')ic+='⛽';if(sv.water==='dock')ic+='💧';if(sv.provision)ic+='🛒';return ic?'<span style="font-size:11px;letter-spacing:1px" title="Services available">'+ic+'</span>':'';})() +
+          (function(){var sv=getServices(s.id);if(!sv)return '';var ic='';if(sv.fuel==='dock')ic+='⛽';if(sv.water==='dock')ic+='💧';if(sv.provision)ic+='🛒';return ic?'<span style="font-size:11px;letter-spacing:1px" title="Services available">'+ic+'</span>':'';})() +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
           natureAweHtml(s.natureAwe) +
@@ -473,7 +648,7 @@ function renderCard(s) {
 }
 
 function renderList() {
-  var filtered = STOPS.filter(function(s){ return currentLeg===0 || s.leg===currentLeg; });
+  var filtered = getActiveStops().filter(function(s){ return currentLeg===0 || s.leg===currentLeg; });
   var html = filtered.map(renderCard).join('');
   document.getElementById('listView').innerHTML = html;
 }
@@ -509,11 +684,11 @@ var distLabelGroup = null;
 function setMapZoom(preset) {
   if (!leafletMap) return;
   var presets = {
-    full:       [[11.0, -63.6], [18.5, -60.2]],
+    full:       currentPlan==='b' ? [[11.0, -65.5], [19.0, -60.2]] : [[11.0, -63.6], [18.5, -60.2]],
     grenadines: [[11.8, -61.8], [13.5, -61.0]],
     windwards:  [[13.5, -61.6], [15.0, -60.5]],
     leewards:   [[15.0, -62.4], [16.8, -61.0]],
-    north:      [[16.4, -63.5], [18.4, -61.4]],
+    north:      currentPlan==='b' ? [[16.4, -65.5], [19.0, -61.4]] : [[16.4, -63.5], [18.4, -61.4]],
   };
   var bounds = presets[preset] || presets.full;
   leafletMap.fitBounds(bounds, {padding: [20, 20]});
@@ -550,6 +725,8 @@ function initLeafletMap() {
     else { if (leafletMap.hasLayer(distLabelGroup)) leafletMap.removeLayer(distLabelGroup); }
   });
   setTimeout(function() { leafletMap.invalidateSize(); }, 100);
+  // Auto-load GPS trail
+  setTimeout(loadTracks, 500);
 }
 
 function addRouteSegment(from, to, color, dashed, label, info, layerGroup) {
@@ -583,7 +760,7 @@ function addRouteSegment(from, to, color, dashed, label, info, layerGroup) {
 
 function buildStopTooltipHtml(s) {
   var color = getPhaseColor(s.phase);
-  var sh = SHELTER[s.id]||'good';
+  var sh = getShelter(s.id)||'good';
   var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
   var shText = sh==='good'?'Good shelter':sh==='moderate'?'Moderate':'Exposed!';
   var shIcon = sh==='good'?'🛡️':sh==='moderate'?'⚠️':'🔴';
@@ -591,7 +768,7 @@ function buildStopTooltipHtml(s) {
   var naweClr = ["","#6b7280","#22c55e","#3b82f6","#a855f7","#f59e0b"][s.natureAwe];
   var h = '';
   h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
-  h += '<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0" class="mono">'+s.id+'</div>';
+  h += '<div style="width:26px;height:26px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0" class="mono">'+displayNum(s.id)+'</div>';
   h += '<div><div class="serif" style="font-size:14px;font-weight:700;color:#f9fafb;line-height:1.2">'+escHtml(s.name)+'</div>';
   h += '<div class="mono" style="font-size:9px;color:'+color+'">'+escHtml(s.island)+'</div></div>';
   h += '</div>';
@@ -606,7 +783,7 @@ function buildStopTooltipHtml(s) {
   h += '<span class="mono" style="font-size:9px;font-weight:700;color:'+naweClr+';text-transform:uppercase">'+naweLbl+'</span>';
   h += '</div>';
   h += '<div style="font-size:11px;color:#d1d5db;line-height:1.4;border-left:2px solid '+color+';padding-left:8px">'+escHtml(s.highlight)+'</div>';
-  var svc = SERVICES[s.id];
+  var svc = getServices(s.id);
   if(svc) {
     var si = [];
     if(svc.fuel==='dock') si.push('<span style="color:#22c55e">⛽Fuel</span>');
@@ -630,15 +807,16 @@ function addStopMarker(s) {
   var color = getPhaseColor(s.phase);
   var isTranscendent = s.natureAwe === 5;
   var size = isTranscendent ? 32 : 24;
-  var sh = SHELTER[s.id] || 'good';
+  var sh = getShelter(s.id) || 'good';
   var shColor = sh==='good' ? '#22c55e' : sh==='moderate' ? '#f59e0b' : '#ef4444';
   var ringSize = size + 8;
   var totalSize = ringSize + 12;
   var html = '<div style="position:relative;width:'+totalSize+'px;height:'+totalSize+'px;display:flex;align-items:center;justify-content:center">';
   if (isTranscendent) html += '<div class="stop-glow"></div>';
   html += '<div class="stop-shelter-ring" style="width:'+ringSize+'px;height:'+ringSize+'px;border-color:'+shColor+'"></div>';
-  html += '<div class="stop-marker '+(isTranscendent?'stop-marker-lg':'stop-marker-sm')+'" style="background:'+color+'">'+s.id+'</div>';
-  if (SERVICES[s.id] && SERVICES[s.id].fuel==='dock') {
+  html += '<div class="stop-marker '+(isTranscendent?'stop-marker-lg':'stop-marker-sm')+'" style="background:'+color+'">'+displayNum(s.id)+'</div>';
+  var svcData = getServices(s.id);
+  if (svcData && svcData.fuel==='dock') {
     html += '<span style="position:absolute;top:0;right:0;font-size:9px;pointer-events:none">⛽</span>';
   }
   html += '</div>';
@@ -654,6 +832,8 @@ function addStopMarker(s) {
 }
 
 function buildMapLayers() {
+  var activeStops = getActiveStops();
+  var activeLeg = getActiveLegInfo();
   [1,2,3].forEach(function(leg) { phaseLayerGroups[leg].clearLayers(); });
   distLabelGroup.clearLayers();
 
@@ -664,11 +844,11 @@ function buildMapLayers() {
   phaseLayerGroups[1].addLayer(trinMarker);
 
   // Trinidad → Stop 1
-  var s1 = STOPS[0];
+  var s1 = activeStops[0];
   if (s1 && s1.lat) {
     addRouteSegment(
       [TRINIDAD_START.lat, TRINIDAD_START.lng], [s1.lat, s1.lng],
-      LEG_INFO[1].color, false, '107NM ~16h',
+      activeLeg[1].color, false, '107NM ~16h',
       {from: 'Chaguaramas, Trinidad', to: s1.name, nm: 107, hrs: 16.5},
       phaseLayerGroups[1]
     );
@@ -676,9 +856,9 @@ function buildMapLayers() {
 
   // Route segments per phase
   [1,2,3].forEach(function(legNum) {
-    var ls = STOPS.filter(function(s) { return s.leg === legNum && s.lat; });
+    var ls = activeStops.filter(function(s) { return s.leg === legNum && s.lat; });
     var isDash = legNum === 3;
-    var legColor = LEG_INFO[legNum].color;
+    var legColor = activeLeg[legNum].color;
     for (var i = 0; i < ls.length - 1; i++) {
       var a = ls[i], b = ls[i+1];
       var nmVal = b.nm ? parseInt(b.nm.replace('~','')) : 0;
@@ -694,19 +874,19 @@ function buildMapLayers() {
   });
 
   // Phase connectors
-  var e1 = STOPS.filter(function(s){return s.leg===1&&s.lat;}); e1 = e1[e1.length-1];
-  var s2 = STOPS.filter(function(s){return s.leg===2&&s.lat;})[0];
+  var e1 = activeStops.filter(function(s){return s.leg===1&&s.lat;}); e1 = e1[e1.length-1];
+  var s2 = activeStops.filter(function(s){return s.leg===2&&s.lat;})[0];
   if (e1 && s2) {
     var conn1 = L.polyline([[e1.lat,e1.lng],[s2.lat,s2.lng]], {
-      color: LEG_INFO[2].color, weight: 2, opacity: 0.6, dashArray: '8,5'
+      color: activeLeg[2].color, weight: 2, opacity: 0.6, dashArray: '8,5'
     });
     phaseLayerGroups[2].addLayer(conn1);
   }
-  var e2 = STOPS.filter(function(s){return s.leg===2&&s.lat;}); e2 = e2[e2.length-1];
-  var s3 = STOPS.filter(function(s){return s.leg===3&&s.lat;})[0];
+  var e2 = activeStops.filter(function(s){return s.leg===2&&s.lat;}); e2 = e2[e2.length-1];
+  var s3 = activeStops.filter(function(s){return s.leg===3&&s.lat;})[0];
   if (e2 && s3) {
     var conn2 = L.polyline([[e2.lat,e2.lng],[s3.lat,s3.lng]], {
-      color: LEG_INFO[3].color, weight: 2, opacity: 0.6, dashArray: '8,5'
+      color: activeLeg[3].color, weight: 2, opacity: 0.6, dashArray: '8,5'
     });
     phaseLayerGroups[3].addLayer(conn2);
   }
@@ -732,12 +912,30 @@ function buildMapLayers() {
     {lat:17.65,lng:-61.82,name:'Barbuda',country:'Antigua & Barbuda'},
     {lat:17.90,lng:-62.83,name:'St. Barths',country:'France'},
     {lat:18.05,lng:-63.05,name:'St. Maarten',country:'Netherlands/France'},
-    {lat:17.63,lng:-63.23,name:'Saba',country:'Netherlands'},
-    {lat:17.49,lng:-62.97,name:'Statia',country:'Netherlands'},
-    {lat:17.35,lng:-62.73,name:'St. Kitts',country:'St. Kitts & Nevis'},
-    {lat:17.15,lng:-62.58,name:'Nevis',country:'St. Kitts & Nevis'},
-    {lat:16.75,lng:-62.17,name:'Montserrat',country:'UK Territory'},
   ];
+  // Plan A labels (Saba/Statia/Montserrat corridor)
+  if (currentPlan === 'a') {
+    islandLabels = islandLabels.concat([
+      {lat:17.63,lng:-63.23,name:'Saba',country:'Netherlands'},
+      {lat:17.49,lng:-62.97,name:'Statia',country:'Netherlands'},
+      {lat:17.35,lng:-62.73,name:'St. Kitts',country:'St. Kitts & Nevis'},
+      {lat:17.15,lng:-62.58,name:'Nevis',country:'St. Kitts & Nevis'},
+      {lat:16.75,lng:-62.17,name:'Montserrat',country:'UK Territory'},
+    ]);
+  } else {
+    // Plan B labels (USVI/BVI + St. Kitts/Nevis)
+    islandLabels = islandLabels.concat([
+      {lat:18.35,lng:-64.95,name:'St. Thomas',country:'USVI (USA)'},
+      {lat:18.34,lng:-64.74,name:'St. John',country:'USVI (USA)'},
+      {lat:18.43,lng:-64.63,name:'Tortola',country:'BVI (UK)'},
+      {lat:18.45,lng:-64.39,name:'Virgin Gorda',country:'BVI (UK)'},
+      {lat:18.73,lng:-64.35,name:'Anegada',country:'BVI (UK)'},
+      {lat:18.44,lng:-64.75,name:'Jost Van Dyke',country:'BVI (UK)'},
+      {lat:18.32,lng:-64.62,name:'Norman Island',country:'BVI (UK)'},
+      {lat:17.35,lng:-62.73,name:'St. Kitts',country:'St. Kitts & Nevis'},
+      {lat:17.15,lng:-62.58,name:'Nevis',country:'St. Kitts & Nevis'},
+    ]);
+  }
   var labelGroup = L.layerGroup();
   islandLabels.forEach(function(il) {
     var html = '<div style="text-align:center"><div class="island-label">' + il.name + '</div><div class="country-label">' + il.country + '</div></div>';
@@ -750,17 +948,18 @@ function buildMapLayers() {
   labelGroup.addTo(leafletMap);
 
   // Stop markers (on top)
-  STOPS.filter(function(s) { return s.lat; }).forEach(function(s) {
+  activeStops.filter(function(s) { return s.lat; }).forEach(function(s) {
     addStopMarker(s);
   });
 }
 
 function renderMapControls() {
+  var activeLeg = getActiveLegInfo();
   var html = '';
   [1,2,3].forEach(function(leg){
     var checked = legFilter[leg] ? 'checked' : '';
-    var color = legFilter[leg] ? LEG_INFO[leg].color : '#4b5563';
-    html += '<label class="mono"><input type="checkbox" '+checked+' onchange="toggleLeg('+leg+')" style="accent-color:'+LEG_INFO[leg].color+'"><span style="color:'+color+';font-weight:600">'+LEG_INFO[leg].label.replace("Phase ","P")+'</span></label>';
+    var color = legFilter[leg] ? activeLeg[leg].color : '#4b5563';
+    html += '<label class="mono"><input type="checkbox" '+checked+' onchange="toggleLeg('+leg+')" style="accent-color:'+activeLeg[leg].color+'"><span style="color:'+color+';font-weight:600">'+activeLeg[leg].label.replace("Phase ","P")+'</span></label>';
   });
   document.getElementById('mapControls').innerHTML = html;
 }
@@ -775,7 +974,7 @@ function toggleLeg(leg) {
 }
 
 function mapClick(id) {
-  var stop = STOPS.find(function(s){return s.id===id;});
+  var stop = getActiveStops().find(function(s){return s.id===id;});
   currentLeg = stop ? stop.leg : 0;
   expandedId = id;
   showView('list');
@@ -832,7 +1031,7 @@ function updateTabs() {
       if(t.dataset.view==='map') t.style.borderBottomColor='#22c55e';
       else {
         var l = parseInt(t.dataset.leg);
-        t.style.borderBottomColor = l===0?'#0ea5e9':LEG_INFO[l].color;
+        t.style.borderBottomColor = l===0?'#0ea5e9':getActiveLegInfo()[l].color;
       }
     } else {
       t.style.borderBottomColor = 'transparent';
@@ -842,8 +1041,8 @@ function updateTabs() {
 
 function updateLegBar() {
   var bar = document.getElementById('legBar');
-  if(currentLeg > 0 && LEG_INFO[currentLeg]) {
-    var li = LEG_INFO[currentLeg];
+  if(currentLeg > 0 && getActiveLegInfo()[currentLeg]) {
+    var li = getActiveLegInfo()[currentLeg];
     bar.innerHTML = '<span class="mono" style="font-size:11px;font-weight:700;color:'+li.color+'">'+li.dates+'</span><span class="mono" style="font-size:10px;color:#64748b;background:#1f2937;padding:2px 6px;border-radius:4px">'+li.days+'</span><span style="font-size:11px;color:#94a3b8">'+li.desc+'</span>';
     bar.style.background = li.color + '08';
     bar.classList.remove('hidden');
@@ -854,17 +1053,17 @@ function updateLegBar() {
 
 
 function openPhotoModal(id) {
-  var s = STOPS.find(function(st){return st.id===id;});
+  var s = getActiveStops().find(function(st){return st.id===id;});
   if(!s) return;
   var color = getPhaseColor(s.phase);
-  var sh = SHELTER[s.id] || 'good';
+  var sh = getShelter(s.id) || 'good';
   var shColor = sh==='good'?'#22c55e':sh==='moderate'?'#f59e0b':'#ef4444';
   var shLabel = sh==='good'?'Good protection':sh==='moderate'?'Moderate — check conditions':'Exposed — settled weather only!';
   
   var h = '';
   h += '<div style="margin-top:40px">';
   h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
-  h += '<div style="width:28px;height:28px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff" class="mono">'+s.id+'</div>';
+  h += '<div style="width:28px;height:28px;border-radius:50%;background:'+color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff" class="mono">'+displayNum(s.id)+'</div>';
   h += '<span class="serif" style="font-size:20px;font-weight:700;color:#f9fafb">'+escHtml(s.name)+'</span>';
   h += '</div>';
   h += '<div class="mono" style="font-size:10px;color:#6b7280;margin-bottom:8px">'+escHtml(s.island)+' · '+escHtml(s.days)+' · '+s.dayCount+' days · '+escHtml(s.stayRec)+'</div>';
@@ -881,7 +1080,7 @@ function openPhotoModal(id) {
   if(s.lat) {
     h += '<div style="border-radius:8px;overflow:hidden;border:1px solid #1e293b;margin-bottom:8px">';
     // Photo gallery
-    var photos = PHOTOS[s.id];
+    var photos = getPhotos(s.id);
     if(photos && photos.length > 0) {
       photos.forEach(function(p){
         h += '<div style="margin-bottom:8px"><img src="'+p.url+'" alt="'+escHtml(p.cap)+'" style="width:100%;height:auto;max-height:300px;object-fit:cover;border-radius:8px;border:1px solid #1e293b;display:block;background:#0f172a" loading="lazy" onerror="this.parentNode.style.display=\'none\'"><div class="mono" style="font-size:9px;color:#6b7280;margin-top:3px;text-align:center">'+escHtml(p.cap)+'</div></div>';
@@ -915,6 +1114,134 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
+
+// === GPS TRACKING ===
+
+var trackingActive = false;
+var trackInterval = null;
+var trackLayer = null;
+var trackPoints = [];
+var trackBuffer = []; // offline buffer
+
+function toggleTracking() {
+  if (trackingActive) stopTracking();
+  else startTracking();
+}
+
+function startTracking() {
+  if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+  trackingActive = true;
+  var btn = document.getElementById('trackBtn');
+  btn.textContent = '📡 Stop Tracking';
+  btn.style.borderColor = '#22c55e'; btn.style.color = '#22c55e'; btn.style.background = '#22c55e20';
+  updateTrackStatus('Acquiring GPS...');
+  recordPosition(); // immediate first reading
+  trackInterval = setInterval(recordPosition, 30 * 60 * 1000); // every 30 min
+  localStorage.setItem('bm_tracking', '1');
+}
+
+function stopTracking() {
+  trackingActive = false;
+  if (trackInterval) { clearInterval(trackInterval); trackInterval = null; }
+  var btn = document.getElementById('trackBtn');
+  btn.textContent = '📡 Start Tracking';
+  btn.style.borderColor = '#374151'; btn.style.color = '#6b7280'; btn.style.background = '#1e293b';
+  updateTrackStatus('Tracking stopped');
+  flushBuffer();
+  localStorage.removeItem('bm_tracking');
+}
+
+function updateTrackStatus(msg) {
+  var el = document.getElementById('trackStatus');
+  if (el) el.textContent = msg;
+}
+
+function recordPosition() {
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var point = {
+        lat: Math.round(pos.coords.latitude * 1000000) / 1000000,
+        lng: Math.round(pos.coords.longitude * 1000000) / 1000000,
+        accuracy: Math.round(pos.coords.accuracy),
+        recorded_at: new Date().toISOString()
+      };
+      trackPoints.push(point);
+      updateTrackStatus('📍 ' + point.lat.toFixed(3) + ', ' + point.lng.toFixed(3) + ' (' + new Date().toLocaleTimeString() + ')');
+      drawTrackTrail();
+      savePoint(point);
+    },
+    function(err) {
+      updateTrackStatus('GPS error: ' + err.message);
+    },
+    { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 }
+  );
+}
+
+function savePoint(point) {
+  fetch('/api/bluemoon/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(point)
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Save failed');
+    flushBuffer(); // try to flush any buffered points
+  }).catch(function() {
+    // Offline — buffer in localStorage
+    trackBuffer.push(point);
+    localStorage.setItem('bm_track_buffer', JSON.stringify(trackBuffer));
+    updateTrackStatus(updateTrackStatus.lastMsg + ' (buffered)');
+  });
+}
+
+function flushBuffer() {
+  var buf = JSON.parse(localStorage.getItem('bm_track_buffer') || '[]');
+  if (buf.length === 0) return;
+  fetch('/api/bluemoon/track/batch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ points: buf })
+  }).then(function(r) {
+    if (r.ok) {
+      trackBuffer = [];
+      localStorage.removeItem('bm_track_buffer');
+    }
+  }).catch(function() {}); // silent fail, try again next time
+}
+
+function loadTracks() {
+  updateTrackStatus('Loading trail...');
+  fetch('/api/bluemoon/tracks').then(function(r) { return r.json(); }).then(function(data) {
+    trackPoints = data.map(function(p) { return { lat: p.lat, lng: p.lng, accuracy: p.accuracy, recorded_at: p.recorded_at }; });
+    drawTrackTrail();
+    updateTrackStatus(trackPoints.length + ' points loaded');
+  }).catch(function() {
+    updateTrackStatus('Failed to load trail');
+  });
+}
+
+function drawTrackTrail() {
+  if (!leafletMap) return;
+  if (trackLayer) leafletMap.removeLayer(trackLayer);
+  if (trackPoints.length < 2) return;
+  var latlngs = trackPoints.map(function(p) { return [p.lat, p.lng]; });
+  trackLayer = L.layerGroup();
+  // Trail line
+  L.polyline(latlngs, { color: '#22c55e', weight: 3, opacity: 0.8, dashArray: '4,6' }).addTo(trackLayer);
+  // Current position marker (last point)
+  var last = trackPoints[trackPoints.length - 1];
+  var dt = last.recorded_at ? new Date(last.recorded_at).toLocaleDateString() + ' ' + new Date(last.recorded_at).toLocaleTimeString() : '';
+  L.circleMarker([last.lat, last.lng], {
+    radius: 7, fillColor: '#22c55e', fillOpacity: 1, color: '#fff', weight: 2
+  }).bindTooltip('Blue Moon — ' + dt, { direction: 'right', offset: [10, 0] }).addTo(trackLayer);
+  trackLayer.addTo(leafletMap);
+}
+
+// Resume tracking if it was active before page reload
+if (localStorage.getItem('bm_tracking') === '1') {
+  setTimeout(function() { startTracking(); }, 2000);
+}
+// Try to flush any buffered points on load
+setTimeout(flushBuffer, 3000);
 
 // === INIT ===
 renderQref();
