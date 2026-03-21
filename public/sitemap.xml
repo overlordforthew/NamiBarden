@@ -3,10 +3,75 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://namibarden.com/</loc>
-    <lastmod>2026-03-12</lastmod>
+    <lastmod>2026-03-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/consultation</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/consultation"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/consultation-en"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/consultation-en</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/consultation-en"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/consultation"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/couples-coaching</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/couples-coaching"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/couples-coaching-en"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/couples-coaching-en</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/couples-coaching-en"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/couples-coaching"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/executive-coaching</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/executive-coaching"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/executive-coaching-en"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/executive-coaching-en</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/executive-coaching-en"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/executive-coaching"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/certification-course</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/certification-course"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/certification-course-en"/>
+  </url>
+  <url>
+    <loc>https://namibarden.com/certification-course-en</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/certification-course-en"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/certification-course"/>
   </url>
   <url>
     <loc>https://namibarden.com/online-course-1</loc>
@@ -21,43 +86,19 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://namibarden.com/certification-course</loc>
-    <lastmod>2026-03-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://namibarden.com/certification-course-en</loc>
-    <lastmod>2026-03-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/certification-course-en"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/certification-course"/>
-  </url>
-  <url>
-    <loc>https://namibarden.com/executive-coaching</loc>
-    <lastmod>2026-03-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://namibarden.com/executive-coaching-en</loc>
-    <lastmod>2026-03-12</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/executive-coaching-en"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/executive-coaching"/>
-  </url>
-  <url>
     <loc>https://namibarden.com/privacy-policy</loc>
     <lastmod>2026-03-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/privacy-policy"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/privacy-policy-en"/>
   </url>
   <url>
     <loc>https://namibarden.com/privacy-policy-en</loc>
     <lastmod>2026-03-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://namibarden.com/privacy-policy-en"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://namibarden.com/privacy-policy"/>
   </url>
 </urlset>
