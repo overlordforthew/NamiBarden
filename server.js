@@ -11,9 +11,39 @@ const Stripe = require('stripe');
 const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const WebSocket = require('ws');
+const logger = require('./logger');
 const uuidv4 = () => crypto.randomUUID();
 
+// ─── Environment Variable Validation ───
+const REQUIRED_ENV = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD', 'JWT_SECRET'];
+const RECOMMENDED_ENV = ['SMTP_USER', 'SMTP_PASS', 'SMTP_FROM', 'SITE_URL', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
+
+const missingRequired = REQUIRED_ENV.filter(v => !process.env[v]);
+if (missingRequired.length > 0) {
+  logger.fatal({ missing: missingRequired }, 'Missing required environment variables — exiting');
+  process.exit(1);
+}
+
+const missingRecommended = RECOMMENDED_ENV.filter(v => !process.env[v]);
+if (missingRecommended.length > 0) {
+  logger.warn({ missing: missingRecommended }, 'Missing recommended environment variables — some features will be disabled');
+}
+
 const app = express();
+
+// ─── Cookie parser (lightweight, no dependency) ───
+app.use((req, res, next) => {
+  req.cookies = {};
+  const cookieHeader = req.headers.cookie;
+  if (cookieHeader) {
+    cookieHeader.split(';').forEach(pair => {
+      const [name, ...rest] = pair.trim().split('=');
+      if (name) req.cookies[name.trim()] = decodeURIComponent(rest.join('=').trim());
+    });
+  }
+  next();
+});
+
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/stripe/webhook') {
     express.raw({ type: 'application/json' })(req, res, next);
@@ -23,6 +53,7 @@ app.use((req, res, next) => {
 });
 app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Invalid JSON' });
+  if (err instanceof URIError) return res.status(400).json({ error: 'Bad request' });
   next(err);
 });
 
@@ -143,12 +174,34 @@ function getIP(req) {
   return req.headers['x-real-ip'] || req.ip;
 }
 
+// ─── Cookie Auth Helpers ───
+const IS_PROD = process.env.NODE_ENV === 'production';
+const COOKIE_OPTS = {
+  httpOnly: true,
+  secure: IS_PROD,
+  sameSite: 'Lax',
+  path: '/'
+};
+
+function setAuthCookie(res, name, token, maxAgeMs) {
+  const opts = [`${name}=${token}`, 'HttpOnly', `Path=/`, `SameSite=Lax`, `Max-Age=${Math.floor(maxAgeMs / 1000)}`];
+  if (IS_PROD) opts.push('Secure');
+  res.append('Set-Cookie', opts.join('; '));
+}
+
+function clearAuthCookie(res, name) {
+  const opts = [`${name}=`, 'HttpOnly', 'Path=/', 'SameSite=Lax', 'Max-Age=0'];
+  if (IS_PROD) opts.push('Secure');
+  res.append('Set-Cookie', opts.join('; '));
+}
+
 // ─── JWT Auth Middleware ───
+// Reads token from cookie first, falls back to Authorization header for API compat
 function authMiddleware(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
+  const token = req.cookies?.nb_admin_token || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const decoded = jwt.verify(auth.slice(7), JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
     if (decoded.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
     req.admin = decoded;
     next();
@@ -156,6 +209,16 @@ function authMiddleware(req, res, next) {
     res.status(401).json({ error: 'Invalid token' });
   }
 }
+
+// ─── Health check ───
+app.get('/api/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', uptime: Math.floor(process.uptime()) });
+  } catch {
+    res.status(503).json({ status: 'unhealthy', error: 'database unreachable' });
+  }
+});
 
 // ─── Upload handler ───
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 2 * 1024 * 1024 } });
@@ -202,7 +265,7 @@ async function sendWhatsApp(to, text) {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${WEBHOOK_TOKEN}` },
       body: JSON.stringify({ to, text })
     });
-  } catch (e) { console.error('WhatsApp send failed:', e.message); }
+  } catch (e) { logger.error({ err: e }, 'WhatsApp send failed'); }
 }
 
 // Nami's WhatsApp JID
@@ -266,7 +329,7 @@ app.post('/api/contact', async (req, res) => {
           <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
           <hr><p style="color:#999; font-size:12px;">From namibarden.com contact form</p>`
       });
-    } catch (e) { console.error('Email send failed:', e.message); }
+    } catch (e) { logger.error({ err: e }, 'Email send failed'); }
 
     // WhatsApp notification to Nami
     const snippet = message.length > 200 ? message.slice(0, 200) + '...' : message;
@@ -274,7 +337,7 @@ app.post('/api/contact', async (req, res) => {
 
     res.json({ ok: true });
   } catch (e) {
-    console.error('Contact error:', e);
+    logger.error({ err: e }, 'Contact error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -311,7 +374,7 @@ app.post('/api/subscribe', async (req, res) => {
 
     res.json({ ok: true, new: isNew });
   } catch (e) {
-    console.error('Subscribe error:', e);
+    logger.error({ err: e }, 'Subscribe error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -340,7 +403,7 @@ app.get('/api/track/open/:trackingId', async (req, res) => {
     if (r.rows.length > 0) {
       await pool.query('UPDATE nb_campaigns SET open_count = open_count + 1 WHERE id = $1', [r.rows[0].campaign_id]);
     }
-  } catch (e) { console.error('Track open error:', e.message); }
+  } catch (e) { logger.error({ err: e }, 'Track open error'); }
 });
 
 // ─── GET /api/track/click/:trackingId ───
@@ -348,17 +411,27 @@ app.get('/api/track/click/:trackingId', async (req, res) => {
   const { trackingId } = req.params;
   let url = req.query.url || SITE_URL;
 
-  // Validate redirect URL: must be http(s) and same origin or known safe domain
+  // Validate redirect URL: allowlist approach — only permit external https links
   try {
     const parsed = new URL(url);
-    const allowedHosts = [new URL(SITE_URL).hostname];
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    // Must be https (block http downgrade, javascript:, data:, etc.)
+    if (parsed.protocol !== 'https:') {
       url = SITE_URL;
-    } else if (!allowedHosts.includes(parsed.hostname) && !parsed.hostname.endsWith('.namibarden.com')) {
-      // Allow external links from newsletters but block internal/metadata IPs
-      const blocked = ['127.0.0.1', 'localhost', '0.0.0.0', '169.254.169.254', '[::1]'];
-      if (blocked.includes(parsed.hostname) || parsed.hostname.startsWith('10.') ||
-          parsed.hostname.startsWith('172.') || parsed.hostname.startsWith('192.168.')) {
+    }
+    // Block URL-credentials trick (http://namibarden.com@attacker.com/)
+    else if (parsed.username || parsed.password) {
+      url = SITE_URL;
+    }
+    // Block any non-standard ports (prevents internal service probing)
+    else if (parsed.port && parsed.port !== '443') {
+      url = SITE_URL;
+    }
+    // Resolve hostname and block private/internal IPs (prevents IPv6-mapped bypass)
+    else {
+      const hostname = parsed.hostname.replace(/^\[|\]$/g, ''); // strip IPv6 brackets
+      const isIP = /^[\d.:a-fA-F]+$/.test(hostname);
+      if (isIP) {
+        // Direct IP addresses are never allowed — all legitimate links use hostnames
         url = SITE_URL;
       }
     }
@@ -384,7 +457,7 @@ app.get('/api/track/click/:trackingId', async (req, res) => {
     if (r.rows.length > 0) {
       await pool.query('UPDATE nb_campaigns SET click_count = click_count + 1 WHERE id = $1', [r.rows[0].campaign_id]);
     }
-  } catch (e) { console.error('Track click error:', e.message); }
+  } catch (e) { logger.error({ err: e }, 'Track click error'); }
 
   res.redirect(url);
 });
@@ -421,7 +494,7 @@ app.post('/api/unsubscribe/:token', async (req, res) => {
 
     res.json({ ok: true, message: 'You have been unsubscribed.' });
   } catch (e) {
-    console.error('Unsubscribe error:', e);
+    logger.error({ err: e }, 'Unsubscribe error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -568,7 +641,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     const session = await stripe.checkout.sessions.create(sessionParams);
     res.json({ url: session.url });
   } catch (e) {
-    console.error('Stripe checkout error:', e.message);
+    logger.error({ err: e }, 'Stripe checkout error');
     res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
@@ -601,7 +674,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
       event = JSON.parse(req.body.toString());
     }
   } catch (e) {
-    console.error('Stripe webhook signature failed:', e.message);
+    logger.error({ err: e }, 'Stripe webhook signature failed');
     return res.status(400).send(`Webhook Error: ${e.message}`);
   }
 
@@ -676,14 +749,14 @@ app.post('/api/stripe/webhook', async (req, res) => {
                 <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
               </div>`
             });
-          } catch (e) { console.error('Course access email failed:', e.message); }
+          } catch (e) { logger.error({ err: e }, 'Course access email failed'); }
 
           // WhatsApp notify Nami
           const amount = session.amount_total;
           sendWhatsApp(NAMI_JID,
             `🎓 コース購入!\n${name || email}\n${courseNames}\n¥${amount?.toLocaleString()}`);
 
-          console.log(`Stripe: Course ${product} purchased by ${email}`);
+          logger.info({ product, email }, "Stripe: course purchased");
           break;
         }
 
@@ -722,10 +795,10 @@ app.post('/api/stripe/webhook', async (req, res) => {
                   <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
                 </div>`
               });
-            } catch (e) { console.error('Single session email failed:', e.message); }
+            } catch (e) { logger.error({ err: e }, 'Single session email failed'); }
           }
 
-          console.log(`Stripe: ${product} purchased by ${email}`);
+          logger.info({ product, email }, "Stripe: payment purchased");
           break;
         }
 
@@ -751,7 +824,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
           sendWhatsApp(NAMI_JID,
             `💳 新規${subLabel}契約!\n${name || email}\n¥${subAmount?.toLocaleString() || '??'}/月サブスクリプション開始`);
 
-          console.log(`Stripe: New subscription ${sub.id} for ${email}`);
+          logger.info({ subscriptionId: sub.id, email }, "Stripe: new subscription");
         }
         break;
       }
@@ -768,7 +841,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
            sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
            sub.id]
         );
-        console.log(`Stripe: Subscription ${sub.id} updated to ${sub.status}`);
+        logger.info({ subscriptionId: sub.id, status: sub.status }, "Stripe: subscription updated");
         break;
       }
 
@@ -789,7 +862,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
           sendWhatsApp(NAMI_JID,
             `⚠️ コーチング契約キャンセル\n${custRow.rows[0].name || custRow.rows[0].email}`);
         }
-        console.log(`Stripe: Subscription ${sub.id} canceled`);
+        logger.info({ subscriptionId: sub.id }, "Stripe: subscription canceled");
         break;
       }
 
@@ -817,7 +890,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
              invoice.amount_paid, invoice.currency, invoiceProduct]
           );
         }
-        console.log(`Stripe: Payment succeeded for invoice ${invoice.id}`);
+        logger.info({ invoiceId: invoice.id }, "Stripe: payment succeeded");
         break;
       }
 
@@ -831,12 +904,12 @@ app.post('/api/stripe/webhook', async (req, res) => {
           sendWhatsApp(NAMI_JID,
             `⚠️ 支払い失敗\n${custRow.rows[0].name || custRow.rows[0].email}\nStripeダッシュボードを確認してください`);
         }
-        console.log(`Stripe: Payment failed for invoice ${invoice.id}`);
+        logger.warn({ invoiceId: invoice.id }, "Stripe: payment failed");
         break;
       }
     }
   } catch (e) {
-    console.error('Stripe webhook processing error:', e);
+    logger.error({ err: e }, 'Stripe webhook processing error');
   }
 
   res.json({ received: true });
@@ -863,7 +936,7 @@ app.post('/api/stripe/customer-portal', customerAuth, async (req, res) => {
     });
     res.json({ url: session.url });
   } catch (e) {
-    console.error('Stripe portal error:', e.message);
+    logger.error({ err: e }, 'Stripe portal error');
     res.status(500).json({ error: 'Failed to create portal session' });
   }
 });
@@ -896,9 +969,10 @@ app.get('/api/courses/verify', async (req, res) => {
       lessonCount: COURSES[row.course_id]?.lessons?.length || 0
     }));
 
-    res.json({ ok: true, email: r.rows[0].email, courses });
+    // Don't expose email — token holders are not necessarily the account owner
+    res.json({ ok: true, courses });
   } catch (e) {
-    console.error('Course verify error:', e);
+    logger.error({ err: e }, 'Course verify error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -921,7 +995,7 @@ app.get('/api/courses/:courseId/lessons', async (req, res) => {
 
     res.json({ courseId, name: course.name, lessons: course.lessons });
   } catch (e) {
-    console.error('Course lessons error:', e);
+    logger.error({ err: e }, 'Course lessons error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -974,7 +1048,7 @@ app.get('/api/preview/:courseId/:lessonId/hls/*', async (req, res) => {
     if (e.name === 'NoSuchKey' || e.$metadata?.httpStatusCode === 404) {
       return res.status(404).json({ error: 'Video not found' });
     }
-    console.error('Promo HLS error:', e);
+    logger.error({ err: e }, 'Promo HLS error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -993,6 +1067,12 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
     const { courseId, lessonId } = req.params;
     const filePath = req.params[0]; // e.g. "master.m3u8" or "720p/stream.m3u8" or "720p/seg001.ts"
     if (!token) return res.status(401).json({ error: 'Token required' });
+
+    // Block path traversal — reject any segment containing ".." or starting with "/"
+    if (/\.\./.test(courseId) || /\.\./.test(lessonId) || /\.\./.test(filePath) ||
+        courseId.includes('/') || lessonId.includes('/')) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
 
     // Validate access (cached — avoids ~300 DB queries per video)
     if (!await verifyCourseAccess(token, courseId)) return res.status(403).json({ error: 'Access denied' });
@@ -1040,7 +1120,7 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
     if (e.name === 'NoSuchKey' || e.$metadata?.httpStatusCode === 404) {
       return res.status(404).json({ error: 'Video not found' });
     }
-    console.error('HLS proxy error:', e);
+    logger.error({ err: e }, 'HLS proxy error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1090,7 +1170,7 @@ app.post('/api/courses/resend', async (req, res) => {
 
     res.json({ ok: true, message: 'If a purchase exists for this email, an access link has been sent.' });
   } catch (e) {
-    console.error('Course resend error:', e);
+    logger.error({ err: e }, 'Course resend error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1101,10 +1181,10 @@ app.post('/api/courses/resend', async (req, res) => {
 // ══════════════════════════════════════
 
 function customerAuth(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'ログインが必要です' });
+  const token = req.cookies?.nb_auth_token || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
+  if (!token) return res.status(401).json({ error: 'ログインが必要です' });
   try {
-    const decoded = jwt.verify(auth.slice(7), JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
     if (decoded.role !== 'customer') return res.status(403).json({ error: 'Forbidden' });
     req.customer = decoded;
     next();
@@ -1171,9 +1251,10 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const token = jwt.sign({ role: 'customer', customerId, email: emailLower }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ ok: true, token });
+    setAuthCookie(res, 'nb_auth_token', token, 30 * 24 * 60 * 60 * 1000);
+    res.json({ ok: true });
   } catch (e) {
-    console.error('Auth register error:', e);
+    logger.error({ err: e }, 'Auth register error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1200,9 +1281,10 @@ app.post('/api/auth/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'メールアドレスまたはパスワードが正しくありません。' });
 
     const token = jwt.sign({ role: 'customer', customerId: customer.id, email: customer.email }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ ok: true, token, name: customer.name });
+    setAuthCookie(res, 'nb_auth_token', token, 30 * 24 * 60 * 60 * 1000);
+    res.json({ ok: true, name: customer.name });
   } catch (e) {
-    console.error('Auth login error:', e);
+    logger.error({ err: e }, 'Auth login error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1242,7 +1324,7 @@ app.get('/api/auth/me', customerAuth, async (req, res) => {
       courses
     });
   } catch (e) {
-    console.error('Auth me error:', e);
+    logger.error({ err: e }, 'Auth me error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1295,7 +1377,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
     res.json({ ok: true, message: 'パスワードリセットメールを送信しました。' });
   } catch (e) {
-    console.error('Forgot password error:', e);
+    logger.error({ err: e }, 'Forgot password error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1324,10 +1406,30 @@ app.post('/api/auth/reset-password', async (req, res) => {
     );
 
     const authToken = jwt.sign({ role: 'customer', customerId: r.rows[0].id, email: r.rows[0].email }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ ok: true, token: authToken });
+    setAuthCookie(res, 'nb_auth_token', authToken, 30 * 24 * 60 * 60 * 1000);
+    res.json({ ok: true });
   } catch (e) {
-    console.error('Reset password error:', e);
+    logger.error({ err: e }, 'Reset password error');
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── POST /api/auth/logout ───
+app.post('/api/auth/logout', (req, res) => {
+  clearAuthCookie(res, 'nb_auth_token');
+  res.json({ ok: true });
+});
+
+// ─── GET /api/auth/check ─── lightweight cookie-based auth check (no DB hit)
+app.get('/api/auth/check', (req, res) => {
+  const token = req.cookies?.nb_auth_token;
+  if (!token) return res.json({ authenticated: false });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role === 'customer') return res.json({ authenticated: true, name: decoded.email });
+    res.json({ authenticated: false });
+  } catch {
+    res.json({ authenticated: false });
   }
 });
 
@@ -1358,7 +1460,19 @@ app.post('/api/admin/login', async (req, res) => {
 
   if (!valid) return res.status(401).json({ error: 'Invalid password' });
   const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
-  res.json({ token });
+  setAuthCookie(res, 'nb_admin_token', token, 24 * 60 * 60 * 1000);
+  res.json({ ok: true });
+});
+
+// ─── POST /api/admin/logout ───
+app.post('/api/admin/logout', (req, res) => {
+  clearAuthCookie(res, 'nb_admin_token');
+  res.json({ ok: true });
+});
+
+// ─── GET /api/admin/check ─── cookie-based auth check for frontend
+app.get('/api/admin/check', authMiddleware, (req, res) => {
+  res.json({ ok: true });
 });
 
 // ─── GET /api/admin/stats ───
@@ -1396,7 +1510,7 @@ app.get('/api/admin/stats', authMiddleware, async (req, res) => {
       growth: growth.rows
     });
   } catch (e) {
-    console.error('Stats error:', e);
+    logger.error({ err: e }, 'Stats error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1405,7 +1519,9 @@ app.get('/api/admin/stats', authMiddleware, async (req, res) => {
 app.get('/api/admin/subscribers', authMiddleware, async (req, res) => {
   try {
     const { page = 1, limit = 50, status, source, search, tag } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const safeLimit = Math.min(Math.max(parseInt(limit) || 50, 1), 200);
+    const safePage = Math.max(parseInt(page) || 1, 1);
+    const offset = (safePage - 1) * safeLimit;
     const conditions = [];
     const params = [];
     let idx = 1;
@@ -1417,7 +1533,7 @@ app.get('/api/admin/subscribers', authMiddleware, async (req, res) => {
 
     const where = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
     const countQ = await pool.query(`SELECT COUNT(*) FROM nb_subscribers ${where}`, params);
-    params.push(parseInt(limit), offset);
+    params.push(safeLimit, offset);
     const dataQ = await pool.query(
       `SELECT id, email, name, source, status, tags, created_at, updated_at
        FROM nb_subscribers ${where} ORDER BY created_at DESC LIMIT $${idx++} OFFSET $${idx}`,
@@ -1427,11 +1543,11 @@ app.get('/api/admin/subscribers', authMiddleware, async (req, res) => {
     res.json({
       subscribers: dataQ.rows,
       total: parseInt(countQ.rows[0].count),
-      page: parseInt(page),
-      limit: parseInt(limit)
+      page: safePage,
+      limit: safeLimit
     });
   } catch (e) {
-    console.error('Subscribers list error:', e);
+    logger.error({ err: e }, 'Subscribers list error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1444,13 +1560,13 @@ app.get('/api/admin/subscribers/export', authMiddleware, async (req, res) => {
     const params = status ? [status] : [];
     const r = await pool.query(
       `SELECT email, name, source, status, array_to_string(tags, ',') AS tags, created_at
-       FROM nb_subscribers ${where} ORDER BY created_at DESC`, params
+       FROM nb_subscribers ${where} ORDER BY created_at DESC LIMIT 50000`, params
     );
     const csv = stringify(r.rows, { header: true });
     res.set({ 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename=subscribers.csv' });
     res.send(csv);
   } catch (e) {
-    console.error('Export error:', e);
+    logger.error({ err: e }, 'Export error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1477,7 +1593,7 @@ app.post('/api/admin/import', authMiddleware, upload.single('file'), async (req,
     }
     res.json({ imported, skipped, total: records.length });
   } catch (e) {
-    console.error('Import error:', e);
+    logger.error({ err: e }, 'Import error');
     res.status(500).json({ error: 'Import failed: ' + e.message });
   }
 });
@@ -1494,7 +1610,7 @@ app.post('/api/admin/subscribers/:id/tags', authMiddleware, async (req, res) => 
     if (r.rows.length === 0) return res.status(404).json({ error: 'Subscriber not found' });
     res.json(r.rows[0]);
   } catch (e) {
-    console.error('Tags error:', e);
+    logger.error({ err: e }, 'Tags error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1506,7 +1622,7 @@ app.delete('/api/admin/subscribers/:id', authMiddleware, async (req, res) => {
     if (r.rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ ok: true });
   } catch (e) {
-    console.error('Delete subscriber error:', e);
+    logger.error({ err: e }, 'Delete subscriber error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1515,14 +1631,16 @@ app.delete('/api/admin/subscribers/:id', authMiddleware, async (req, res) => {
 app.get('/api/admin/contacts', authMiddleware, async (req, res) => {
   try {
     const { page = 1, limit = 50 } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const safeLimit = Math.min(Math.max(parseInt(limit) || 50, 1), 200);
+    const safePage = Math.max(parseInt(page) || 1, 1);
+    const offset = (safePage - 1) * safeLimit;
     const [countQ, dataQ] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM nb_contacts'),
-      pool.query('SELECT * FROM nb_contacts ORDER BY created_at DESC LIMIT $1 OFFSET $2', [parseInt(limit), offset])
+      pool.query('SELECT * FROM nb_contacts ORDER BY created_at DESC LIMIT $1 OFFSET $2', [safeLimit, offset])
     ]);
-    res.json({ contacts: dataQ.rows, total: parseInt(countQ.rows[0].count), page: parseInt(page) });
+    res.json({ contacts: dataQ.rows, total: parseInt(countQ.rows[0].count), page: safePage, limit: safeLimit });
   } catch (e) {
-    console.error('Contacts error:', e);
+    logger.error({ err: e }, 'Contacts error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1530,14 +1648,22 @@ app.get('/api/admin/contacts', authMiddleware, async (req, res) => {
 // ─── GET /api/admin/campaigns ───
 app.get('/api/admin/campaigns', authMiddleware, async (req, res) => {
   try {
-    const r = await pool.query(
-      `SELECT id, subject, status, segment, total_count, sent_count, open_count, click_count,
-              bounce_count, unsub_count, created_at, sent_at
-       FROM nb_campaigns ORDER BY created_at DESC`
-    );
-    res.json({ campaigns: r.rows });
+    const { page = 1, limit = 50 } = req.query;
+    const safeLimit = Math.min(Math.max(parseInt(limit) || 50, 1), 200);
+    const offset = (Math.max(parseInt(page) || 1, 1) - 1) * safeLimit;
+
+    const [countQ, dataQ] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM nb_campaigns'),
+      pool.query(
+        `SELECT id, subject, status, segment, total_count, sent_count, open_count, click_count,
+                bounce_count, unsub_count, created_at, sent_at
+         FROM nb_campaigns ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+        [safeLimit, offset]
+      )
+    ]);
+    res.json({ campaigns: dataQ.rows, total: parseInt(countQ.rows[0].count), page: parseInt(page), limit: safeLimit });
   } catch (e) {
-    console.error('Campaigns error:', e);
+    logger.error({ err: e }, 'Campaigns error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1545,16 +1671,29 @@ app.get('/api/admin/campaigns', authMiddleware, async (req, res) => {
 // ─── GET /api/admin/campaigns/:id ───
 app.get('/api/admin/campaigns/:id', authMiddleware, async (req, res) => {
   try {
+    const { page = 1, limit = 100 } = req.query;
+    const safeLimit = Math.min(Math.max(parseInt(limit) || 100, 1), 500);
+    const offset = (Math.max(parseInt(page) || 1, 1) - 1) * safeLimit;
+
     const campaign = await pool.query('SELECT * FROM nb_campaigns WHERE id = $1', [req.params.id]);
     if (campaign.rows.length === 0) return res.status(404).json({ error: 'Not found' });
-    const recipients = await pool.query(
-      `SELECT r.id, r.email, r.status, r.opened_at, r.clicked_at, r.bounced_at
-       FROM nb_campaign_recipients r WHERE r.campaign_id = $1 ORDER BY r.created_at`,
-      [req.params.id]
-    );
-    res.json({ campaign: campaign.rows[0], recipients: recipients.rows });
+    const [countQ, recipients] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM nb_campaign_recipients WHERE campaign_id = $1', [req.params.id]),
+      pool.query(
+        `SELECT r.id, r.email, r.status, r.opened_at, r.clicked_at, r.bounced_at
+         FROM nb_campaign_recipients r WHERE r.campaign_id = $1 ORDER BY r.created_at LIMIT $2 OFFSET $3`,
+        [req.params.id, safeLimit, offset]
+      )
+    ]);
+    res.json({
+      campaign: campaign.rows[0],
+      recipients: recipients.rows,
+      recipientTotal: parseInt(countQ.rows[0].count),
+      page: parseInt(page),
+      limit: safeLimit
+    });
   } catch (e) {
-    console.error('Campaign detail error:', e);
+    logger.error({ err: e }, 'Campaign detail error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1573,7 +1712,7 @@ app.post('/api/admin/campaigns', authMiddleware, async (req, res) => {
     );
     res.json(r.rows[0]);
   } catch (e) {
-    console.error('Create campaign error:', e);
+    logger.error({ err: e }, 'Create campaign error');
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -1602,7 +1741,7 @@ app.post('/api/admin/campaigns/:id/test', authMiddleware, async (req, res) => {
 
     res.json({ ok: true, message: `Test sent to ${email}` });
   } catch (e) {
-    console.error('Test send error:', e);
+    logger.error({ err: e }, 'Test send error');
     res.status(500).json({ error: 'Failed to send test: ' + e.message });
   }
 });
@@ -1675,7 +1814,7 @@ app.post('/api/admin/campaigns/:id/send', authMiddleware, async (req, res) => {
         // Rate limit: ~10 emails/sec
         await new Promise(r => setTimeout(r, 100));
       } catch (e) {
-        console.error(`Failed to send to ${recipient.email}:`, e.message);
+        logger.error({ err: e, email: recipient.email }, 'Failed to send campaign email');
         await pool.query(
           "UPDATE nb_campaign_recipients SET status = 'bounced', bounced_at = NOW() WHERE id = $1",
           [recipient.id]
@@ -1693,7 +1832,7 @@ app.post('/api/admin/campaigns/:id/send', authMiddleware, async (req, res) => {
     sendWhatsApp(NAMI_JID, `📧 Campaign sent: "${c.subject}"\n${sentCount}/${subs.rows.length} emails delivered`);
 
   } catch (e) {
-    console.error('Send campaign error:', e);
+    logger.error({ err: e }, 'Send campaign error');
     await pool.query("UPDATE nb_campaigns SET status = 'failed', updated_at = NOW() WHERE id = $1", [req.params.id]).catch(() => {});
     if (!res.headersSent) res.status(500).json({ error: 'Failed to send campaign' });
   }
@@ -1710,7 +1849,7 @@ app.post('/api/bluemoon/track', async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('Track save error:', err.message);
+    logger.error({ err }, 'Track save error');
     res.status(500).json({ error: 'Failed to save track point' });
   }
 });
@@ -1730,23 +1869,26 @@ app.post('/api/bluemoon/track/batch', async (req, res) => {
     );
     res.json({ saved: result.rows.length });
   } catch (err) {
-    console.error('Batch track save error:', err.message);
+    logger.error({ err }, 'Batch track save error');
     res.status(500).json({ error: 'Failed to save track points' });
   }
 });
 
 app.get('/api/bluemoon/tracks', async (req, res) => {
   try {
-    const { from, to } = req.query;
+    const { from, to, limit = 10000 } = req.query;
+    const safeLimit = Math.min(Math.max(parseInt(limit) || 10000, 1), 50000);
     let query = 'SELECT id, lat, lng, accuracy, recorded_at FROM bluemoon_tracks';
     const params = [];
     if (from) { params.push(from); query += ` WHERE recorded_at >= $${params.length}`; }
     if (to) { params.push(to); query += (params.length > 1 ? ' AND' : ' WHERE') + ` recorded_at <= $${params.length}`; }
     query += ' ORDER BY recorded_at ASC';
+    params.push(safeLimit);
+    query += ` LIMIT $${params.length}`;
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
-    console.error('Track fetch error:', err.message);
+    logger.error({ err }, 'Track fetch error');
     res.status(500).json({ error: 'Failed to fetch tracks' });
   }
 });
@@ -1756,7 +1898,7 @@ app.delete('/api/bluemoon/tracks', async (req, res) => {
     await pool.query('DELETE FROM bluemoon_tracks');
     res.json({ cleared: true });
   } catch (err) {
-    console.error('Track clear error:', err.message);
+    logger.error({ err }, 'Track clear error');
     res.status(500).json({ error: 'Failed to clear tracks' });
   }
 });
@@ -1818,7 +1960,7 @@ async function init() {
   if (r.rows.length === 0 && ADMIN_PASSWORD) {
     const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
     await pool.query('INSERT INTO nb_admin (password_hash) VALUES ($1)', [hash]);
-    console.log('Admin account initialized');
+    logger.info('Admin account initialized');
   }
 }
 
@@ -1826,26 +1968,34 @@ async function init() {
 const AISSTREAM_KEY = process.env.AISSTREAM_API_KEY;
 const BLUEMOON_MMSI = 339385000;
 let aisReconnectTimer = null;
+let aisReconnectDelay = 60000;
 let lastAisSave = 0;
 
 function startAisTracking() {
-  if (!AISSTREAM_KEY) { console.log('AIS tracking: no API key, skipping'); return; }
-  console.log('AIS tracking: connecting to AISStream for MMSI', BLUEMOON_MMSI);
+  if (!AISSTREAM_KEY) { logger.info('AIS tracking: no API key, skipping'); return; }
+  logger.info({ mmsi: BLUEMOON_MMSI }, 'AIS tracking: connecting to AISStream');
 
   const ws = new WebSocket('wss://stream.aisstream.io/v0/stream');
 
+  let pingInterval = null;
+
   ws.on('open', () => {
-    console.log('AIS tracking: connected');
+    logger.info('AIS tracking: connected');
     ws.send(JSON.stringify({
       APIKey: AISSTREAM_KEY,
       BoundingBoxes: [[[-90, -180], [90, 180]]],
       FilterMessageTypes: ['PositionReport', 'StandardClassBCSPositionReport'],
       FiltersShipMMSI: [String(BLUEMOON_MMSI)]
     }));
+    // Keep connection alive with periodic pings
+    pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.ping();
+    }, 30000);
   });
 
   ws.on('message', async (data) => {
     try {
+      aisReconnectDelay = 60000; // Reset backoff on successful message
       const msg = JSON.parse(data);
       if (!msg.MetaData || msg.MetaData.MMSI !== BLUEMOON_MMSI) return;
 
@@ -1862,30 +2012,35 @@ function startAisTracking() {
         'INSERT INTO bluemoon_tracks (lat, lng, accuracy, recorded_at) VALUES ($1, $2, $3, NOW())',
         [lat, lng, 10]
       );
-      console.log(`AIS track: ${lat.toFixed(4)}, ${lng.toFixed(4)} @ ${new Date().toISOString()}`);
+      logger.info({ lat: lat.toFixed(4), lng: lng.toFixed(4) }, 'AIS track saved');
     } catch (err) {
-      console.error('AIS message error:', err.message);
+      logger.error({ err }, 'AIS message error');
     }
   });
 
   ws.on('error', (err) => {
-    console.error('AIS tracking error:', err.message);
+    if (pingInterval) clearInterval(pingInterval);
+    logger.error({ err }, 'AIS tracking error');
   });
 
-  ws.on('close', () => {
-    console.log('AIS tracking: disconnected, reconnecting in 60s');
+  ws.on('close', (code, reason) => {
+    if (pingInterval) clearInterval(pingInterval);
+    const delaySec = Math.round(aisReconnectDelay / 1000);
+    logger.info({ code, reason: reason?.toString(), nextRetryS: delaySec }, 'AIS tracking: disconnected');
     if (aisReconnectTimer) clearTimeout(aisReconnectTimer);
-    aisReconnectTimer = setTimeout(startAisTracking, 60000);
+    aisReconnectTimer = setTimeout(startAisTracking, aisReconnectDelay);
+    // Exponential backoff: 1m → 2m → 4m → 8m → max 15m
+    aisReconnectDelay = Math.min(aisReconnectDelay * 2, 15 * 60 * 1000);
   });
 }
 
 init().then(() => {
   app.listen(PORT, '127.0.0.1', () => {
-    console.log(`NamiBarden API running on port ${PORT}`);
+    logger.info({ port: PORT }, 'NamiBarden API running');
     // Start AIS tracking after server is up
     setTimeout(startAisTracking, 5000);
   });
 }).catch(e => {
-  console.error('Init failed:', e);
+  logger.fatal({ err: e }, 'Init failed');
   process.exit(1);
 });

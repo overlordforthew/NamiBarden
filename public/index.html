@@ -1238,18 +1238,22 @@ document.getElementById('thankYouModal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-// Auth state: show My Courses or Login
+// Auth state: check via server cookie (httpOnly — not readable from JS)
 (function() {
-  if (localStorage.getItem('nb-auth-token')) {
-    var mc = document.getElementById('navMyCoursesLink');
-    var li = document.getElementById('navLoginLink');
-    var mmc = document.getElementById('mobileMyCoursesLink');
-    var mli = document.getElementById('mobileLoginLink');
-    if (mc) mc.style.display = '';
-    if (li) li.style.display = 'none';
-    if (mmc) mmc.style.display = '';
-    if (mli) mli.style.display = 'none';
-  }
+  fetch('/api/auth/check', { credentials: 'same-origin' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.authenticated) {
+        var mc = document.getElementById('navMyCoursesLink');
+        var li = document.getElementById('navLoginLink');
+        var mmc = document.getElementById('mobileMyCoursesLink');
+        var mli = document.getElementById('mobileLoginLink');
+        if (mc) mc.style.display = '';
+        if (li) li.style.display = 'none';
+        if (mmc) mmc.style.display = '';
+        if (mli) mli.style.display = 'none';
+      }
+    }).catch(function() {});
 })();
 </script>
 

@@ -85,7 +85,7 @@ async function createAccount(e) {
       return;
     }
 
-    localStorage.setItem('nb-auth-token', data.token);
+    // Token is set via httpOnly cookie by server — no localStorage needed
     successEl.textContent = 'Account created! You can now log in anytime to watch your courses.';
     successEl.style.display = 'block';
     document.getElementById('accountForm').style.display = 'none';

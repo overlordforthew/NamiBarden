@@ -341,10 +341,12 @@ async function resendAccess() {
   }
 }
 
-// Show "My Courses" link if logged in
-if (localStorage.getItem('nb-auth-token')) {
-  document.getElementById('myCoursesLink').style.display = '';
-}
+// Show "My Courses" link if logged in (check via httpOnly cookie)
+fetch('/api/auth/check', { credentials: 'same-origin' })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.authenticated) document.getElementById('myCoursesLink').style.display = '';
+  }).catch(function() {});
 
 init();
 </script>
