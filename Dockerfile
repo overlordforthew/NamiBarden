@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install --production
 
-COPY server.js ./
+COPY server.js logger.js ./
 COPY public/ /usr/share/nginx/html/
 RUN chmod -R a+rX /usr/share/nginx/html
 COPY admin/ /usr/share/nginx/html/admin/

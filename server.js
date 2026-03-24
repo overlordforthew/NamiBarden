@@ -103,6 +103,10 @@ const COURSES = {
   'course-2': {
     name: '愛を深める心の授業',
     lessons: [
+      { id: 'basic-1', title: 'はじめに', desc: 'コースの進め方と、学びを最大限に活かすためのコツをお伝えします。', sourceCourse: 'course-1', sourceLesson: 'lesson-1', section: 'basic' },
+      { id: 'basic-2', title: '二つの心の状態 (1)', desc: '人間の心には「美しい状態」と「苦悩の状態」の2つがあります。恋愛の問題を解消するための、最も基本となるコンセプトを学びます。', sourceCourse: 'course-1', sourceLesson: 'lesson-2', section: 'basic' },
+      { id: 'basic-3', title: '二つの心の状態 (2)', desc: '2つの心の状態がどのように恋愛パターンに影響しているかを、さらに深く掘り下げます。', sourceCourse: 'course-1', sourceLesson: 'lesson-3', section: 'basic' },
+      { id: 'basic-4', title: '４つのステップ', desc: '苦悩の心を美しい心に戻す「4つのステップ」を習得します。このコースの核となるメソッドです。', sourceCourse: 'course-1', sourceLesson: 'lesson-4', section: 'basic' },
       { id: 'lesson-1',  title: '意見の食い違いを解決しよう' },
       { id: 'lesson-2',  title: 'パートナーを一番にできるか' },
       { id: 'lesson-3',  title: 'パートナーの愛の言語を知る' },
@@ -1077,7 +1081,12 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
     // Validate access (cached — avoids ~300 DB queries per video)
     if (!await verifyCourseAccess(token, courseId)) return res.status(403).json({ error: 'Access denied' });
 
-    const r2Key = `courses/${courseId}/${lessonId}/${filePath}`;
+    // Support cross-course video references (e.g. basic knowledge lessons from course-1 in course-2)
+    const course = COURSES[courseId];
+    const lesson = course?.lessons?.find(l => l.id === lessonId);
+    const actualCourse = lesson?.sourceCourse || courseId;
+    const actualLesson = lesson?.sourceLesson || lessonId;
+    const r2Key = `courses/${actualCourse}/${actualLesson}/${filePath}`;
 
     // .ts segments → stream from R2 through proxy
     if (filePath.endsWith('.ts')) {
@@ -1969,6 +1978,7 @@ const AISSTREAM_KEY = process.env.AISSTREAM_API_KEY;
 const BLUEMOON_MMSI = 339385000;
 let aisReconnectTimer = null;
 let aisReconnectDelay = 60000;
+let aisConsecutiveFails = 0;
 let lastAisSave = 0;
 
 function startAisTracking() {
@@ -1995,9 +2005,10 @@ function startAisTracking() {
 
   ws.on('message', async (data) => {
     try {
-      aisReconnectDelay = 60000; // Reset backoff on successful message
       const msg = JSON.parse(data);
       if (!msg.MetaData || msg.MetaData.MMSI !== BLUEMOON_MMSI) return;
+      aisReconnectDelay = 60000; // Reset backoff only on matching message
+      aisConsecutiveFails = 0;
 
       const lat = msg.MetaData.latitude;
       const lng = msg.MetaData.longitude;
@@ -2025,12 +2036,16 @@ function startAisTracking() {
 
   ws.on('close', (code, reason) => {
     if (pingInterval) clearInterval(pingInterval);
+    aisConsecutiveFails++;
     const delaySec = Math.round(aisReconnectDelay / 1000);
-    logger.info({ code, reason: reason?.toString(), nextRetryS: delaySec }, 'AIS tracking: disconnected');
+    // Only log every 10th failure after initial ones to reduce noise
+    if (aisConsecutiveFails <= 5 || aisConsecutiveFails % 10 === 0) {
+      logger.info({ code, reason: reason?.toString(), nextRetryS: delaySec, fails: aisConsecutiveFails }, 'AIS tracking: disconnected');
+    }
     if (aisReconnectTimer) clearTimeout(aisReconnectTimer);
     aisReconnectTimer = setTimeout(startAisTracking, aisReconnectDelay);
-    // Exponential backoff: 1m → 2m → 4m → 8m → max 15m
-    aisReconnectDelay = Math.min(aisReconnectDelay * 2, 15 * 60 * 1000);
+    // Exponential backoff: 1m → 2m → 4m → 8m → max 30m
+    aisReconnectDelay = Math.min(aisReconnectDelay * 2, 30 * 60 * 1000);
   });
 }
 

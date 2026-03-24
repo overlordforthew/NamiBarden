@@ -19,8 +19,11 @@
     </form>
   </div>
   <script>
-    // If already logged in, go to dashboard
-    if (localStorage.getItem('nb_token')) window.location.href = '/admin/dashboard.html';
+    // If already logged in (cookie-based), go to dashboard
+    fetch('/api/admin/check', { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(d => { if (d.ok) window.location.href = '/admin/dashboard.html'; })
+      .catch(() => {});
 
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -33,11 +36,11 @@
         const res = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
           body: JSON.stringify({ password: document.getElementById('password').value })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Login failed');
-        localStorage.setItem('nb_token', data.token);
         window.location.href = '/admin/dashboard.html';
       } catch (ex) {
         err.textContent = ex.message;

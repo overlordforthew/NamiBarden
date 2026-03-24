@@ -47,21 +47,13 @@
 </main>
 
 <script>
-const token = localStorage.getItem('nb-auth-token');
-if (!token) {
-  window.location.href = '/login?redirect=/my-courses';
-}
-
 const isEn = document.documentElement.lang === 'en';
 
 async function loadDashboard() {
   try {
-    const res = await fetch('/api/auth/me', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
 
     if (res.status === 401) {
-      localStorage.removeItem('nb-auth-token');
       localStorage.removeItem('nb-auth-name');
       window.location.href = '/login?redirect=/my-courses';
       return;
@@ -122,7 +114,7 @@ async function loadDashboard() {
     contentEl.className = '';
 
   } catch (e) {
-    console.error('Dashboard error:', e);
+    // Dashboard load error handled below
     document.getElementById('content').innerHTML = `
       <div class="empty-state">
         <p>${isEn ? 'Failed to load courses. Please try again.' : 'コースの読み込みに失敗しました。'}</p>
@@ -133,9 +125,11 @@ async function loadDashboard() {
 }
 
 function logout() {
-  localStorage.removeItem('nb-auth-token');
-  localStorage.removeItem('nb-auth-name');
-  window.location.href = '/';
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+    .finally(() => {
+      localStorage.removeItem('nb-auth-name');
+      window.location.href = '/';
+    });
 }
 
 loadDashboard();

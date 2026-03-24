@@ -144,17 +144,32 @@ async function loadCourse(courseId) {
 
   document.getElementById('courseTitle').textContent = data.name;
   const videoLessons = data.lessons.filter(l => (l.type || 'video') !== 'ending');
-  document.getElementById('lessonCount').textContent = `${videoLessons.length}レッスン`;
+  const basicCount = data.lessons.filter(l => l.section === 'basic' || l.id.startsWith('basic-')).length;
+  const mainCount = videoLessons.length - basicCount;
+  document.getElementById('lessonCount').textContent = basicCount > 0 ? `基礎${basicCount} + ${mainCount}レッスン` : `${mainCount}レッスン`;
 
   const listEl = document.getElementById('lessonList');
   let lessonNum = 0;
+  let inBasic = false;
+  let basicEnded = false;
   listEl.innerHTML = data.lessons.map((l, i) => {
     const type = l.type || 'video';
     const url = l.url || '';
+    const isBasic = l.section === 'basic' || l.id.startsWith('basic-');
+    let sectionHeader = '';
+    if (isBasic && !inBasic) {
+      inBasic = true;
+      sectionHeader = `<div class="lesson-section-header" style="padding:10px 16px;font-size:0.75rem;font-weight:600;color:#A8895E;letter-spacing:0.08em;border-bottom:1px solid #E8DFD3;">基礎知識</div>`;
+    }
+    if (!isBasic && inBasic && !basicEnded) {
+      basicEnded = true;
+      sectionHeader = `<div class="lesson-section-header" style="padding:10px 16px;font-size:0.75rem;font-weight:600;color:#2C2419;letter-spacing:0.08em;border-bottom:1px solid #E8DFD3;margin-top:8px;">メイン教材</div>`;
+    }
     let num;
     if (type === 'ending') num = '★';
+    else if (isBasic) { num = '基' + l.id.replace('basic-', ''); }
     else { lessonNum++; num = lessonNum; }
-    return `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
+    return sectionHeader + `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
       <span class="lesson-num">${num}</span>
       <span class="lesson-text"><span class="lesson-title">${l.title}</span>${l.desc ? `<span class="lesson-desc">${l.desc}</span>` : ''}</span>
     </button>`;
@@ -190,7 +205,7 @@ function playLesson(courseId, lessonId, idx) {
   const title = activeEl?.querySelector('.lesson-title')?.textContent || '';
   const desc = activeEl?.getAttribute('data-desc') || '';
   const lessonTypeForSub = activeEl?.getAttribute('data-type') || 'video';
-  const num = lessonTypeForSub === 'ending' ? '' : lessonId.startsWith('bonus') ? 'ボーナス' : `レッスン ${idx + 1}`;
+  const num = lessonTypeForSub === 'ending' ? '' : lessonId.startsWith('bonus') ? 'ボーナス' : lessonId.startsWith('basic') ? `基礎 ${lessonId.replace('basic-', '')}` : `レッスン ${idx + 1}`;
   document.getElementById('lessonTitle').textContent = title;
   document.getElementById('lessonSub').textContent = num;
   document.getElementById('lessonDesc').textContent = desc;

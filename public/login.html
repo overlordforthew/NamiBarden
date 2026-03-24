@@ -76,10 +76,11 @@
 </div>
 
 <script>
-// Redirect if already logged in
-if (localStorage.getItem('nb-auth-token')) {
-  window.location.href = '/my-courses';
-}
+// Redirect if already logged in (cookie-based check)
+fetch('/api/auth/check', { credentials: 'same-origin' })
+  .then(r => r.json())
+  .then(d => { if (d.authenticated) window.location.href = '/my-courses'; })
+  .catch(() => {});
 
 async function handleLogin(e) {
   e.preventDefault();
@@ -95,6 +96,7 @@ async function handleLogin(e) {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({
         email: document.getElementById('email').value,
         password: document.getElementById('password').value
@@ -110,7 +112,6 @@ async function handleLogin(e) {
       return;
     }
 
-    localStorage.setItem('nb-auth-token', data.token);
     if (data.name) localStorage.setItem('nb-auth-name', data.name);
 
     // Redirect to my-courses or return URL (validated: relative paths only)

@@ -70,6 +70,7 @@ async function createAccount(e) {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       body: JSON.stringify({
         email: document.getElementById('accEmail').value,
         password: document.getElementById('accPassword').value,
@@ -86,7 +87,7 @@ async function createAccount(e) {
       return;
     }
 
-    localStorage.setItem('nb-auth-token', data.token);
+    // Auth token set via httpOnly cookie by server
     successEl.textContent = 'アカウントを作成しました！マイコースからいつでも視聴できます。';
     successEl.style.display = 'block';
     document.getElementById('accountForm').style.display = 'none';

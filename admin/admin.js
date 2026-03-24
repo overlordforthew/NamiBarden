@@ -2,30 +2,24 @@
 
 const API = '/api/admin';
 
-function getToken() { return localStorage.getItem('nb_token'); }
-function setToken(t) { localStorage.setItem('nb_token', t); }
-function clearToken() { localStorage.removeItem('nb_token'); }
-
+// Auth is now cookie-based (httpOnly) — no localStorage tokens
 function requireAuth() {
-  const token = getToken();
-  if (!token) { window.location.href = '/admin/'; return false; }
-  // Validate token with server (non-blocking — redirects on failure)
-  fetch('/api/admin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
-    .then(function(r) { if (r.status === 401 || r.status === 403) { clearToken(); window.location.href = '/admin/'; } })
+  // Validate cookie with server (non-blocking — redirects on failure)
+  fetch('/api/admin/check', { credentials: 'same-origin' })
+    .then(function(r) { if (r.status === 401 || r.status === 403) window.location.href = '/admin/'; return r.json(); })
+    .then(function(d) { if (d && !d.ok) window.location.href = '/admin/'; })
     .catch(function() {});
   return true;
 }
 
 async function api(path, opts = {}) {
-  const token = getToken();
   const headers = { ...opts.headers };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
   if (opts.body && !(opts.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(opts.body);
   }
-  const res = await fetch(`${API}${path}`, { ...opts, headers });
-  if (res.status === 401) { clearToken(); window.location.href = '/admin/'; return; }
+  const res = await fetch(`${API}${path}`, { ...opts, headers, credentials: 'same-origin' });
+  if (res.status === 401) { window.location.href = '/admin/'; return; }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
@@ -94,6 +88,6 @@ function initSidebar() {
 }
 
 function logout() {
-  clearToken();
-  window.location.href = '/admin/';
+  fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' })
+    .finally(function() { window.location.href = '/admin/'; });
 }
