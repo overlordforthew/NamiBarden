@@ -114,7 +114,7 @@ const COURSES = {
       { id: 'lesson-6',  title: '男性性と女性性 (2)' },
       { id: 'lesson-7',  title: '家ではどちらの顔でいることが多い？' },
       { id: 'lesson-11', title: 'セックスがうまくいかないワケ (2)' },
-      { id: 'lesson-12', title: 'セックスがうまくいかないワケ (3)' },
+      { id: 'lesson-12', title: 'セックスがうまくいかないワケ (1)' },
       { id: 'lesson-14', title: '価値観が合わないときはどうすれば？(A)' },
       { id: 'lesson-15', title: '人生のピンチを乗り越える方法 (1)' },
       { id: 'lesson-16', title: '人生のピンチを乗り越える方法 (2)' },
