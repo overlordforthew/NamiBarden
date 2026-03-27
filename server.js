@@ -110,28 +110,13 @@ const COURSES = {
       { id: 'lesson-1',  title: '意見の食い違いを解決しよう' },
       { id: 'lesson-2',  title: 'パートナーを一番にできるか' },
       { id: 'lesson-3',  title: 'パートナーの愛の言語を知る' },
-      { id: 'lesson-4',  title: '男性性と女性性' },
-      { id: 'lesson-5',  title: '男性性と女性性 (1)' },
-      { id: 'lesson-6',  title: '男性性と女性性 (2)' },
       { id: 'lesson-7',  title: '家ではどちらの顔でいることが多い？' },
-      { id: 'lesson-8',  title: 'セックスがうまくいかないワケ' },
-      { id: 'lesson-9',  title: 'セックスがうまくいかないワケ (1)' },
-      { id: 'lesson-10', title: 'セックスがうまくいかないワケ (2)' },
-      { id: 'lesson-11', title: 'セックスがうまくいかないワケ (2A)' },
-      { id: 'lesson-12', title: 'セックスがうまくいかないワケ (3)' },
-      { id: 'lesson-13', title: '価値観が合わないときはどうすれば？' },
-      { id: 'lesson-14', title: '価値観が合わないときはどうすれば？(A)' },
       { id: 'lesson-15', title: '人生のピンチを乗り越える方法 (1)' },
       { id: 'lesson-16', title: '人生のピンチを乗り越える方法 (2)' },
       { id: 'lesson-17', title: '複数のパートナーをもつことについて (1)' },
       { id: 'lesson-18', title: '複数のパートナーをもつことについて (2)' },
       { id: 'lesson-19', title: '怒りの手紙' },
-      { id: 'lesson-20', title: '相手を許す方法' },
-      { id: 'lesson-21', title: '相手を許す方法 (1)' },
       { id: 'lesson-22', title: '愛の規模' },
-      { id: 'lesson-23', title: '離婚・別れるときに気を付けること' },
-      { id: 'lesson-24', title: '離婚・別れるときに気を付けること (1)' },
-      { id: 'lesson-25', title: '離婚・別れるときに気を付けること (2)' },
       { id: 'lesson-26', title: '最後に' }
     ]
   }
@@ -559,7 +544,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       },
       'course-2': {
         name: COURSES['course-2'].name,
-        description: en ? '11 lessons + bonus meditation — resolve relationship issues at a deeper level' : '全11レッスン＋ボーナス瞑想 — パートナーシップの問題を心の深いレベルから解決',
+        description: en ? '11 lessons — resolve relationship issues at a deeper level' : '全11レッスン — パートナーシップの問題を心の深いレベルから解決',
         amount: 9800,
         mode: 'payment'
       },
