@@ -121,7 +121,7 @@ const COURSES = {
       { id: 'lesson-17', title: '複数のパートナーをもつことについて (1)' },
       { id: 'lesson-18', title: '複数のパートナーをもつことについて (2)' },
       { id: 'lesson-19', title: '怒りの手紙' },
-      { id: 'lesson-21', title: '相手を許す方法 (1)' },
+      { id: 'lesson-21', title: '相手を許す方法' },
       { id: 'lesson-22', title: '愛の規模' },
       { id: 'lesson-24', title: '離婚・別れるときに気を付けること (1)' },
       { id: 'lesson-25', title: '離婚・別れるときに気を付けること (2)' },
