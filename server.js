@@ -110,13 +110,21 @@ const COURSES = {
       { id: 'lesson-1',  title: '意見の食い違いを解決しよう' },
       { id: 'lesson-2',  title: 'パートナーを一番にできるか' },
       { id: 'lesson-3',  title: 'パートナーの愛の言語を知る' },
+      { id: 'lesson-5',  title: '男性性と女性性 (1)' },
+      { id: 'lesson-6',  title: '男性性と女性性 (2)' },
       { id: 'lesson-7',  title: '家ではどちらの顔でいることが多い？' },
+      { id: 'lesson-11', title: 'セックスがうまくいかないワケ (2A)' },
+      { id: 'lesson-12', title: 'セックスがうまくいかないワケ (3)' },
+      { id: 'lesson-14', title: '価値観が合わないときはどうすれば？(A)' },
       { id: 'lesson-15', title: '人生のピンチを乗り越える方法 (1)' },
       { id: 'lesson-16', title: '人生のピンチを乗り越える方法 (2)' },
       { id: 'lesson-17', title: '複数のパートナーをもつことについて (1)' },
       { id: 'lesson-18', title: '複数のパートナーをもつことについて (2)' },
       { id: 'lesson-19', title: '怒りの手紙' },
+      { id: 'lesson-21', title: '相手を許す方法 (1)' },
       { id: 'lesson-22', title: '愛の規模' },
+      { id: 'lesson-24', title: '離婚・別れるときに気を付けること (1)' },
+      { id: 'lesson-25', title: '離婚・別れるときに気を付けること (2)' },
       { id: 'lesson-26', title: '最後に' }
     ]
   }
