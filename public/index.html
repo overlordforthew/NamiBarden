@@ -115,11 +115,10 @@
 (function() {
   var saved = localStorage.getItem('namibarden-lang');
   var ver = localStorage.getItem('namibarden-lang-v');
-  if (!saved || ver !== '2') {
-    var browserLang = (navigator.language || navigator.userLanguage || '').slice(0, 2);
-    saved = browserLang === 'en' ? 'en' : 'ja';
+  if (!saved || ver !== '3') {
+    saved = 'ja';
     localStorage.setItem('namibarden-lang', saved);
-    localStorage.setItem('namibarden-lang-v', '2');
+    localStorage.setItem('namibarden-lang-v', '3');
   }
   if (saved !== 'ja') {
     document.documentElement.setAttribute('lang', saved);
