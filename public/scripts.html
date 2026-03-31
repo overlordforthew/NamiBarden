@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>瞑想スクリプト — Nami Barden</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/x-icon" sizes="48x48 32x32 16x16" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#FAF7F2">
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+:root{--cream:#FAF7F2;--cream-dark:#F0EAE0;--cream-darker:#E8DFD3;--warm-beige:#D4C5B2;--gold:#C4A882;--gold-dark:#A8895E;--text-dark:#2C2419;--text-medium:#5C4F3D;--text-light:#8B7E6E;--text-muted:#A99E8F;--white:#FFFFFF;--brown-deep:#2A1C10;--font-display:'Playfair Display','Noto Serif JP',serif;--font-body:'Cormorant Garamond','Noto Sans JP',sans-serif;--font-body-jp:'Noto Sans JP',sans-serif;--max-width:1200px;--transition:0.4s cubic-bezier(0.25,0.46,0.45,0.94);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:var(--font-body-jp);color:var(--text-dark);background:var(--cream);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:15px;}
+a{text-decoration:none;color:inherit;transition:var(--transition);}
+.container{max-width:var(--max-width);margin:0 auto;padding:0 40px;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(250,247,242,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(196,168,130,0.15);transition:var(--transition);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:80px;}
+.nav-logo{display:flex;flex-direction:column;align-items:center;text-decoration:none;gap:0;}
+.nav-logo .logo-name{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:400;letter-spacing:0.05em;color:var(--text-dark);line-height:1;}
+.nav-logo .logo-line{width:24px;height:1px;background:#b8a07a;margin:5px 0;align-self:center;}
+.nav-logo .logo-sub{font-family:'Noto Sans JP',sans-serif;font-size:0.5rem;font-weight:300;letter-spacing:0.35em;color:#8b7355;line-height:1;align-self:center;}
+.back-link{font-size:0.85rem;color:var(--text-light);display:flex;align-items:center;gap:6px;}
+.back-link:hover{color:var(--gold-dark);}
+
+.page-content{padding-top:140px;padding-bottom:100px;}
+.page-content .container{max-width:800px;}
+.page-header{margin-bottom:50px;text-align:center;}
+.section-label{font-family:var(--font-body);font-size:0.75rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:12px;font-weight:500;}
+h1{font-family:var(--font-display);font-weight:500;line-height:1.3;font-size:clamp(1.8rem,3.5vw,2.6rem);}
+.page-header p.subtitle{color:var(--text-light);font-size:0.95rem;margin-top:12px;}
+
+.script-list{display:flex;flex-direction:column;gap:20px;}
+.script-card{background:var(--white);border-radius:16px;padding:28px 32px;border:1px solid var(--cream-darker);transition:var(--transition);position:relative;}
+.script-card:hover{box-shadow:0 8px 30px rgba(44,36,25,0.06);border-color:var(--warm-beige);}
+.script-date{font-size:0.75rem;color:var(--text-muted);letter-spacing:0.08em;margin-bottom:8px;}
+.script-title{font-family:var(--font-display);font-size:1.2rem;color:var(--text-dark);margin-bottom:6px;font-weight:500;}
+.script-desc{font-size:0.88rem;color:var(--text-medium);line-height:1.8;margin-bottom:16px;}
+.script-meta{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.script-tag{font-size:0.72rem;padding:4px 12px;border-radius:20px;background:var(--cream-dark);color:var(--text-light);letter-spacing:0.05em;}
+.download-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:var(--gold);color:var(--white);border-radius:30px;font-size:0.82rem;font-weight:500;letter-spacing:0.05em;transition:var(--transition);margin-left:auto;}
+.download-btn:hover{background:var(--gold-dark);transform:translateY(-1px);}
+.download-btn svg{width:16px;height:16px;}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-light);font-size:0.95rem;}
+
+@media (max-width:768px){
+  .container{padding:0 20px;}
+  .page-content{padding-top:110px;padding-bottom:60px;}
+  .script-card{padding:22px 20px;}
+  .script-meta{flex-direction:column;align-items:flex-start;gap:12px;}
+  .download-btn{margin-left:0;}
+}
+</style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="container nav-inner">
+    <a href="/" class="nav-logo">
+      <span class="logo-name">Nami Barden</span>
+      <span class="logo-line"></span>
+      <span class="logo-sub">意識学ビジネスコーチ</span>
+    </a>
+    <a href="/" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      ホームに戻る
+    </a>
+  </div>
+</nav>
+
+<section class="page-content">
+  <div class="container">
+    <div class="page-header">
+      <p class="section-label">Meditation Scripts</p>
+      <h1>瞑想スクリプト</h1>
+      <p class="subtitle">録音用の瞑想ガイドスクリプト集</p>
+    </div>
+
+    <div class="script-list">
+
+      <div class="script-card">
+        <p class="script-date">2026年3月31日</p>
+        <h2 class="script-title">春の夜に聴く 心の大掃除瞑想</h2>
+        <p class="script-desc">桜の夜をイメージしながら、冬の間に溜まった体と心の荷物をやさしく手放す睡眠瞑想。5章構成、約50〜60分。新年度に向けて心のスペースを作る、春にぴったりのテーマ。</p>
+        <div class="script-meta">
+          <span class="script-tag">睡眠瞑想</span>
+          <span class="script-tag">50〜60分</span>
+          <span class="script-tag">春・季節テーマ</span>
+          <a href="/downloads/%E6%98%A5%E3%81%AE%E5%A4%9C%E3%81%AB%E8%81%B4%E3%81%8F%E5%BF%83%E3%81%AE%E5%A4%A7%E6%8E%83%E9%99%A4%E7%9E%91%E6%83%B3.txt" download class="download-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ダウンロード
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
