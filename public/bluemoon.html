@@ -1122,10 +1122,30 @@ var trackInterval = null;
 var trackLayer = null;
 var trackPoints = [];
 var trackBuffer = []; // offline buffer
+var bmApiKey = localStorage.getItem('bm_api_key') || '';
+
+function getBmHeaders() {
+  var h = { 'Content-Type': 'application/json' };
+  if (bmApiKey) h['X-BlueMoon-Key'] = bmApiKey;
+  return h;
+}
+
+// Note: API key stored in localStorage — acceptable for single-user boat tracker, not a multi-tenant auth pattern
+function ensureBmKey() {
+  if (bmApiKey) return true;
+  var key = prompt('Enter BlueMoon tracking key:');
+  if (!key) return false;
+  bmApiKey = key;
+  localStorage.setItem('bm_api_key', key);
+  return true;
+}
 
 function toggleTracking() {
   if (trackingActive) stopTracking();
-  else startTracking();
+  else {
+    if (!ensureBmKey()) return;
+    startTracking();
+  }
 }
 
 function startTracking() {
@@ -1180,7 +1200,7 @@ function recordPosition() {
 function savePoint(point) {
   fetch('/api/bluemoon/track', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getBmHeaders(),
     body: JSON.stringify(point)
   }).then(function(r) {
     if (!r.ok) throw new Error('Save failed');
@@ -1198,7 +1218,7 @@ function flushBuffer() {
   if (buf.length === 0) return;
   fetch('/api/bluemoon/track/batch', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getBmHeaders(),
     body: JSON.stringify({ points: buf })
   }).then(function(r) {
     if (r.ok) {

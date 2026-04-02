@@ -18,7 +18,12 @@ async function api(path, opts = {}) {
     headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(opts.body);
   }
-  const res = await fetch(`${API}${path}`, { ...opts, headers, credentials: 'same-origin' });
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, { ...opts, headers, credentials: 'same-origin' });
+  } catch (e) {
+    throw new Error('Network error — check your connection and try again');
+  }
   if (res.status === 401) { window.location.href = '/admin/'; return; }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Request failed');

@@ -160,13 +160,17 @@
       const a = document.createElement('a');
       a.href = url;
       a.download = 'subscribers.csv';
-      // Add auth header via fetch
-      fetch(url, { headers: { Authorization: 'Bearer ' + getToken() } })
-        .then(r => r.blob())
+      // auth is cookie-based — see admin.js
+      fetch(url, { credentials: 'same-origin' })
+        .then(r => {
+          if (!r.ok) throw new Error('Export failed');
+          return r.blob();
+        })
         .then(blob => {
           a.href = URL.createObjectURL(blob);
           a.click();
-        });
+        })
+        .catch(() => { alert('Failed to export subscribers'); });
     }
 
     document.getElementById('importForm').addEventListener('submit', async function(e) {

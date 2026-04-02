@@ -37,8 +37,10 @@ app.use((req, res, next) => {
   const cookieHeader = req.headers.cookie;
   if (cookieHeader) {
     cookieHeader.split(';').forEach(pair => {
-      const [name, ...rest] = pair.trim().split('=');
-      if (name) req.cookies[name.trim()] = decodeURIComponent(rest.join('=').trim());
+      try {
+        const [name, ...rest] = pair.trim().split('=');
+        if (name) req.cookies[name.trim()] = decodeURIComponent(rest.join('=').trim());
+      } catch { /* ignore malformed cookie values */ }
     });
   }
   next();
@@ -67,6 +69,9 @@ const {
   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
   R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET
 } = process.env;
+
+// ─── Redirect allowlist (used by /api/track/click to prevent open redirects) ───
+const REDIRECT_ALLOWLIST = ['namibarden.com', 'www.namibarden.com', 'youtube.com', 'www.youtube.com', 'youtu.be', 'instagram.com', 'www.instagram.com', 'amzn.to', 'amazon.co.jp', 'amazon.com'];
 
 // ─── Stripe ───
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
@@ -133,7 +138,15 @@ const COURSES = {
 // ─── Database ───
 const pool = new Pool({
   host: DB_HOST, port: DB_PORT || 5432,
-  database: DB_NAME, user: DB_USER, password: DB_PASSWORD
+  database: DB_NAME, user: DB_USER, password: DB_PASSWORD,
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000,
+  max: 20
+});
+
+// Prevent unhandled pool errors from crashing the process
+pool.on('error', (err) => {
+  logger.error({ err }, 'Unexpected database pool error');
 });
 
 // ─── SMTP ───
@@ -141,7 +154,10 @@ const transporter = nodemailer.createTransport({
   host: SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(SMTP_PORT) || 587,
   secure: false,
-  auth: { user: SMTP_USER, pass: SMTP_PASS }
+  auth: { user: SMTP_USER, pass: SMTP_PASS },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 30000
 });
 
 // ─── Rate limiting ───
@@ -156,13 +172,17 @@ function rateLimit(key, maxAttempts, windowMs) {
   return true;
 }
 setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimits) {
-    entry.attempts = entry.attempts.filter(t => now - t < 3600000);
-    if (entry.attempts.length === 0) rateLimits.delete(key);
-  }
-  for (const [key, entry] of accessCache) {
-    if (now - entry.ts > ACCESS_CACHE_TTL) accessCache.delete(key);
+  try {
+    const now = Date.now();
+    for (const [key, entry] of rateLimits) {
+      entry.attempts = entry.attempts.filter(t => now - t < 3600000);
+      if (entry.attempts.length === 0) rateLimits.delete(key);
+    }
+    for (const [key, entry] of accessCache) {
+      if (now - entry.ts > ACCESS_CACHE_TTL) accessCache.delete(key);
+    }
+  } catch (e) {
+    logger.error({ err: e }, 'Cache cleanup error');
   }
 }, 300000);
 
@@ -232,26 +252,36 @@ async function verifyCourseAccess(token, courseId) {
   const cached = accessCache.get(cacheKey);
   if (cached && Date.now() - cached.ts < ACCESS_CACHE_TTL) return cached.ok;
 
-  const r = await pool.query(
-    `SELECT id FROM nb_course_access
-     WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
-    [token, courseId]
-  );
-  const ok = r.rows.length > 0;
-  accessCache.set(cacheKey, { ok, ts: Date.now() });
-  return ok;
+  try {
+    const r = await pool.query(
+      `SELECT id FROM nb_course_access
+       WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
+      [token, courseId]
+    );
+    const ok = r.rows.length > 0;
+    accessCache.set(cacheKey, { ok, ts: Date.now() });
+    return ok;
+  } catch (e) {
+    logger.error({ err: e }, 'verifyCourseAccess DB error');
+    return false;
+  }
 }
 
 async function upsertCustomer(email, name, stripeCustomerId) {
-  const r = await pool.query(
-    `INSERT INTO nb_customers (email, name, stripe_customer_id)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (stripe_customer_id) DO UPDATE SET
-       email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
-     RETURNING id`,
-    [email, name, stripeCustomerId]
-  );
-  return r.rows[0].id;
+  try {
+    const r = await pool.query(
+      `INSERT INTO nb_customers (email, name, stripe_customer_id)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (stripe_customer_id) DO UPDATE SET
+         email = EXCLUDED.email, name = COALESCE(EXCLUDED.name, nb_customers.name), updated_at = NOW()
+       RETURNING id`,
+      [email, name, stripeCustomerId]
+    );
+    return r.rows[0].id;
+  } catch (e) {
+    logger.error({ err: e, email, stripeCustomerId }, 'upsertCustomer DB error');
+    throw e;
+  }
 }
 
 async function sendWhatsApp(to, text) {
@@ -260,7 +290,8 @@ async function sendWhatsApp(to, text) {
     await fetch(`${OVERLORD_URL}/api/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${WEBHOOK_TOKEN}` },
-      body: JSON.stringify({ to, text })
+      body: JSON.stringify({ to, text }),
+      signal: AbortSignal.timeout(10000)
     });
   } catch (e) { logger.error({ err: e }, 'WhatsApp send failed'); }
 }
@@ -330,7 +361,7 @@ app.post('/api/contact', async (req, res) => {
 
     // WhatsApp notification to Nami
     const snippet = message.length > 200 ? message.slice(0, 200) + '...' : message;
-    sendWhatsApp(NAMI_JID, `📬 New NamiBarden contact:\n${name} <${email}>\n${subject ? `Subject: ${subject}\n` : ''}${snippet}`);
+    sendWhatsApp(NAMI_JID, `📬 New NamiBarden contact:\n${name} <${email}>\n${subject ? `Subject: ${subject}\n` : ''}${snippet}`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
 
     res.json({ ok: true });
   } catch (e) {
@@ -366,7 +397,7 @@ app.post('/api/subscribe', async (req, res) => {
 
     const isNew = result.rows[0].xmax === '0';
     if (isNew) {
-      sendWhatsApp(NAMI_JID, `📬 New subscriber: ${email}${source ? ` (${source})` : ''}`);
+      sendWhatsApp(NAMI_JID, `📬 New subscriber: ${email}${source ? ` (${source})` : ''}`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
     }
 
     res.json({ ok: true, new: isNew });
@@ -408,29 +439,15 @@ app.get('/api/track/click/:trackingId', async (req, res) => {
   const { trackingId } = req.params;
   let url = req.query.url || SITE_URL;
 
-  // Validate redirect URL: allowlist approach — only permit external https links
+  // Validate redirect URL: domain allowlist — only permit known safe destinations
   try {
     const parsed = new URL(url);
-    // Must be https (block http downgrade, javascript:, data:, etc.)
-    if (parsed.protocol !== 'https:') {
+    const hostname = parsed.hostname.toLowerCase();
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password ||
+        (parsed.port && parsed.port !== '443') ||
+        !REDIRECT_ALLOWLIST.includes(hostname)) {
+      logger.warn({ hostname }, 'Redirect blocked — not in allowlist');
       url = SITE_URL;
-    }
-    // Block URL-credentials trick (http://namibarden.com@attacker.com/)
-    else if (parsed.username || parsed.password) {
-      url = SITE_URL;
-    }
-    // Block any non-standard ports (prevents internal service probing)
-    else if (parsed.port && parsed.port !== '443') {
-      url = SITE_URL;
-    }
-    // Resolve hostname and block private/internal IPs (prevents IPv6-mapped bypass)
-    else {
-      const hostname = parsed.hostname.replace(/^\[|\]$/g, ''); // strip IPv6 brackets
-      const isIP = /^[\d.:a-fA-F]+$/.test(hostname);
-      if (isIP) {
-        // Direct IP addresses are never allowed — all legitimate links use hostnames
-        url = SITE_URL;
-      }
     }
   } catch {
     url = SITE_URL;
@@ -467,6 +484,7 @@ app.get('/api/unsubscribe/:token', async (req, res) => {
     if (r.rows.length === 0) return res.status(404).send(unsubPage('Link not found', 'This unsubscribe link is invalid or expired.'));
     res.send(unsubPage('Unsubscribe', `Unsubscribe <strong>${escapeHtml(r.rows[0].email)}</strong> from our mailing list?`, token));
   } catch (e) {
+    logger.error({ err: e }, 'Unsubscribe page error');
     res.status(500).send(unsubPage('Error', 'Something went wrong.'));
   }
 });
@@ -665,14 +683,14 @@ app.post('/api/stripe/webhook', async (req, res) => {
   let event;
   try {
     const sig = req.headers['stripe-signature'];
-    if (STRIPE_WEBHOOK_SECRET) {
-      event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
-    } else {
-      event = JSON.parse(req.body.toString());
+    if (!STRIPE_WEBHOOK_SECRET) {
+      logger.error('Stripe webhook secret not configured — rejecting webhook');
+      return res.status(503).json({ error: 'Webhook signing not configured' });
     }
+    event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
   } catch (e) {
     logger.error({ err: e }, 'Stripe webhook signature failed');
-    return res.status(400).send(`Webhook Error: ${e.message}`);
+    return res.status(400).json({ error: 'Webhook signature verification failed' });
   }
 
   try {
@@ -751,7 +769,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
           // WhatsApp notify Nami
           const amount = session.amount_total;
           sendWhatsApp(NAMI_JID,
-            `🎓 コース購入!\n${name || email}\n${courseNames}\n¥${amount?.toLocaleString()}`);
+            `🎓 コース購入!\n${name || email}\n${courseNames}\n¥${amount?.toLocaleString()}`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
 
           logger.info({ product, email }, "Stripe: course purchased");
           break;
@@ -773,7 +791,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
             : product === 'couples-lumpsum' ? 'カップルコーチング（一括）'
             : 'コーチ認定コース（一括）';
           sendWhatsApp(NAMI_JID,
-            `💫 ${label}購入!\n${name || email}\n¥${amount?.toLocaleString()}`);
+            `💫 ${label}購入!\n${name || email}\n¥${amount?.toLocaleString()}`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
 
           // Send confirmation email for single session
           if (product === 'single-session' && email) {
@@ -819,7 +837,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
           const subLabel = product === 'couples-monthly' ? 'カップルコーチング' : 'コーチング';
           const subAmount = sub.items.data[0]?.price?.unit_amount;
           sendWhatsApp(NAMI_JID,
-            `💳 新規${subLabel}契約!\n${name || email}\n¥${subAmount?.toLocaleString() || '??'}/月サブスクリプション開始`);
+            `💳 新規${subLabel}契約!\n${name || email}\n¥${subAmount?.toLocaleString() || '??'}/月サブスクリプション開始`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
 
           logger.info({ subscriptionId: sub.id, email }, "Stripe: new subscription");
         }
@@ -827,81 +845,97 @@ app.post('/api/stripe/webhook', async (req, res) => {
       }
 
       case 'customer.subscription.updated': {
-        const sub = event.data.object;
-        await pool.query(
-          `UPDATE nb_subscriptions SET
-             status = $1, current_period_start = to_timestamp($2), current_period_end = to_timestamp($3),
-             cancel_at = $4, canceled_at = $5, updated_at = NOW()
-           WHERE stripe_subscription_id = $6`,
-          [sub.status, sub.current_period_start, sub.current_period_end,
-           sub.cancel_at ? new Date(sub.cancel_at * 1000) : null,
-           sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
-           sub.id]
-        );
-        logger.info({ subscriptionId: sub.id, status: sub.status }, "Stripe: subscription updated");
+        try {
+          const sub = event.data.object;
+          await pool.query(
+            `UPDATE nb_subscriptions SET
+               status = $1, current_period_start = to_timestamp($2), current_period_end = to_timestamp($3),
+               cancel_at = $4, canceled_at = $5, updated_at = NOW()
+             WHERE stripe_subscription_id = $6`,
+            [sub.status, sub.current_period_start, sub.current_period_end,
+             sub.cancel_at ? new Date(sub.cancel_at * 1000) : null,
+             sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+             sub.id]
+          );
+          logger.info({ subscriptionId: sub.id, status: sub.status }, "Stripe: subscription updated");
+        } catch (e) {
+          logger.error({ err: e, eventType: 'customer.subscription.updated' }, 'Stripe webhook case error');
+        }
         break;
       }
 
       case 'customer.subscription.deleted': {
-        const sub = event.data.object;
-        await pool.query(
-          `UPDATE nb_subscriptions SET status = 'canceled', canceled_at = NOW(), updated_at = NOW()
-           WHERE stripe_subscription_id = $1`,
-          [sub.id]
-        );
+        try {
+          const sub = event.data.object;
+          await pool.query(
+            `UPDATE nb_subscriptions SET status = 'canceled', canceled_at = NOW(), updated_at = NOW()
+             WHERE stripe_subscription_id = $1`,
+            [sub.id]
+          );
 
-        // Notify Nami
-        const custRow = await pool.query(
-          `SELECT c.email, c.name FROM nb_customers c JOIN nb_subscriptions s ON s.customer_id = c.id
-           WHERE s.stripe_subscription_id = $1`, [sub.id]
-        );
-        if (custRow.rows.length > 0) {
-          sendWhatsApp(NAMI_JID,
-            `⚠️ コーチング契約キャンセル\n${custRow.rows[0].name || custRow.rows[0].email}`);
+          // Notify Nami
+          const custRow = await pool.query(
+            `SELECT c.email, c.name FROM nb_customers c JOIN nb_subscriptions s ON s.customer_id = c.id
+             WHERE s.stripe_subscription_id = $1`, [sub.id]
+          );
+          if (custRow.rows.length > 0) {
+            sendWhatsApp(NAMI_JID,
+              `⚠️ コーチング契約キャンセル\n${custRow.rows[0].name || custRow.rows[0].email}`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
+          }
+          logger.info({ subscriptionId: sub.id }, "Stripe: subscription canceled");
+        } catch (e) {
+          logger.error({ err: e, eventType: 'customer.subscription.deleted' }, 'Stripe webhook case error');
         }
-        logger.info({ subscriptionId: sub.id }, "Stripe: subscription canceled");
         break;
       }
 
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object;
-        const custRow = await pool.query(
-          'SELECT id FROM nb_customers WHERE stripe_customer_id = $1',
-          [invoice.customer]
-        );
-        if (custRow.rows.length > 0) {
-          // Look up product name from subscription record
-          let invoiceProduct = 'coaching';
-          if (invoice.subscription) {
-            const subRow = await pool.query(
-              'SELECT product_name FROM nb_subscriptions WHERE stripe_subscription_id = $1',
-              [invoice.subscription]
-            );
-            if (subRow.rows[0]?.product_name) invoiceProduct = subRow.rows[0].product_name;
-          }
-          await pool.query(
-            `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
-             VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
-             ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
-            [custRow.rows[0].id, invoice.payment_intent, invoice.id,
-             invoice.amount_paid, invoice.currency, invoiceProduct]
+        try {
+          const invoice = event.data.object;
+          const custRow = await pool.query(
+            'SELECT id FROM nb_customers WHERE stripe_customer_id = $1',
+            [invoice.customer]
           );
+          if (custRow.rows.length > 0) {
+            // Look up product name from subscription record
+            let invoiceProduct = 'coaching';
+            if (invoice.subscription) {
+              const subRow = await pool.query(
+                'SELECT product_name FROM nb_subscriptions WHERE stripe_subscription_id = $1',
+                [invoice.subscription]
+              );
+              if (subRow.rows[0]?.product_name) invoiceProduct = subRow.rows[0].product_name;
+            }
+            await pool.query(
+              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
+               VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+               ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
+              [custRow.rows[0].id, invoice.payment_intent, invoice.id,
+               invoice.amount_paid, invoice.currency, invoiceProduct]
+            );
+          }
+          logger.info({ invoiceId: invoice.id }, "Stripe: payment succeeded");
+        } catch (e) {
+          logger.error({ err: e, eventType: 'invoice.payment_succeeded' }, 'Stripe webhook case error');
         }
-        logger.info({ invoiceId: invoice.id }, "Stripe: payment succeeded");
         break;
       }
 
       case 'invoice.payment_failed': {
-        const invoice = event.data.object;
-        const custRow = await pool.query(
-          'SELECT c.email, c.name FROM nb_customers c WHERE c.stripe_customer_id = $1',
-          [invoice.customer]
-        );
-        if (custRow.rows.length > 0) {
-          sendWhatsApp(NAMI_JID,
-            `⚠️ 支払い失敗\n${custRow.rows[0].name || custRow.rows[0].email}\nStripeダッシュボードを確認してください`);
+        try {
+          const invoice = event.data.object;
+          const custRow = await pool.query(
+            'SELECT c.email, c.name FROM nb_customers c WHERE c.stripe_customer_id = $1',
+            [invoice.customer]
+          );
+          if (custRow.rows.length > 0) {
+            sendWhatsApp(NAMI_JID,
+              `⚠️ 支払い失敗\n${custRow.rows[0].name || custRow.rows[0].email}\nStripeダッシュボードを確認してください`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
+          }
+          logger.warn({ invoiceId: invoice.id }, "Stripe: payment failed");
+        } catch (e) {
+          logger.error({ err: e, eventType: 'invoice.payment_failed' }, 'Stripe webhook case error');
         }
-        logger.warn({ invoiceId: invoice.id }, "Stripe: payment failed");
         break;
       }
     }
@@ -1011,6 +1045,11 @@ app.get('/api/preview/:courseId/:lessonId/hls/*', async (req, res) => {
     const allowed = PREVIEW_LESSONS[courseId];
     if (!allowed || !allowed.includes(lessonId)) return res.status(404).json({ error: 'Not found' });
 
+    // Block path traversal
+    if (/\.\./.test(filePath) || filePath.startsWith('/')) {
+      return res.status(400).json({ error: 'Invalid path' });
+    }
+
     const r2Key = `courses/${courseId}/${lessonId}/${filePath}`;
 
     if (filePath.endsWith('.ts')) {
@@ -1019,8 +1058,12 @@ app.get('/api/preview/:courseId/:lessonId/hls/*', async (req, res) => {
       if (obj.ContentLength) res.set('Content-Length', String(obj.ContentLength));
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
       obj.Body.transformToWebStream().pipeTo(
-        new WritableStream({ write(chunk) { res.write(chunk); }, close() { res.end(); } })
-      );
+        new WritableStream({
+          write(chunk) { res.write(chunk); },
+          close() { res.end(); },
+          abort() { res.destroy(); }
+        })
+      ).catch(() => { if (!res.destroyed) res.destroy(); });
       return;
     }
 
@@ -1081,16 +1124,11 @@ app.get('/api/courses/:courseId/:lessonId/hls/*', async (req, res) => {
     const actualLesson = lesson?.sourceLesson || lessonId;
     const r2Key = `courses/${actualCourse}/${actualLesson}/${filePath}`;
 
-    // .ts segments → stream from R2 through proxy
+    // .ts segments → redirect to signed R2 URL (offloads bandwidth from Node)
     if (filePath.endsWith('.ts')) {
-      const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
-      res.set('Content-Type', 'video/mp2t');
-      if (obj.ContentLength) res.set('Content-Length', String(obj.ContentLength));
-      res.set('Cache-Control', 'public, max-age=31536000, immutable');
-      obj.Body.transformToWebStream().pipeTo(
-        new WritableStream({ write(chunk) { res.write(chunk); }, close() { res.end(); } })
-      );
-      return;
+      const signedUrl = await getSignedUrl(r2, new GetObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }), { expiresIn: 3600 });
+      res.set('Cache-Control', 'private, max-age=3500');
+      return res.redirect(302, signedUrl);
     }
 
     // .m3u8 playlists → fetch from R2, rewrite URLs to go through our proxy
@@ -1154,22 +1192,27 @@ app.post('/api/courses/resend', async (req, res) => {
     const courseNames = courseIds.map(id => COURSES[id]?.name).join(' & ');
     const watchUrl = `${SITE_URL}/watch?token=${token}`;
 
-    await transporter.sendMail({
-      from: SMTP_FROM,
-      to: email.trim(),
-      subject: `【NamiBarden】コース視聴リンクの再送`,
-      html: `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
-        <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">コース視聴リンク</h2>
-        <p style="line-height:1.8;margin-bottom:16px;">「${escapeHtml(courseNames)}」の視聴リンクをお送りします。</p>
-        <p style="text-align:center;margin:32px 0;">
-          <a href="${watchUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">コースを視聴する</a>
-        </p>
-        <p style="font-size:0.9rem;color:#8B7E6E;">このリンクはあなた専用です。他の方と共有しないでください。</p>
-        <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
-        <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
-      </div>`
-    });
+    try {
+      await transporter.sendMail({
+        from: SMTP_FROM,
+        to: email.trim(),
+        subject: `【NamiBarden】コース視聴リンクの再送`,
+        html: `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
+          <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">コース視聴リンク</h2>
+          <p style="line-height:1.8;margin-bottom:16px;">「${escapeHtml(courseNames)}」の視聴リンクをお送りします。</p>
+          <p style="text-align:center;margin:32px 0;">
+            <a href="${watchUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">コースを視聴する</a>
+          </p>
+          <p style="font-size:0.9rem;color:#8B7E6E;">このリンクはあなた専用です。他の方と共有しないでください。</p>
+          <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
+          <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
+        </div>`
+      });
+    } catch (emailErr) {
+      logger.error({ err: emailErr }, 'Course resend email failed');
+    }
 
+    // Always return success to avoid revealing whether email exists
     res.json({ ok: true, message: 'If a purchase exists for this email, an access link has been sent.' });
   } catch (e) {
     logger.error({ err: e }, 'Course resend error');
@@ -1360,6 +1403,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     );
 
     const resetUrl = `${SITE_URL}/reset-password?token=${resetToken}`;
+    try {
     await transporter.sendMail({
       from: SMTP_FROM,
       to: emailLower,
@@ -1376,7 +1420,11 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
       </div>`
     });
+    } catch (emailErr) {
+      logger.error({ err: emailErr }, 'Forgot password email send failed');
+    }
 
+    // Always return success to avoid revealing whether email exists
     res.json({ ok: true, message: 'パスワードリセットメールを送信しました。' });
   } catch (e) {
     logger.error({ err: e }, 'Forgot password error');
@@ -1442,28 +1490,33 @@ app.get('/api/auth/check', (req, res) => {
 
 // ─── POST /api/admin/login ───
 app.post('/api/admin/login', async (req, res) => {
-  const ip = getIP(req);
-  if (!rateLimit(`login:${ip}`, 5, 300000)) {
-    return res.status(429).json({ error: 'Too many login attempts' });
-  }
-  const { password } = req.body;
-  if (!password) return res.status(400).json({ error: 'Password required' });
-
-  // Check against env password first, then DB hash
-  let valid = false;
-  if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
-    valid = true;
-  } else {
-    const r = await pool.query('SELECT password_hash FROM nb_admin ORDER BY id LIMIT 1');
-    if (r.rows.length > 0) {
-      valid = await bcrypt.compare(password, r.rows[0].password_hash);
+  try {
+    const ip = getIP(req);
+    if (!rateLimit(`login:${ip}`, 5, 300000)) {
+      return res.status(429).json({ error: 'Too many login attempts' });
     }
-  }
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Password required' });
 
-  if (!valid) return res.status(401).json({ error: 'Invalid password' });
-  const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
-  setAuthCookie(res, 'nb_admin_token', token, 24 * 60 * 60 * 1000);
-  res.json({ ok: true });
+    // Check against env password first, then DB hash
+    let valid = false;
+    if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
+      valid = true;
+    } else {
+      const r = await pool.query('SELECT password_hash FROM nb_admin ORDER BY id LIMIT 1');
+      if (r.rows.length > 0) {
+        valid = await bcrypt.compare(password, r.rows[0].password_hash);
+      }
+    }
+
+    if (!valid) return res.status(401).json({ error: 'Invalid password' });
+    const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+    setAuthCookie(res, 'nb_admin_token', token, 24 * 60 * 60 * 1000);
+    res.json({ ok: true });
+  } catch (e) {
+    logger.error({ err: e }, 'Admin login error');
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // ─── POST /api/admin/logout ───
@@ -1596,7 +1649,7 @@ app.post('/api/admin/import', authMiddleware, upload.single('file'), async (req,
     res.json({ imported, skipped, total: records.length });
   } catch (e) {
     logger.error({ err: e }, 'Import error');
-    res.status(500).json({ error: 'Import failed: ' + e.message });
+    res.status(500).json({ error: 'Import failed. Please check file format and try again.' });
   }
 });
 
@@ -1744,7 +1797,7 @@ app.post('/api/admin/campaigns/:id/test', authMiddleware, async (req, res) => {
     res.json({ ok: true, message: `Test sent to ${email}` });
   } catch (e) {
     logger.error({ err: e }, 'Test send error');
-    res.status(500).json({ error: 'Failed to send test: ' + e.message });
+    res.status(500).json({ error: 'Failed to send test email' });
   }
 });
 
@@ -1826,12 +1879,16 @@ app.post('/api/admin/campaigns/:id/send', authMiddleware, async (req, res) => {
     }
 
     // Finalize campaign
-    await pool.query(
-      "UPDATE nb_campaigns SET status = 'sent', sent_count = $1, updated_at = NOW() WHERE id = $2",
-      [sentCount, c.id]
-    );
-
-    sendWhatsApp(NAMI_JID, `📧 Campaign sent: "${c.subject}"\n${sentCount}/${subs.rows.length} emails delivered`);
+    try {
+      await pool.query(
+        "UPDATE nb_campaigns SET status = 'sent', sent_count = $1, updated_at = NOW() WHERE id = $2",
+        [sentCount, c.id]
+      );
+      sendWhatsApp(NAMI_JID, `📧 Campaign sent: "${c.subject}"\n${sentCount}/${subs.rows.length} emails delivered`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
+    } catch (finErr) {
+      logger.error({ err: finErr, campaignId: c.id, sentCount }, 'Campaign finalization DB error — emails were sent but status not updated');
+      sendWhatsApp(NAMI_JID, `⚠️ Campaign "${c.subject}" sent ${sentCount} emails but failed to update status in DB. Check logs.`).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
+    }
 
   } catch (e) {
     logger.error({ err: e }, 'Send campaign error');
@@ -1841,10 +1898,21 @@ app.post('/api/admin/campaigns/:id/send', authMiddleware, async (req, res) => {
 });
 
 // ─── BlueMoon GPS Tracking ───
-app.post('/api/bluemoon/track', async (req, res) => {
+// Write/delete endpoints require BLUEMOON_API_KEY; read (GET /tracks) stays public for map viewers
+const BLUEMOON_KEY = process.env.BLUEMOON_API_KEY || null;
+function requireBluemoonAuth(req, res, next) {
+  if (!BLUEMOON_KEY) return res.status(503).json({ error: 'BlueMoon tracking not configured' });
+  const provided = req.headers['x-bluemoon-key'] || req.query.key;
+  if (provided !== BLUEMOON_KEY) return res.status(401).json({ error: 'Invalid BlueMoon API key' });
+  next();
+}
+
+app.post('/api/bluemoon/track', requireBluemoonAuth, async (req, res) => {
   try {
     const { lat, lng, accuracy, recorded_at } = req.body;
-    if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' });
+    if (typeof lat !== 'number' || typeof lng !== 'number' || !isFinite(lat) || !isFinite(lng)) {
+      return res.status(400).json({ error: 'Valid numeric lat and lng required' });
+    }
     const result = await pool.query(
       'INSERT INTO bluemoon_tracks (lat, lng, accuracy, recorded_at) VALUES ($1, $2, $3, $4) RETURNING id, lat, lng, accuracy, recorded_at',
       [lat, lng, accuracy || null, recorded_at || new Date().toISOString()]
@@ -1856,10 +1924,16 @@ app.post('/api/bluemoon/track', async (req, res) => {
   }
 });
 
-app.post('/api/bluemoon/track/batch', async (req, res) => {
+app.post('/api/bluemoon/track/batch', requireBluemoonAuth, async (req, res) => {
   try {
     const { points } = req.body;
     if (!Array.isArray(points) || points.length === 0) return res.status(400).json({ error: 'points array required' });
+    if (points.length > 1000) return res.status(400).json({ error: 'Maximum 1000 points per batch' });
+    for (const p of points) {
+      if (typeof p.lat !== 'number' || typeof p.lng !== 'number' || !isFinite(p.lat) || !isFinite(p.lng)) {
+        return res.status(400).json({ error: 'Each point must have valid numeric lat and lng' });
+      }
+    }
     const values = points.map((p, i) => {
       const off = i * 4;
       return `($${off+1}, $${off+2}, $${off+3}, $${off+4})`;
@@ -1879,6 +1953,9 @@ app.post('/api/bluemoon/track/batch', async (req, res) => {
 app.get('/api/bluemoon/tracks', async (req, res) => {
   try {
     const { from, to, limit = 10000 } = req.query;
+    // Validate date parameters
+    if (from && isNaN(Date.parse(from))) return res.status(400).json({ error: 'Invalid "from" date format' });
+    if (to && isNaN(Date.parse(to))) return res.status(400).json({ error: 'Invalid "to" date format' });
     const safeLimit = Math.min(Math.max(parseInt(limit) || 10000, 1), 50000);
     let query = 'SELECT id, lat, lng, accuracy, recorded_at FROM bluemoon_tracks';
     const params = [];
@@ -1895,7 +1972,7 @@ app.get('/api/bluemoon/tracks', async (req, res) => {
   }
 });
 
-app.delete('/api/bluemoon/tracks', async (req, res) => {
+app.delete('/api/bluemoon/tracks', requireBluemoonAuth, async (req, res) => {
   try {
     await pool.query('DELETE FROM bluemoon_tracks');
     res.json({ cleared: true });
@@ -1955,14 +2032,58 @@ ${token ? `<button onclick="doUnsub()">Confirm Unsubscribe</button><p id="result
 </div></body></html>`;
 }
 
+// ─── Global error handler (final safety net) ───
+app.use((err, req, res, _next) => {
+  logger.error({ err, method: req.method, url: req.originalUrl }, 'Unhandled route error');
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ─── Uncaught exception / rejection handlers ───
+process.on('uncaughtException', (err, origin) => {
+  logger.fatal({ err, origin }, 'Uncaught exception — process will continue but may be unstable');
+  // Don't exit — let the process attempt recovery. The health check will catch persistent issues.
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error({ err: reason }, 'Unhandled promise rejection');
+});
+
 // ─── Init & Start ───
 async function init() {
+  // Verify database connectivity before starting
+  try {
+    await pool.query('SELECT 1');
+    logger.info('Database connection verified');
+  } catch (e) {
+    logger.fatal({ err: e }, 'Cannot connect to database');
+    throw e;
+  }
+
   // Ensure admin password hash exists
-  const r = await pool.query('SELECT id FROM nb_admin LIMIT 1');
-  if (r.rows.length === 0 && ADMIN_PASSWORD) {
-    const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
-    await pool.query('INSERT INTO nb_admin (password_hash) VALUES ($1)', [hash]);
-    logger.info('Admin account initialized');
+  try {
+    const r = await pool.query('SELECT id FROM nb_admin LIMIT 1');
+    if (r.rows.length === 0 && ADMIN_PASSWORD) {
+      const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+      await pool.query('INSERT INTO nb_admin (password_hash) VALUES ($1)', [hash]);
+      logger.info('Admin account initialized');
+    }
+  } catch (e) {
+    if (e.message && (e.message.includes('does not exist') || e.message.includes('relation'))) {
+      logger.fatal({ err: e }, 'Admin initialization failed — schema missing or relation does not exist');
+      throw e;
+    }
+    logger.error({ err: e }, 'Admin initialization failed (non-fatal, may need schema)');
+  }
+
+  // Verify SMTP connectivity (non-blocking)
+  if (SMTP_USER && SMTP_PASS) {
+    transporter.verify().then(() => {
+      logger.info('SMTP connection verified');
+    }).catch((e) => {
+      logger.warn({ err: e }, 'SMTP verification failed — email sending may not work');
+    });
   }
 }
 
@@ -1984,15 +2105,25 @@ function startAisTracking() {
 
   ws.on('open', () => {
     logger.info('AIS tracking: connected');
-    ws.send(JSON.stringify({
-      APIKey: AISSTREAM_KEY,
-      BoundingBoxes: [[[-90, -180], [90, 180]]],
-      FilterMessageTypes: ['PositionReport', 'StandardClassBCSPositionReport'],
-      FiltersShipMMSI: [String(BLUEMOON_MMSI)]
-    }));
+    try {
+      ws.send(JSON.stringify({
+        APIKey: AISSTREAM_KEY,
+        BoundingBoxes: [[[-90, -180], [90, 180]]],
+        FilterMessageTypes: ['PositionReport', 'StandardClassBCSPositionReport'],
+        FiltersShipMMSI: [String(BLUEMOON_MMSI)]
+      }));
+    } catch (e) {
+      logger.error({ err: e }, 'AIS tracking: failed to send subscription');
+      ws.close();
+      return;
+    }
     // Keep connection alive with periodic pings
     pingInterval = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) ws.ping();
+      try {
+        if (ws.readyState === WebSocket.OPEN) ws.ping();
+      } catch (e) {
+        logger.error({ err: e }, 'AIS tracking: ping failed');
+      }
     }, 30000);
   });
 
@@ -2043,11 +2174,32 @@ function startAisTracking() {
 }
 
 init().then(() => {
-  app.listen(PORT, '127.0.0.1', () => {
+  const server = app.listen(PORT, '127.0.0.1', () => {
     logger.info({ port: PORT }, 'NamiBarden API running');
     // Start AIS tracking after server is up
     setTimeout(startAisTracking, 5000);
   });
+
+  // Graceful shutdown — close HTTP server, drain DB pool
+  function shutdown(signal) {
+    logger.info({ signal }, 'Shutdown signal received — draining connections');
+    server.close(() => {
+      pool.end().then(() => {
+        logger.info('Database pool closed');
+        process.exit(0);
+      }).catch((err) => {
+        logger.error({ err }, 'Error closing database pool');
+        process.exit(1);
+      });
+    });
+    // Force exit after 15s if graceful shutdown stalls
+    setTimeout(() => {
+      logger.error('Graceful shutdown timed out — forcing exit');
+      process.exit(1);
+    }, 15000).unref();
+  }
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }).catch(e => {
   logger.fatal({ err: e }, 'Init failed');
   process.exit(1);

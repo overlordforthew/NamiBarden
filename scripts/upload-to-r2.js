@@ -52,28 +52,44 @@ function getFiles(dir, base = dir) {
 }
 
 async function upload(localDir, r2Prefix) {
+  if (!fs.existsSync(localDir)) {
+    console.error(`Directory not found: ${localDir}`);
+    process.exit(1);
+  }
   const files = getFiles(localDir);
+  if (files.length === 0) {
+    console.error(`No .m3u8 or .ts files found in ${localDir}`);
+    process.exit(1);
+  }
   console.log(`Found ${files.length} files to upload`);
 
   let uploaded = 0;
+  let failed = 0;
   for (const file of files) {
     const key = `${r2Prefix}/${file.key}`;
-    const body = fs.readFileSync(file.localPath);
-
-    await s3.send(new PutObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-      Body: body,
-      ContentType: file.contentType
-    }));
-
-    uploaded++;
-    if (uploaded % 10 === 0 || uploaded === files.length) {
-      console.log(`  ${uploaded}/${files.length} uploaded`);
+    try {
+      const body = fs.readFileSync(file.localPath);
+      await s3.send(new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        Body: body,
+        ContentType: file.contentType
+      }));
+      uploaded++;
+    } catch (err) {
+      failed++;
+      console.error(`  FAILED: ${key} — ${err.message}`);
+    }
+    if ((uploaded + failed) % 10 === 0 || (uploaded + failed) === files.length) {
+      console.log(`  ${uploaded}/${files.length} uploaded${failed > 0 ? `, ${failed} failed` : ''}`);
     }
   }
 
   console.log(`Done. ${uploaded} files uploaded to r2://${R2_BUCKET}/${r2Prefix}/`);
+  if (failed > 0) {
+    console.error(`WARNING: ${failed} files failed to upload`);
+    process.exit(1);
+  }
 }
 
 const [localDir, r2Prefix] = process.argv.slice(2);

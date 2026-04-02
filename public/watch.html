@@ -138,9 +138,17 @@ async function init() {
 
 async function loadCourse(courseId) {
   currentCourse = courseId;
-  const res = await fetch(`/api/courses/${courseId}/lessons?token=${encodeURIComponent(token)}`);
-  if (!res.ok) return showError('コースの読み込みに失敗しました。');
-  const data = await res.json();
+  let data;
+  try {
+    const res = await fetch(`/api/courses/${courseId}/lessons?token=${encodeURIComponent(token)}`);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      return showError(errData.error || 'コースの読み込みに失敗しました。');
+    }
+    data = await res.json();
+  } catch {
+    return showError('接続エラーが発生しました。ページを再読み込みしてください。');
+  }
 
   document.getElementById('courseTitle').textContent = data.name;
   const videoLessons = data.lessons.filter(l => (l.type || 'video') !== 'ending');

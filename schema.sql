@@ -88,6 +88,9 @@ CREATE TABLE IF NOT EXISTS nb_customers (
   name VARCHAR(255),
   stripe_customer_id VARCHAR(255) UNIQUE,
   subscriber_id INTEGER REFERENCES nb_subscribers(id),
+  password_hash VARCHAR(255),
+  reset_token VARCHAR(255),
+  reset_token_expires TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
