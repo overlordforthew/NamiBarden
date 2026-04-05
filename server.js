@@ -1498,15 +1498,11 @@ app.post('/api/admin/login', async (req, res) => {
     const { password } = req.body;
     if (!password) return res.status(400).json({ error: 'Password required' });
 
-    // Check against env password first, then DB hash
+    // Authenticate via DB hash only (constant-time comparison via bcrypt)
     let valid = false;
-    if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
-      valid = true;
-    } else {
-      const r = await pool.query('SELECT password_hash FROM nb_admin ORDER BY id LIMIT 1');
-      if (r.rows.length > 0) {
-        valid = await bcrypt.compare(password, r.rows[0].password_hash);
-      }
+    const r = await pool.query('SELECT password_hash FROM nb_admin ORDER BY id LIMIT 1');
+    if (r.rows.length > 0) {
+      valid = await bcrypt.compare(password, r.rows[0].password_hash);
     }
 
     if (!valid) return res.status(401).json({ error: 'Invalid password' });
