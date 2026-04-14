@@ -40,6 +40,26 @@ test_get() {
   fi
 }
 
+# Test a redirect endpoint for expected HTTP status and Location header
+test_redirect() {
+  local path="$1"
+  local expect="$2"
+  local expected_location="$3"
+  local headers
+  local code
+  local location
+
+  headers=$(curl -s -I --max-time 10 "${BASE_URL}${path}")
+  code=$(printf '%s\n' "$headers" | awk 'toupper($1) ~ /^HTTP\\// {print $2; exit}')
+  location=$(printf '%s\n' "$headers" | awk 'tolower($1) == "location:" {sub(/\r$/, "", $2); print $2; exit}')
+
+  if [ "$code" = "$expect" ] && [ "$location" = "$expected_location" ]; then
+    result "PASS" "${expect}+location" "GET ${path}" "(HTTP ${code}, Location ${location})"
+  else
+    result "FAIL" "${expect}+location" "GET ${path}" "(expected HTTP ${expect} to ${expected_location}, got HTTP ${code} to ${location})"
+  fi
+}
+
 # -------------------------------------------------------------------
 # 1-6: GET endpoints expecting 200
 # -------------------------------------------------------------------
@@ -50,6 +70,8 @@ test_get "/consultation-en" "200"
 test_get "/couples-coaching" "200"
 test_get "/couples-coaching-en" "200"
 test_get "/api/youtube-feed" "200"
+test_redirect "/en/" "308" "https://namibarden.com/en"
+test_redirect "/executive-coaching/" "308" "https://namibarden.com/executive-coaching"
 
 # -------------------------------------------------------------------
 # 7: POST /api/contact — 200 or 429 (rate-limited) both acceptable

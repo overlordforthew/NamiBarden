@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="/fonts/fonts.css">
 
-<style>:root{--cream:#FAF7F2;--cream-dark:#F0EAE0;--cream-darker:#E8DFD3;--warm-beige:#D4C5B2;--gold:#C4A882;--gold-dark:#A8895E;--text-dark:#2C2419;--text-medium:#5C4F3D;--text-light:#8B7E6E;--text-muted:#A99E8F;--white:#FFFFFF;--brown-deep:#2A1C10;--font-display:'Playfair Display','Noto Serif JP',serif;--font-body:'Cormorant Garamond','Noto Sans JP',sans-serif;--font-body-jp:'Noto Sans JP',sans-serif;--max-width:1200px;--transition:0.4s cubic-bezier(0.25,0.46,0.45,0.94);}*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;font-size:16px;}body{font-family:var(--font-body-jp);color:var(--text-dark);background:var(--cream);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:15px;}a{text-decoration:none;color:inherit;transition:var(--transition);}.container{max-width:var(--max-width);margin:0 auto;padding:0 40px;}h1,h2,h3{font-family:var(--font-display);font-weight:500;line-height:1.3;}h1{font-size:clamp(1.8rem,3.5vw,2.6rem);}h2{font-size:clamp(1.2rem,2vw,1.5rem);margin-top:48px;margin-bottom:16px;color:var(--text-dark);}nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(250,247,242,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(196,168,130,0.15);transition:var(--transition);}nav.scrolled{box-shadow:0 2px 40px rgba(44,36,25,0.06);}.nav-inner{display:flex;align-items:center;justify-content:space-between;height:80px;}.nav-logo{display:flex;flex-direction:column;align-items:center;text-decoration:none;gap:0;}.nav-logo .logo-name{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:400;letter-spacing:0.05em;color:var(--text-dark);line-height:1;}.nav-logo .logo-line{width:24px;height:1px;background:#b8a07a;margin:5px 0;align-self:center;}.nav-logo .logo-sub{font-family:'Raleway',sans-serif;font-size:0.5rem;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;color:#8b7355;line-height:1;align-self:center;}.nav-links{display:flex;align-items:center;gap:32px;}.nav-links a{font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-medium);font-weight:500;position:relative;}.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--gold);transition:var(--transition);}.nav-links a:hover{color:var(--text-dark);}.nav-links a:hover::after{width:100%;}.mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px;}.mobile-toggle span{display:block;width:24px;height:1.5px;background:var(--text-dark);margin:6px 0;transition:var(--transition);}.nav-right-mobile{display:none;align-items:center;gap:2px;}.mobile-menu{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--cream);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;transform:translateX(100%);transition:transform 0.4s ease;}.mobile-menu.active{transform:translateX(0);}.mobile-menu a{font-family:var(--font-display);font-size:1.6rem;color:var(--text-dark);letter-spacing:0.05em;}.mobile-close{position:absolute;top:24px;right:24px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-medium);}.page-content{padding-top:140px;padding-bottom:100px;}.page-content .container{max-width:800px;}.page-header{margin-bottom:50px;text-align:center;}.section-label{font-family:var(--font-body);font-size:0.75rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:12px;font-weight:500;}.page-header h1{margin-bottom:16px;}.page-header .last-updated{font-size:0.85rem;color:var(--text-muted);}.policy-body{color:var(--text-medium);line-height:2;font-size:0.95rem;}.policy-body h2{font-size:1.15rem;font-family:var(--font-body-jp);font-weight:600;color:var(--text-dark);padding-bottom:8px;border-bottom:1px solid var(--cream-darker);}.policy-body p{margin-bottom:16px;}.policy-body ul{list-style:none;margin-bottom:16px;padding-left:0;}.policy-body ul li{position:relative;padding-left:20px;margin-bottom:6px;}.policy-body ul li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--gold);}.policy-body a{color:var(--gold-dark);border-bottom:1px solid var(--gold);}.policy-body a:hover{color:var(--text-dark);}footer{background:var(--brown-deep);color:var(--cream-dark);padding:60px 0 30px;font-size:0.85rem;line-height:1.7;}.footer-inner{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}.footer-logo{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:12px;}.footer-logo .logo-name{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:400;letter-spacing:0.05em;color:var(--cream);line-height:1;}.footer-logo .logo-line{width:24px;height:1px;background:#b8a07a;margin:5px 0;}.footer-logo .logo-sub{font-family:'Raleway',sans-serif;font-size:0.5rem;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;color:#f0ebe3;line-height:1;}.footer-brand p{color:var(--text-muted);font-size:0.82rem;line-height:1.8;max-width:280px;text-align:center;margin-left:auto;margin-right:auto;}.footer-social{display:flex;gap:16px;margin-top:16px;}.footer-social a{color:var(--text-muted);transition:var(--transition);}.footer-social a:hover{color:var(--gold);}.footer-social svg{width:20px;height:20px;}.footer-col h4{color:var(--cream);font-size:0.85rem;letter-spacing:0.08em;margin-bottom:16px;font-weight:500;}.footer-col a{display:block;color:var(--text-muted);margin-bottom:8px;font-size:0.82rem;}.footer-col a:hover{color:var(--gold);}.footer-bottom{border-top:1px solid rgba(250,247,242,0.08);padding-top:24px;text-align:center;color:var(--text-muted);font-size:0.78rem;}@media (max-width:768px){.container{padding:0 20px;}.nav-links{display:none;}.nav-right-mobile{display:flex;}.page-content{padding-top:110px;padding-bottom:60px;}.footer-inner{grid-template-columns:1fr 1fr;gap:30px;}.policy-body h2{margin-top:36px;}}@media (max-width:480px){.footer-inner{grid-template-columns:1fr;text-align:center;}.footer-brand p{margin:12px auto 0;}.footer-social{justify-content:center;}}</style>
+<style>:root{--cream:#FAF7F2;--cream-dark:#F0EAE0;--cream-darker:#E8DFD3;--warm-beige:#D4C5B2;--gold:#C4A882;--gold-dark:#A8895E;--text-dark:#2C2419;--text-medium:#5C4F3D;--text-light:#8B7E6E;--text-muted:#A99E8F;--white:#FFFFFF;--brown-deep:#2A1C10;--font-display:'Playfair Display','Noto Serif JP',serif;--font-body:'Cormorant Garamond','Noto Sans JP',sans-serif;--font-body-jp:'Noto Sans JP',sans-serif;--max-width:1200px;--transition:0.4s cubic-bezier(0.25,0.46,0.45,0.94);}*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;font-size:16px;}body{font-family:var(--font-body);color:var(--text-dark);background:var(--cream);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased;font-size:15px;}a{text-decoration:none;color:inherit;transition:var(--transition);}.container{max-width:var(--max-width);margin:0 auto;padding:0 40px;}h1,h2,h3{font-family:var(--font-display);font-weight:500;line-height:1.3;}h1{font-size:clamp(1.8rem,3.5vw,2.6rem);}h2{font-size:clamp(1.2rem,2vw,1.5rem);margin-top:48px;margin-bottom:16px;color:var(--text-dark);}nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(250,247,242,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(196,168,130,0.15);transition:var(--transition);}nav.scrolled{box-shadow:0 2px 40px rgba(44,36,25,0.06);}.nav-inner{display:flex;align-items:center;justify-content:space-between;height:80px;}.nav-logo{display:flex;flex-direction:column;align-items:center;text-decoration:none;gap:0;}.nav-logo .logo-name{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:400;letter-spacing:0.05em;color:var(--text-dark);line-height:1;}.nav-logo .logo-line{width:24px;height:1px;background:#b8a07a;margin:5px 0;align-self:center;}.nav-logo .logo-sub{font-family:'Raleway',sans-serif;font-size:0.5rem;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;color:#8b7355;line-height:1;align-self:center;}.nav-links{display:flex;align-items:center;gap:32px;}.nav-links a{font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-medium);font-weight:500;position:relative;}.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--gold);transition:var(--transition);}.nav-links a:hover{color:var(--text-dark);}.nav-links a:hover::after{width:100%;}.mobile-toggle{display:none;background:none;border:none;cursor:pointer;padding:8px;}.mobile-toggle span{display:block;width:24px;height:1.5px;background:var(--text-dark);margin:6px 0;transition:var(--transition);}.nav-right-mobile{display:none;align-items:center;gap:2px;}.mobile-menu{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--cream);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;transform:translateX(100%);transition:transform 0.4s ease;}.mobile-menu.active{transform:translateX(0);}.mobile-menu a{font-family:var(--font-display);font-size:1.6rem;color:var(--text-dark);letter-spacing:0.05em;}.mobile-close{position:absolute;top:24px;right:24px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-medium);}.page-content{padding-top:140px;padding-bottom:100px;}.page-content .container{max-width:800px;}.page-header{margin-bottom:50px;text-align:center;}.section-label{font-family:var(--font-body);font-size:0.75rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:12px;font-weight:500;}.page-header h1{margin-bottom:16px;}.page-header .last-updated{font-size:0.85rem;color:var(--text-muted);}.policy-body{color:var(--text-medium);line-height:2;font-size:0.95rem;}.policy-body h2{font-size:1.15rem;font-family:var(--font-body);font-weight:600;color:var(--text-dark);padding-bottom:8px;border-bottom:1px solid var(--cream-darker);}.policy-body p{margin-bottom:16px;}.policy-body ul{list-style:none;margin-bottom:16px;padding-left:0;}.policy-body ul li{position:relative;padding-left:20px;margin-bottom:6px;}.policy-body ul li::before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--gold);}.policy-body a{color:var(--gold-dark);border-bottom:1px solid var(--gold);}.policy-body a:hover{color:var(--text-dark);}footer{background:var(--brown-deep);color:var(--cream-dark);padding:60px 0 30px;font-size:0.85rem;line-height:1.7;}.footer-inner{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px;}.footer-logo{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:12px;}.footer-logo .logo-name{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:400;letter-spacing:0.05em;color:var(--cream);line-height:1;}.footer-logo .logo-line{width:24px;height:1px;background:#b8a07a;margin:5px 0;}.footer-logo .logo-sub{font-family:'Raleway',sans-serif;font-size:0.5rem;font-weight:300;letter-spacing:0.25em;text-transform:uppercase;color:#f0ebe3;line-height:1;}.footer-brand p{color:var(--text-muted);font-size:0.82rem;line-height:1.8;max-width:280px;text-align:center;margin-left:auto;margin-right:auto;}.footer-social{display:flex;gap:16px;margin-top:16px;}.footer-social a{color:var(--text-muted);transition:var(--transition);}.footer-social a:hover{color:var(--gold);}.footer-social svg{width:20px;height:20px;}.footer-col .footer-heading{color:var(--cream);font-size:0.85rem;letter-spacing:0.08em;margin-bottom:16px;font-weight:500;}.footer-col a{display:block;color:var(--text-muted);margin-bottom:8px;font-size:0.82rem;}.footer-col a:hover{color:var(--gold);}.footer-bottom{border-top:1px solid rgba(250,247,242,0.08);padding-top:24px;text-align:center;color:var(--text-muted);font-size:0.78rem;}@media (max-width:768px){.container{padding:0 20px;}.nav-links{display:none;}.nav-right-mobile{display:flex;}.page-content{padding-top:110px;padding-bottom:60px;}.footer-inner{grid-template-columns:1fr 1fr;gap:30px;}.policy-body h2{margin-top:36px;}}@media (max-width:480px){.footer-inner{grid-template-columns:1fr;text-align:center;}.footer-brand p{margin:12px auto 0;}.footer-social{justify-content:center;}}</style>
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://namibarden.com/og-image.png">
 </head>
@@ -34,7 +34,7 @@
       <a href="/#books">Books</a>
       <a href="/#media">Media</a>
       <a href="/#contact">Contact</a>
-      <a href="/privacy-policy">JP 日本語</a>
+      <a href="/privacy-policy">Japanese</a>
     </div>
     <div class="nav-right-mobile">
       <button class="mobile-toggle" onclick="toggleMobile()" aria-label="Menu">
@@ -51,7 +51,7 @@
   <a href="/#services" onclick="toggleMobile()">Services</a>
   <a href="/#courses" onclick="toggleMobile()">Courses</a>
   <a href="/#contact" onclick="toggleMobile()">Contact</a>
-  <a href="/privacy-policy" onclick="toggleMobile()">JP 日本語</a>
+  <a href="/privacy-policy" onclick="toggleMobile()">Japanese</a>
 </div>
 
 <section class="page-content">
@@ -81,7 +81,7 @@
         <li>Sending service-related updates (you can unsubscribe at any time)</li>
       </ul>
 
-      <h2>3. Service Providers & Third Parties</h2>
+      <h2>3. Service Providers &amp; Third Parties</h2>
       <p>We do not sell your personal information.</p>
       <p>However, we may share personal or technical data with service providers when reasonably necessary to operate the site and deliver our services, including:</p>
       <ul>
@@ -91,7 +91,7 @@
       </ul>
       <p>These providers may process data only as needed to operate the website, deliver downloads, respond to inquiries, process payments, and keep the service secure.</p>
 
-      <h2>4. Cookies & External Services</h2>
+      <h2>4. Cookies &amp; External Services</h2>
       <p>We do not currently run a standalone analytics platform on this site as a default feature.</p>
       <p>However, third-party services used for YouTube-related features, payment pages, email delivery, hosting, and CDN delivery may process cookies, logs, IP addresses, browser details, and similar technical data.</p>
       <p>When you request a free PDF or submit a contact form, we also store the information needed to fulfill the request, prevent abuse, and honor unsubscribe requests.</p>
@@ -123,33 +123,33 @@
         <p>Consciousness, mindfulness, meditation. Tools to refine your mind and enrich your life.</p>
         <div class="footer-social">
           <a href="https://www.youtube.com/channel/UCKkvy8wapsStrRPyaOrXeCQ" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"></path></svg>
           </a>
         </div>
       </div>
       <div class="footer-col">
-        <h4>Services</h4>
+        <p class="footer-heading">Services</p>
         <a href="/executive-coaching-en">Executive Coaching</a>
         <a href="/certification-course-en">Coach Certification</a>
         <a href="/couples-coaching-en">Couples Coaching</a>
         <a href="/consultation-en">Private Consultation</a>
         <a href="/#courses">Online Courses</a>
-        <a href="/#media">Meditation & Breathwork</a>
+        <a href="/#media">Meditation &amp; Breathwork</a>
       </div>
       <div class="footer-col">
-        <h4>Content</h4>
+        <p class="footer-heading">Content</p>
         <a href="/#books">Books</a>
         <a href="/#media">YouTube</a>
       </div>
       <div class="footer-col">
-        <h4>More</h4>
+        <p class="footer-heading">More</p>
         <a href="/#about">About</a>
         <a href="/#contact">Contact</a>
         <a href="/privacy-policy-en">Privacy Policy</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2026 Nami Barden. All rights reserved.</p>
+      <p>© 2026 Nami Barden. All rights reserved.</p>
     </div>
   </div>
 </footer>
@@ -167,4 +167,3 @@ function toggleMobile() {
 
 </body>
 </html>
-
