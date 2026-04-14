@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   namibarden:
     build: .
@@ -62,4 +60,5 @@ networks:
   coolify:
     external: true
   namibarden-internal:
+    name: namibarden-internal
     driver: bridge

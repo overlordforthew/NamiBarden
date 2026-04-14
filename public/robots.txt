@@ -9,7 +9,6 @@ Disallow: /payment-success
 Disallow: /payment-success-en
 Disallow: /payment-cancel
 Disallow: /payment-cancel-en
-Disallow: /bluemoon
 Disallow: /admin/
 Disallow: /api/
 

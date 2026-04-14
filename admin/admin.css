@@ -236,6 +236,12 @@ label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 6px
 .badge-sending { background: #fff8e1; color: #f9a825; }
 .badge-sent { background: #e6f7ed; color: #1a7; }
 .badge-failed { background: #fee; color: #c44; }
+.badge-open { background: #fff3e0; color: #9a5a00; }
+.badge-acknowledged { background: #e8f0fe; color: #2f6fb0; }
+.badge-resolved { background: #e6f7ed; color: #1f7a4d; }
+.badge-info { background: #eef4fb; color: #315f8f; }
+.badge-warning { background: #fff4e5; color: #9a5a00; }
+.badge-critical { background: #fdebec; color: #b42318; }
 
 /* ─── Tags ─── */
 .tag {

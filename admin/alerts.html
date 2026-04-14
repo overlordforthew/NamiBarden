@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alerts - Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      padding: 18px 20px;
+    }
+    .summary-card .label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+    }
+    .summary-card .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-top: 4px;
+      color: var(--gold-dark);
+    }
+    .summary-card .subtle {
+      margin-top: 6px;
+      color: var(--text-light);
+      font-size: 0.84rem;
+    }
+    .health-card {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      padding: 18px 20px;
+    }
+    .health-card h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+    }
+    .details-block {
+      max-width: 420px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text-light);
+      font-size: 0.82rem;
+      margin-top: 8px;
+    }
+    .table-scroll {
+      overflow-x: auto;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/></svg><span>Alerts</span></a>
+    <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
+    <div class="sidebar-logout">
+      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Operational Alerts</h1>
+        <p style="color:var(--text-light)">Runtime, Stripe, SMTP, and application failures in one place.</p>
+      </div>
+    </div>
+
+    <div id="alerts"></div>
+
+    <div class="summary-grid">
+      <div class="summary-card"><div class="label">Open</div><div class="value" id="summaryOpen">-</div></div>
+      <div class="summary-card"><div class="label">Acknowledged</div><div class="value" id="summaryAcknowledged">-</div></div>
+      <div class="summary-card"><div class="label">Resolved</div><div class="value" id="summaryResolved">-</div></div>
+      <div class="summary-card"><div class="label">Critical Open</div><div class="value" id="summaryCritical">-</div><div class="subtle">Requires immediate attention</div></div>
+    </div>
+
+    <div class="health-grid">
+      <div class="health-card">
+        <h3>Public Health</h3>
+        <div id="healthStatus" class="mono">Loading...</div>
+      </div>
+      <div class="health-card">
+        <h3>Readiness</h3>
+        <div id="readyStatus" class="mono">Loading...</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label for="statusFilter">Status</label>
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option value="open">Open</option>
+        <option value="acknowledged">Acknowledged</option>
+        <option value="resolved">Resolved</option>
+      </select>
+
+      <label for="severityFilter">Severity</label>
+      <select id="severityFilter">
+        <option value="">All severities</option>
+        <option value="critical">Critical</option>
+        <option value="warning">Warning</option>
+        <option value="info">Info</option>
+      </select>
+
+      <label for="sourceFilter">Source</label>
+      <select id="sourceFilter">
+        <option value="">All sources</option>
+        <option value="stripe">Stripe</option>
+        <option value="smtp">SMTP</option>
+        <option value="runtime">Runtime</option>
+        <option value="http">HTTP</option>
+      </select>
+
+      <button class="btn" id="refreshButton" type="button">Refresh</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Alert Feed</h3></div>
+      <div class="card-body table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Source</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th>Occurrences</th>
+              <th>First Seen</th>
+              <th>Last Seen</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="alertsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    function severityBadge(severity) {
+      return `<span class="badge badge-${severity || 'info'}">${escapeHtml(severity || 'info')}</span>`;
+    }
+
+    function renderHealthLine(data) {
+      if (!data) return 'Unavailable';
+      return JSON.stringify(data);
+    }
+
+    async function fetchPublicStatus() {
+      const [healthRes, readyRes] = await Promise.all([
+        fetch('/api/health', { credentials: 'same-origin' }).then((r) => r.json().catch(() => ({ status: 'error' }))),
+        fetch('/api/ready', { credentials: 'same-origin' }).then((r) => r.json().catch(() => ({ status: 'error' })))
+      ]);
+      document.getElementById('healthStatus').textContent = renderHealthLine(healthRes);
+      document.getElementById('readyStatus').textContent = renderHealthLine(readyRes);
+    }
+
+    async function updateAlertStatus(alertId, status) {
+      await api(`/alerts/${alertId}/status`, { method: 'POST', body: { status } });
+      await loadAlerts();
+    }
+
+    function renderActions(alert) {
+      const actions = [];
+      if (alert.status !== 'acknowledged') {
+        actions.push(`<button class="btn btn-sm" type="button" data-alert-id="${alert.id}" data-next-status="acknowledged">Acknowledge</button>`);
+      }
+      if (alert.status !== 'resolved') {
+        actions.push(`<button class="btn btn-sm" type="button" data-alert-id="${alert.id}" data-next-status="resolved">Resolve</button>`);
+      }
+      if (alert.status !== 'open') {
+        actions.push(`<button class="btn btn-sm" type="button" data-alert-id="${alert.id}" data-next-status="open">Re-open</button>`);
+      }
+      return actions.join('');
+    }
+
+    async function loadAlerts() {
+      const params = new URLSearchParams();
+      const status = document.getElementById('statusFilter').value;
+      const severity = document.getElementById('severityFilter').value;
+      const source = document.getElementById('sourceFilter').value;
+      if (status) params.set('status', status);
+      if (severity) params.set('severity', severity);
+      if (source) params.set('source', source);
+      params.set('limit', '100');
+
+      const data = await api(`/alerts?${params.toString()}`);
+      document.getElementById('summaryOpen').textContent = data.summary.open || '0';
+      document.getElementById('summaryAcknowledged').textContent = data.summary.acknowledged || '0';
+      document.getElementById('summaryResolved').textContent = data.summary.resolved || '0';
+      document.getElementById('summaryCritical').textContent = data.summary.critical_open || '0';
+
+      const table = document.getElementById('alertsTable');
+      if (!data.alerts.length) {
+        table.innerHTML = '<tr><td colspan="8" class="empty">No alerts match the current filters</td></tr>';
+        return;
+      }
+
+      table.innerHTML = data.alerts.map((alert) => `
+        <tr>
+          <td>
+            <strong>${escapeHtml(alert.title)}</strong>
+            <div style="margin-top:4px;color:var(--text-light)">${escapeHtml(alert.message || '')}</div>
+            <details style="margin-top:8px">
+              <summary class="mono">details</summary>
+              <div class="details-block mono">${escapeHtml(JSON.stringify(alert.details || {}, null, 2))}</div>
+            </details>
+          </td>
+          <td>${escapeHtml(alert.source)}</td>
+          <td>${severityBadge(alert.severity)}</td>
+          <td>${statusBadge(alert.status)}</td>
+          <td>${alert.occurrenceCount}</td>
+          <td>${formatDateTime(alert.firstSeen)}</td>
+          <td>${formatDateTime(alert.lastSeen)}</td>
+          <td><div class="actions">${renderActions(alert)}</div></td>
+        </tr>
+      `).join('');
+
+      table.querySelectorAll('button[data-alert-id]').forEach((button) => {
+        button.addEventListener('click', async function() {
+          const alertsContainer = document.getElementById('alerts');
+          try {
+            await updateAlertStatus(this.dataset.alertId, this.dataset.nextStatus);
+            showAlert(alertsContainer, `Alert marked ${this.dataset.nextStatus}.`);
+          } catch (err) {
+            showAlert(alertsContainer, err.message || 'Failed to update alert.', 'error');
+          }
+        });
+      });
+    }
+
+    document.getElementById('statusFilter').addEventListener('change', () => loadAlerts().catch(console.error));
+    document.getElementById('severityFilter').addEventListener('change', () => loadAlerts().catch(console.error));
+    document.getElementById('sourceFilter').addEventListener('change', () => loadAlerts().catch(console.error));
+    document.getElementById('refreshButton').addEventListener('click', () => {
+      Promise.all([loadAlerts(), fetchPublicStatus()]).catch(console.error);
+    });
+
+    Promise.all([loadAlerts(), fetchPublicStatus()]).catch((err) => {
+      console.error(err);
+      showAlert(document.getElementById('alerts'), err.message || 'Failed to load alerts.', 'error');
+    });
+  </script>
+</body>
+</html>

@@ -44,6 +44,7 @@ test_get() {
 # 1-6: GET endpoints expecting 200
 # -------------------------------------------------------------------
 test_get "/" "200"
+test_get "/lumina" "200"
 test_get "/consultation" "200"
 test_get "/consultation-en" "200"
 test_get "/couples-coaching" "200"

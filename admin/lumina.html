@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumina Analytics - Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .two-column {
+      display: grid;
+      grid-template-columns: 1.35fr 0.85fr;
+      gap: 24px;
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .mini-stat {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      padding: 18px 20px;
+    }
+    .mini-stat .label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+    }
+    .mini-stat .value {
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-top: 4px;
+      color: var(--gold-dark);
+    }
+    .muted-note {
+      color: var(--text-light);
+      font-size: 0.86rem;
+    }
+    .key-list {
+      display: grid;
+      gap: 10px;
+    }
+    .key-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--cream);
+    }
+    .key-item strong {
+      font-size: 0.95rem;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+    }
+    .table-scroll {
+      overflow-x: auto;
+    }
+    .toolbar .muted-note {
+      margin-left: auto;
+    }
+    @media (max-width: 1024px) {
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+      .toolbar .muted-note {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/></svg><span>Alerts</span></a>
+    <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
+    <div class="sidebar-logout">
+      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Lumina Analytics</h1>
+        <p class="muted-note" id="windowLabel">Shared app funnel, entitlements, and engagement.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <label for="windowDays">Window</label>
+      <select id="windowDays">
+        <option value="7">Last 7 days</option>
+        <option value="14">Last 14 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+      <span class="muted-note">Billing data lives on namibarden.com, app events live in the shared <span class="mono">lumina</span> schema.</span>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Active Access</div><div class="value gold" id="statActiveAccess">-</div></div>
+      <div class="stat-card"><div class="label">Trialing</div><div class="value" id="statTrialing">-</div></div>
+      <div class="stat-card"><div class="label">Active 7d</div><div class="value" id="statActive7d">-</div></div>
+      <div class="stat-card"><div class="label">Avg Completed Days</div><div class="value" id="statAvgDays">-</div></div>
+    </div>
+
+    <div class="mini-grid">
+      <div class="mini-stat"><div class="label">New Users in Window</div><div class="value" id="statNewUsers">-</div></div>
+      <div class="mini-stat"><div class="label">Checkout Starts</div><div class="value" id="statCheckoutStarts">-</div></div>
+      <div class="mini-stat"><div class="label">Access Grants</div><div class="value" id="statAccessGrants">-</div></div>
+      <div class="mini-stat"><div class="label">Day 7 Reach</div><div class="value" id="statDay7Reach">-</div></div>
+      <div class="mini-stat"><div class="label">Day 30 Reach</div><div class="value" id="statDay30Reach">-</div></div>
+      <div class="mini-stat"><div class="label">Reflective Users</div><div class="value" id="statReflectiveUsers">-</div></div>
+    </div>
+
+    <div class="two-column">
+      <div class="card">
+        <div class="card-header"><h3>Daily Activity</h3></div>
+        <div class="card-body">
+          <div class="chart-container" id="activityChart"></div>
+          <p class="muted-note" style="margin-top:10px">Each bar represents unique active users per day. Tooltips include checkouts, access grants, check-ins, and completions.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Engagement Quality</h3></div>
+        <div class="card-body">
+          <div class="key-list" id="engagementList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-column">
+      <div class="card">
+        <div class="card-header"><h3>Funnel</h3></div>
+        <div class="card-body table-scroll">
+          <table>
+            <thead><tr><th>Stage</th><th>Unique Actors</th><th>Total Events</th><th>Conv.</th></tr></thead>
+            <tbody id="funnelTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Plan Mix</h3></div>
+        <div class="card-body table-scroll">
+          <table>
+            <thead><tr><th>Plan</th><th>Total</th><th>Active</th><th>Trialing</th></tr></thead>
+            <tbody id="planTable"></tbody>
+          </table>
+          <div class="key-list" style="margin-top:18px">
+            <div class="key-item"><span>Grace</span><strong id="statGrace">-</strong></div>
+            <div class="key-item"><span>Cancel scheduled</span><strong id="statCancelScheduled">-</strong></div>
+            <div class="key-item"><span>Expired</span><strong id="statExpired">-</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-column">
+      <div class="card">
+        <div class="card-header"><h3>Recent Events</h3></div>
+        <div class="card-body table-scroll">
+          <table>
+            <thead><tr><th>Time</th><th>Event</th><th>Email</th><th>Page</th><th>Properties</th></tr></thead>
+            <tbody id="eventsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Check-In States</h3></div>
+        <div class="card-body">
+          <div class="key-list" id="statesList"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    function pct(part, whole) {
+      if (!whole) return '0%';
+      return Math.round((part / whole) * 100) + '%';
+    }
+
+    function titleCasePlan(plan) {
+      if (!plan) return 'Unknown';
+      return plan.charAt(0).toUpperCase() + plan.slice(1);
+    }
+
+    function renderDailyChart(rows) {
+      const chart = document.getElementById('activityChart');
+      chart.innerHTML = '';
+      if (!rows.length) {
+        chart.innerHTML = '<div class="empty" style="width:100%"><p>No Lumina event data yet</p></div>';
+        return;
+      }
+      const max = Math.max.apply(null, rows.map(row => row.activeUsers || 0).concat([1]));
+      rows.forEach((row) => {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        bar.style.height = ((row.activeUsers || 0) / max * 100) + '%';
+        bar.setAttribute('data-tooltip', `${row.day}: active ${row.activeUsers}, checkout ${row.checkoutStarts}, grants ${row.accessGrants}, check-ins ${row.checkins}, completions ${row.completions}`);
+        chart.appendChild(bar);
+      });
+    }
+
+    function renderKeyList(items) {
+      return items.map(item => `
+        <div class="key-item">
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.value)}</strong>
+        </div>
+      `).join('');
+    }
+
+    async function loadLuminaAnalytics() {
+      const days = document.getElementById('windowDays').value;
+      const data = await api(`/lumina/analytics?days=${encodeURIComponent(days)}`);
+      document.getElementById('windowLabel').textContent = `Lumina funnel and engagement over the last ${data.windowDays} days.`;
+
+      document.getElementById('statActiveAccess').textContent = data.subscriptions.activeAccess;
+      document.getElementById('statTrialing').textContent = data.subscriptions.trialing;
+      document.getElementById('statActive7d').textContent = data.engagement.active7d;
+      document.getElementById('statAvgDays').textContent = data.engagement.avgCompletedDays.toFixed ? data.engagement.avgCompletedDays.toFixed(1) : data.engagement.avgCompletedDays;
+      document.getElementById('statNewUsers').textContent = data.engagement.newUsersWindow;
+      document.getElementById('statCheckoutStarts').textContent = (data.funnel.find(stage => stage.eventName === 'billing_checkout_started') || {}).uniqueActors || 0;
+      document.getElementById('statAccessGrants').textContent = (data.funnel.find(stage => stage.eventName === 'billing_access_granted') || {}).uniqueActors || 0;
+      document.getElementById('statDay7Reach').textContent = pct(data.engagement.reachedDay7, data.engagement.startedJourney || data.engagement.totalUsers);
+      document.getElementById('statDay30Reach').textContent = pct(data.engagement.reachedDay30, data.engagement.startedJourney || data.engagement.totalUsers);
+      document.getElementById('statReflectiveUsers').textContent = data.engagement.reflectiveUsers;
+      document.getElementById('statGrace').textContent = data.subscriptions.grace;
+      document.getElementById('statCancelScheduled').textContent = data.subscriptions.cancelScheduled;
+      document.getElementById('statExpired').textContent = data.subscriptions.expired;
+
+      renderDailyChart(data.daily);
+
+      document.getElementById('engagementList').innerHTML = renderKeyList([
+        { label: 'Total Lumina users', value: String(data.engagement.totalUsers) },
+        { label: 'Started journey', value: `${data.engagement.startedJourney} (${pct(data.engagement.startedJourney, data.engagement.totalUsers)})` },
+        { label: 'Reached day 7', value: `${data.engagement.reachedDay7} (${pct(data.engagement.reachedDay7, data.engagement.startedJourney || data.engagement.totalUsers)})` },
+        { label: 'Reached day 30', value: `${data.engagement.reachedDay30} (${pct(data.engagement.reachedDay30, data.engagement.startedJourney || data.engagement.totalUsers)})` },
+        { label: 'Users with check-ins', value: `${data.engagement.checkedInUsers} (${pct(data.engagement.checkedInUsers, data.engagement.totalUsers)})` },
+        { label: 'Users with reflections', value: `${data.engagement.reflectiveUsers} (${pct(data.engagement.reflectiveUsers, data.engagement.totalUsers)})` }
+      ]);
+
+      let prevActors = 0;
+      document.getElementById('funnelTable').innerHTML = data.funnel.map((stage, idx) => {
+        const conversion = idx === 0 ? '—' : pct(stage.uniqueActors, prevActors);
+        prevActors = stage.uniqueActors || prevActors;
+        return `<tr>
+          <td>${escapeHtml(stage.label)}</td>
+          <td>${stage.uniqueActors}</td>
+          <td>${stage.totalEvents}</td>
+          <td>${conversion}</td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('planTable').innerHTML = data.subscriptions.plans.length
+        ? data.subscriptions.plans.map(plan => `<tr>
+            <td>${escapeHtml(titleCasePlan(plan.planCode))}</td>
+            <td>${plan.total}</td>
+            <td>${plan.activeAccess}</td>
+            <td>${plan.trialing}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="4" class="empty">No Lumina entitlements yet</td></tr>';
+
+      document.getElementById('statesList').innerHTML = data.states.length
+        ? renderKeyList(data.states.map(state => ({ label: state.state, value: String(state.count) })))
+        : '<div class="empty"><p>No recent check-in state data</p></div>';
+
+      document.getElementById('eventsTable').innerHTML = data.recentEvents.length
+        ? data.recentEvents.map(evt => `<tr>
+            <td>${formatDateTime(evt.createdAt)}</td>
+            <td><span class="mono">${escapeHtml(evt.eventName)}</span></td>
+            <td>${escapeHtml(evt.email || 'anonymous')}</td>
+            <td>${escapeHtml(evt.pagePath || '-')}</td>
+            <td><span class="mono">${escapeHtml(JSON.stringify(evt.properties || {}))}</span></td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" class="empty">No events recorded yet</td></tr>';
+    }
+
+    document.getElementById('windowDays').addEventListener('change', function() {
+      loadLuminaAnalytics().catch((err) => console.error(err));
+    });
+
+    loadLuminaAnalytics().catch((err) => console.error(err));
+  </script>
+</body>
+</html>

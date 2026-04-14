@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LUMINA Membership | Guided 90-Day Growth Journal</title>
+  <meta name="description" content="Join Lumina through NamiBarden.com. Start a 7-day trial, unlock daily guided check-ins and reflections, and manage billing securely through Stripe.">
+  <link rel="canonical" href="https://namibarden.com/lumina">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="LUMINA Membership | Guided 90-Day Growth Journal">
+  <meta property="og:description" content="A paid Lumina membership opens daily guided check-ins, reflections, weekly synthesis, and compassionate pacing inside the Lumina app.">
+  <meta property="og:url" content="https://namibarden.com/lumina">
+  <meta property="og:site_name" content="NamiBarden.com">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LUMINA Membership | Guided 90-Day Growth Journal">
+  <meta name="twitter:description" content="Start a 7-day trial and unlock the full Lumina experience with secure Stripe billing through NamiBarden.com.">
+  <style>
+    :root {
+      --bg: #f4ede4;
+      --paper: rgba(255, 252, 246, 0.92);
+      --paper-strong: #fffdf9;
+      --ink: #302821;
+      --muted: #726657;
+      --line: #e4d5c0;
+      --accent: #6f5841;
+      --accent-soft: #efe1cf;
+      --glow: rgba(111, 88, 65, 0.12);
+      --lavender: rgba(194, 176, 220, 0.45);
+      --rose: rgba(221, 184, 190, 0.4);
+      --sage: rgba(175, 202, 170, 0.38);
+      --gold: #b88b4c;
+      --success: #4a7f55;
+      --danger: #b14d4d;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at 0% 0%, var(--lavender), transparent 28%),
+        radial-gradient(circle at 100% 0%, var(--rose), transparent 30%),
+        radial-gradient(circle at 50% 100%, var(--sage), transparent 32%),
+        linear-gradient(180deg, #f8f1e9 0%, #efe5d8 100%);
+    }
+    a { color: inherit; }
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255, 252, 246, 0.95), rgba(252, 247, 239, 0.88));
+      border: 1px solid rgba(228, 213, 192, 0.9);
+      border-radius: 30px;
+      padding: 32px 24px;
+      box-shadow: 0 24px 60px rgba(48, 40, 33, 0.08);
+      backdrop-filter: blur(14px);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -90px;
+      width: 240px;
+      height: 240px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(184, 139, 76, 0.18), transparent 68%);
+      pointer-events: none;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      font: 700 12px/1.2 "Segoe UI", sans-serif;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h1 {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(34px, 6vw, 62px);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      line-height: 1.06;
+    }
+    .hero-copy {
+      margin: 16px 0 0;
+      max-width: 760px;
+      font: 400 17px/1.75 "Segoe UI", sans-serif;
+      color: var(--muted);
+    }
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .hero-pill,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(228, 213, 192, 0.9);
+      font: 700 11px/1.2 "Segoe UI", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #5f4f40;
+    }
+    .layout {
+      display: grid;
+      gap: 22px;
+      margin-top: 24px;
+    }
+    @media (min-width: 960px) {
+      .layout {
+        grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
+        align-items: start;
+      }
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid rgba(228, 213, 192, 0.95);
+      border-radius: 28px;
+      padding: 24px 20px;
+      box-shadow: 0 14px 34px rgba(48, 40, 33, 0.06);
+      backdrop-filter: blur(12px);
+    }
+    .section + .section {
+      margin-top: 26px;
+      padding-top: 26px;
+      border-top: 1px solid rgba(228, 213, 192, 0.72);
+    }
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+    .section-copy,
+    .muted {
+      margin: 0;
+      color: var(--muted);
+      font: 400 15px/1.75 "Segoe UI", sans-serif;
+    }
+    .feature-grid,
+    .mini-grid,
+    .faq-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    @media (min-width: 700px) {
+      .feature-grid,
+      .mini-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .feature,
+    .mini-card,
+    .faq-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(249, 243, 235, 0.95));
+      border: 1px solid rgba(228, 213, 192, 0.92);
+    }
+    .feature h3,
+    .mini-card h3,
+    .faq-card h3 {
+      margin: 0 0 8px;
+      font: 700 16px/1.3 "Segoe UI", sans-serif;
+      color: var(--ink);
+    }
+    .feature p,
+    .mini-card p,
+    .faq-card p,
+    .steps li,
+    .list li {
+      margin: 0;
+      font: 400 14px/1.7 "Segoe UI", sans-serif;
+      color: var(--muted);
+    }
+    .list,
+    .steps {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+      padding-left: 18px;
+    }
+    .steps li::marker,
+    .list li::marker {
+      color: var(--accent);
+    }
+    .checkout-card {
+      position: relative;
+    }
+    @media (min-width: 960px) {
+      .checkout-card {
+        position: sticky;
+        top: 18px;
+      }
+    }
+    .checkout-head {
+      margin-bottom: 18px;
+    }
+    .checkout-head h2 {
+      margin: 10px 0 8px;
+      font-size: 30px;
+      font-weight: 400;
+    }
+    .plans {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .plan {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px 16px;
+      background: linear-gradient(180deg, #fffdf9, #fbf6ef);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .plan:hover { transform: translateY(-1px); }
+    .plan.selected {
+      border-color: var(--accent);
+      box-shadow: 0 14px 28px var(--glow);
+    }
+    .plan-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(184, 139, 76, 0.14);
+      color: #936832;
+      font: 700 10px/1.2 "Segoe UI", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding-right: 80px;
+    }
+    .plan h3 {
+      margin: 0;
+      font: 700 18px/1.2 "Segoe UI", sans-serif;
+    }
+    .plan .price {
+      font: 700 24px/1 "Segoe UI", sans-serif;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .plan .price small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .plan p {
+      margin: 0 0 10px;
+      font: 400 13px/1.6 "Segoe UI", sans-serif;
+      color: var(--muted);
+    }
+    .plan ul,
+    .terms-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font: 400 13px/1.6 "Segoe UI", sans-serif;
+    }
+    .summary-card {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(111, 88, 65, 0.08), rgba(255,255,255,0.78));
+      border: 1px solid rgba(111, 88, 65, 0.14);
+    }
+    .summary-card h3,
+    .terms-card h3 {
+      margin: 0 0 10px;
+      font: 700 16px/1.3 "Segoe UI", sans-serif;
+      color: var(--ink);
+    }
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(228, 213, 192, 0.75);
+      font: 400 14px/1.5 "Segoe UI", sans-serif;
+      color: var(--muted);
+    }
+    .summary-line:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .summary-line strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .summary-note {
+      margin: 12px 0 0;
+      font: 400 13px/1.7 "Segoe UI", sans-serif;
+      color: var(--muted);
+    }
+    .stack {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font: 700 12px/1.2 "Segoe UI", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 14px 15px;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.92);
+      color: var(--ink);
+      font: 400 15px/1.4 "Segoe UI", sans-serif;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(228, 213, 192, 0.92);
+      background: rgba(239, 225, 207, 0.28);
+      color: var(--muted);
+      font: 400 13px/1.65 "Segoe UI", sans-serif;
+    }
+    .checkbox-row input {
+      margin-top: 3px;
+      flex: 0 0 auto;
+    }
+    .checkbox-row label { cursor: pointer; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    button {
+      border: none;
+      border-radius: 15px;
+      padding: 14px 18px;
+      cursor: pointer;
+      font: 700 14px/1.2 "Segoe UI", sans-serif;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .primary {
+      flex: 1 1 220px;
+      background: var(--ink);
+      color: #fff;
+    }
+    .ghost {
+      flex: 1 1 180px;
+      background: var(--accent-soft);
+      color: var(--ink);
+    }
+    .status {
+      min-height: 20px;
+      font: 700 13px/1.5 "Segoe UI", sans-serif;
+    }
+    .status.ok { color: var(--success); }
+    .status.error { color: var(--danger); }
+    .terms-card,
+    .support-card {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.84), rgba(248, 242, 233, 0.96));
+      border: 1px solid rgba(228, 213, 192, 0.92);
+    }
+    .support-card p,
+    .terms-card p {
+      margin: 0;
+      color: var(--muted);
+      font: 400 13px/1.7 "Segoe UI", sans-serif;
+    }
+    .support-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .support-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font: 700 13px/1.2 "Segoe UI", sans-serif;
+      color: #5c4e40;
+    }
+    footer {
+      margin-top: 16px;
+      color: var(--muted);
+      font: 400 13px/1.7 "Segoe UI", sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Lumina Membership</p>
+      <h1>A steadier way to stay in your inner work, even when life gets noisy.</h1>
+      <p class="hero-copy">Lumina is a guided 90-day growth journal that helps people return to themselves through daily check-ins, grounded reflections, weekly synthesis, and compassionate pacing. Billing starts here on NamiBarden.com, and your membership opens inside the Lumina app with the same email address.</p>
+      <div class="hero-pills" aria-label="Membership highlights">
+        <span class="hero-pill">7-day trial</span>
+        <span class="hero-pill">Cancel anytime</span>
+        <span class="hero-pill">Secure Stripe checkout</span>
+        <span class="hero-pill">USD or JPY billing</span>
+        <span class="hero-pill">Daily guided practice</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <div class="section">
+          <p class="eyebrow">What Opens</p>
+          <h2 class="section-title">What a paid Lumina membership gives you</h2>
+          <p class="section-copy">This is not just a static course library. The membership unlocks the full guided app experience so the practice can meet you day by day.</p>
+          <div class="feature-grid">
+            <article class="feature">
+              <h3>Daily arrival check-ins</h3>
+              <p>Start each day by naming how you are arriving so the journey feels responsive instead of generic.</p>
+            </article>
+            <article class="feature">
+              <h3>Reflections that build on each other</h3>
+              <p>Save private reflections, revisit favorites, and let earlier insights resurface later in the journey.</p>
+            </article>
+            <article class="feature">
+              <h3>Weekly synthesis</h3>
+              <p>Lumina gathers your recent work into a cleaner weekly rhythm so progress feels integrated, not scattered.</p>
+            </article>
+            <article class="feature">
+              <h3>Gentle re-entry after missed days</h3>
+              <p>If life interrupts the routine, the app helps you return without guilt or the feeling that you have failed.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="section">
+          <p class="eyebrow">Who It Fits</p>
+          <h2 class="section-title">Best for people who want practice, not pressure</h2>
+          <ul class="list">
+            <li>You want a calm daily structure for reflection and self-awareness.</li>
+            <li>You are doing inner work already, but you want help staying with it consistently.</li>
+            <li>You want a private place to capture insight, emotion, and personal pattern shifts.</li>
+            <li>You want something supportive enough to return to, not something that punishes missed days.</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <p class="eyebrow">How It Feels</p>
+          <h2 class="section-title">A simple weekly rhythm inside the app</h2>
+          <div class="mini-grid">
+            <article class="mini-card">
+              <h3>Day 1</h3>
+              <p>Open Lumina, check in, and begin with a guided entry point that meets your current state.</p>
+            </article>
+            <article class="mini-card">
+              <h3>Midweek</h3>
+              <p>Return for reflection, save what matters, and let Lumina surface insight you may want to revisit.</p>
+            </article>
+            <article class="mini-card">
+              <h3>Week end</h3>
+              <p>Receive a weekly synthesis that helps you see themes, movement, and what wants attention next.</p>
+            </article>
+            <article class="mini-card">
+              <h3>If you fall behind</h3>
+              <p>Use the re-entry flow to continue without shame, catch-up pressure, or losing the point of the practice.</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="section">
+          <p class="eyebrow">Billing Flow</p>
+          <h2 class="section-title">How membership activation works</h2>
+          <ol class="steps">
+            <li>Choose a plan and start the 7-day trial here on NamiBarden.com.</li>
+            <li>Use the same email address you use in Lumina so activation can match automatically.</li>
+            <li>After secure Stripe checkout, return to the Lumina app and your access should unlock without extra steps.</li>
+          </ol>
+        </div>
+
+        <div class="section">
+          <p class="eyebrow">Questions</p>
+          <h2 class="section-title">Before you subscribe</h2>
+          <div class="faq-grid">
+            <article class="faq-card">
+              <h3>When will I be charged?</h3>
+              <p>Your card is collected at checkout, but the paid renewal starts only after the 7-day trial unless you cancel first.</p>
+            </article>
+            <article class="faq-card">
+              <h3>Where do I cancel?</h3>
+              <p>Inside Lumina, open Profile and choose Manage billing. That takes you to the Stripe billing portal.</p>
+            </article>
+            <article class="faq-card">
+              <h3>What email should I use?</h3>
+              <p>Use the same email for Lumina and billing. That keeps activation, billing management, and support much cleaner.</p>
+            </article>
+            <article class="faq-card">
+              <h3>What stays private?</h3>
+              <p>Your Lumina reflections stay in the Lumina app. Subscription and payment records live in NamiBarden and Stripe for billing and accounting.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card checkout-card">
+        <div class="checkout-head">
+          <span class="pill">Secure Billing Through NamiBarden.com</span>
+          <h2>Start your membership</h2>
+          <p class="muted">Choose your plan, confirm the billing terms, and continue to Stripe. Membership access opens inside Lumina with the same email address.</p>
+        </div>
+
+        <div class="plans" id="plans">
+          <article class="plan selected" data-plan="lumina-monthly">
+            <div class="plan-header">
+              <h3>Monthly</h3>
+              <div class="price" id="monthly-price">USD $20 <small>/ month</small></div>
+            </div>
+            <p>Best if you want to begin gently and stay flexible.</p>
+            <ul>
+              <li>7-day trial before the first renewal</li>
+              <li>Full Lumina access</li>
+              <li>Billing managed monthly</li>
+            </ul>
+          </article>
+
+          <article class="plan" data-plan="lumina-annual">
+            <span class="plan-badge">Best value</span>
+            <div class="plan-header">
+              <h3>Annual</h3>
+              <div class="price" id="annual-price">USD $200 <small>/ year</small></div>
+            </div>
+            <p>Best if you already know you want a longer rhythm with Lumina.</p>
+            <ul>
+              <li>7-day trial before the first renewal</li>
+              <li>Roughly two months free compared with monthly</li>
+              <li>One plan for a full year of return and continuity</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="summary-card" aria-live="polite">
+          <h3>Membership summary</h3>
+          <div class="summary-line">
+            <span>Today</span>
+            <strong id="trial-price">USD $0 during trial</strong>
+          </div>
+          <div class="summary-line">
+            <span id="renewal-label">After 7 days</span>
+            <strong id="renewal-price">USD $20 / month</strong>
+          </div>
+          <div class="summary-line">
+            <span>App access</span>
+            <strong id="summary-access">Daily guidance, reflection, and synthesis</strong>
+          </div>
+          <p class="summary-note" id="summary-copy">Use the same email address here and inside Lumina so your access can unlock automatically after checkout.</p>
+        </div>
+
+        <form id="billing-form" class="stack" style="margin-top: 18px;">
+          <div class="field">
+            <label for="billing-name">Name</label>
+            <input id="billing-name" name="name" autocomplete="name" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label for="billing-email">Email</label>
+            <input id="billing-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="billing-lang">App language</label>
+            <select id="billing-lang" name="lang">
+              <option value="en">English</option>
+              <option value="ja">Japanese</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="billing-currency">Billing currency</label>
+            <select id="billing-currency" name="currency">
+              <option value="usd">USD</option>
+              <option value="jpy">JPY</option>
+            </select>
+            <p class="muted" style="margin-top:8px;font-size:13px;">English defaults to USD. Japanese defaults to JPY. You can switch if needed.</p>
+          </div>
+          <div class="checkbox-row">
+            <input id="billing-ack" name="billing-ack" type="checkbox" required>
+            <label for="billing-ack">I have read the Lumina billing terms below, including the 7-day trial, automatic renewal pricing, cancellation path, and support instructions.</label>
+          </div>
+          <div class="actions">
+            <button class="primary" type="submit" id="checkout-button">Start 7-Day Trial</button>
+            <button class="ghost" type="button" id="return-lumina">Back to Lumina</button>
+          </div>
+          <div class="status" id="status"></div>
+        </form>
+
+        <div class="terms-card">
+          <h3>Billing terms</h3>
+          <ul class="terms-list">
+            <li>Every Lumina membership begins with a 7-day trial.</li>
+            <li>The Monthly plan renews at <span id="monthly-terms-price">USD $20 every 30 days</span> unless canceled before renewal.</li>
+            <li>The Annual plan renews at <span id="annual-terms-price">USD $200 every 365 days</span> unless canceled before renewal.</li>
+            <li>Cancel any time from Lumina - Profile - Manage billing. If you cancel, future renewals stop and already-paid or trial access continues through the current period.</li>
+            <li>Billing questions and refund requests can be sent to <a href="mailto:contact@namibarden.com">contact@namibarden.com</a>. Refund requests are reviewed individually.</li>
+          </ul>
+          <p style="margin-top: 12px;">Billing is processed securely by Stripe on NamiBarden.com. Lumina journey data stays in the Lumina app, while billing records stay in NamiBarden and Stripe where required for accounting and legal compliance.</p>
+        </div>
+
+        <div class="support-card">
+          <h3 style="margin-top: 0;">Need help before subscribing?</h3>
+          <p>If you have questions about the app, billing, or the right plan, contact NamiBarden support before checkout.</p>
+          <div class="support-links">
+            <a href="mailto:contact@namibarden.com">Email support</a>
+            <a href="/#contact">Contact form</a>
+            <a href="/privacy-policy-en">Privacy policy</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      Lumina memberships are billed through NamiBarden.com and open access at <a href="https://lumina.namibarden.com/">lumina.namibarden.com</a>.
+    </footer>
+  </main>
+  <script src="/js/lumina-billing.js"></script>
+</body>
+</html>
