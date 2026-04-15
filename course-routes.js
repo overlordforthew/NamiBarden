@@ -1,4 +1,4 @@
-const PREVIEW_LESSONS = { 'course-1': ['promo', 'lesson-2'] };
+const PREVIEW_LESSONS = { 'course-1': ['promo', 'lesson-2', 'bridge'], 'course-2': ['promo'] };
 
 function createCourseRoutes({
   app,
