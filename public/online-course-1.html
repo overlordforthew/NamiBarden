@@ -177,7 +177,7 @@
     <div class="reveal" style="max-width: 800px; margin: 0 auto;">
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.04em;">コースのご案内</p>
       <div style="position: relative; width: 100%; padding-bottom: 56.25%; background: #1a1410; border-radius: 2px; overflow: hidden;">
-        <video id="promoVideo" controls playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a1410;"></video>
+        <iframe src="https://drive.google.com/file/d/1Rt-mH0JcSHGQYgsjD8wKV9u77zcz_k2z/preview" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
       </div>
     </div>
 
@@ -202,7 +202,6 @@
           h.attachMedia(videoEl);
         }
       }
-      initHls(document.getElementById('promoVideo'), '/api/preview/course-1/promo/hls/master.m3u8');
       initHls(document.getElementById('sampleVideo'), '/api/preview/course-1/lesson-2/hls/master.m3u8');
     })();
     </script>
@@ -394,6 +393,22 @@
           </div>
         </div>
         <a href="#" class="btn btn-gold" onclick="purchaseCourse('course-bundle'); return false;"><span>セットで購入する</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COURSE 2 BRIDGE ===== -->
+<section style="padding: 100px 0; background: var(--cream);">
+  <div class="container">
+    <div class="section-header centered reveal">
+      <p class="section-label">What's Next</p>
+      <h2 class="section-title">コースを終えた方へ</h2>
+      <p class="section-subtitle">ナミからのメッセージ — 次のステップへ。</p>
+    </div>
+    <div class="reveal" style="max-width: 800px; margin: 0 auto;">
+      <div style="position: relative; width: 100%; padding-bottom: 56.25%; background: #1a1410; border-radius: 2px; overflow: hidden;">
+        <iframe src="https://drive.google.com/file/d/1kDT9Tkn_crQx0yPlbwoLGhT9LQDyMA37/preview" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>
       </div>
     </div>
   </div>
