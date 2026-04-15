@@ -213,7 +213,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         : isLuminaProduct
         ? defaultLuminaCancelUrl()
         : `${SITE_URL}/payment-cancel${en ? '-en' : ''}`,
-      locale: 'auto',
+      locale: isLuminaProduct ? (lang || 'auto') : 'ja',
       metadata: {
         product: selectedProduct,
         billing_currency: priceData.currency
