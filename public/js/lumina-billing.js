@@ -180,6 +180,7 @@
       email: emailInput.value.trim(),
       lang: langInput.value,
       currency: getCurrentCurrency(),
+      return_url: returnUrl,
       success_url: returnUrl,
       cancel_url: window.location.href
     };

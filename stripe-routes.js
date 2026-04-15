@@ -36,6 +36,31 @@ function createStripeRoutes({
   getLuminaCheckoutPrice,
   getLuminaCheckoutCopy
 }) {
+function buildLuminaCheckoutUrl(rawUrl, billingState) {
+  if (!isAllowedLuminaReturnUrl(rawUrl)) return null;
+  try {
+    const parsed = new URL(rawUrl);
+    parsed.searchParams.set('billing', billingState);
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+function withCheckoutSessionId(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    const hash = parsed.hash || '';
+    parsed.hash = '';
+    parsed.searchParams.delete('session_id');
+    const baseUrl = parsed.toString();
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    return `${baseUrl}${separator}session_id={CHECKOUT_SESSION_ID}${hash}`;
+  } catch {
+    return rawUrl;
+  }
+}
+
 app.post('/api/stripe/create-checkout-session', async (req, res) => {
   if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
   try {
@@ -44,7 +69,17 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       return res.status(429).json({ error: 'Too many requests' });
     }
 
-    const { email, name, product, lang, currency, token: upgradeToken, success_url: successUrl, cancel_url: cancelUrl } = req.body;
+    const {
+      email,
+      name,
+      product,
+      lang,
+      currency,
+      token: upgradeToken,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      return_url: returnUrl
+    } = req.body;
     const en = lang === 'en';
 
     // Validate course-2-upgrade: must own course-1
@@ -128,6 +163,15 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     const prod = products[selectedProduct];
     if (!prod) return res.status(400).json({ error: 'Invalid product' });
     const isLuminaProduct = !!getAppPlanFromProduct(selectedProduct);
+    const explicitLuminaSuccessUrl = isLuminaProduct && isAllowedLuminaReturnUrl(successUrl)
+      ? successUrl
+      : null;
+    const explicitLuminaCancelUrl = isLuminaProduct && isAllowedLuminaReturnUrl(cancelUrl)
+      ? cancelUrl
+      : null;
+    const baseLuminaReturnUrl = returnUrl || explicitLuminaSuccessUrl || explicitLuminaCancelUrl || successUrl || cancelUrl || null;
+    const resolvedLuminaSuccessUrl = explicitLuminaSuccessUrl || buildLuminaCheckoutUrl(baseLuminaReturnUrl, 'success');
+    const resolvedLuminaCancelUrl = explicitLuminaCancelUrl || buildLuminaCheckoutUrl(baseLuminaReturnUrl, 'cancel');
     const luminaPrice = isLuminaProduct ? getLuminaCheckoutPrice(selectedProduct, currency || normalizeLuminaCurrency(null, lang)) : null;
     const luminaCopy = isLuminaProduct ? getLuminaCheckoutCopy(selectedProduct, lang) : null;
 
@@ -149,8 +193,8 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         price_data: priceData,
         quantity: 1
       }],
-      success_url: isLuminaProduct && isAllowedLuminaReturnUrl(successUrl)
-        ? successUrl
+      success_url: isLuminaProduct && resolvedLuminaSuccessUrl
+        ? withCheckoutSessionId(resolvedLuminaSuccessUrl)
         : product === 'course-2-upgrade'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}&course=course-2`
         : product === 'single-session' || product?.startsWith('couples-')
@@ -158,8 +202,8 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         : isLuminaProduct
         ? `${defaultLuminaSuccessUrl()}&session_id={CHECKOUT_SESSION_ID}`
         : `${SITE_URL}/payment-success${en ? '-en' : ''}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: isLuminaProduct && isAllowedLuminaReturnUrl(cancelUrl)
-        ? cancelUrl
+      cancel_url: isLuminaProduct && resolvedLuminaCancelUrl
+        ? resolvedLuminaCancelUrl
         : product === 'course-2-upgrade'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}`
         : product === 'single-session'
