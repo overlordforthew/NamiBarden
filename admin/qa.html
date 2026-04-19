@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Q&A — Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .summary-strip{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+    .summary-chip{padding:8px 16px;background:var(--white);border:1px solid var(--border);border-radius:999px;font-size:0.82rem;color:var(--text-light);cursor:pointer;transition:all 0.2s;}
+    .summary-chip.active{background:var(--gold);color:var(--white);border-color:var(--gold);}
+    .summary-chip .count{font-weight:600;margin-left:6px;color:inherit;}
+    .unread-badge{display:inline-block;min-width:18px;padding:1px 6px;background:#C06060;color:#fff;border-radius:9px;font-size:0.7rem;text-align:center;margin-left:6px;}
+    .thread-row{cursor:pointer;}
+    .thread-row:hover{background:rgba(196,168,130,0.08);}
+    .thread-row.unread{font-weight:500;}
+    .status-pill{display:inline-block;padding:2px 10px;border-radius:10px;font-size:0.72rem;text-transform:capitalize;}
+    .status-open{background:rgba(196,168,130,0.2);color:var(--gold-dark);}
+    .status-answered{background:rgba(74,170,119,0.18);color:var(--success);}
+    .status-archived{background:rgba(136,136,136,0.15);color:var(--text-light);}
+    .qa-detail{display:none;}
+    .qa-detail.active{display:block;}
+    .thread-meta{display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:0.85rem;color:var(--text-light);margin-bottom:16px;}
+    .messages-list{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+    .msg{padding:14px 18px;border-radius:6px;white-space:pre-wrap;line-height:1.7;font-size:0.93rem;}
+    .msg.student{background:var(--cream);border:1px solid var(--border);}
+    .msg.nami{background:rgba(196,168,130,0.12);border-left:3px solid var(--gold);}
+    .msg-meta{font-size:0.75rem;color:var(--text-light);margin-bottom:4px;display:flex;justify-content:space-between;}
+    .reply-form textarea{width:100%;min-height:160px;padding:14px 16px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:0.93rem;resize:vertical;background:var(--white);}
+    .reply-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center;}
+    .reply-actions .spacer{flex:1;}
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/students.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg><span>Students</span></a>
+    <a href="/admin/qa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>Q&A</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/></svg><span>Alerts</span></a>
+    <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
+    <div class="sidebar-logout">
+      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <!-- Inbox view -->
+    <div id="listView">
+      <div class="page-header">
+        <h1>Q&A Inbox</h1>
+      </div>
+
+      <div class="summary-strip" id="summaryStrip"></div>
+
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="Search email or subject..." style="min-width:250px">
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding:0;overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>From</th>
+                <th>Subject</th>
+                <th>Context</th>
+                <th>Status</th>
+                <th>Messages</th>
+                <th>Last Activity</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="threadsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail view -->
+    <div id="detailView" class="qa-detail">
+      <div class="page-header">
+        <h1 id="detailSubject">Thread</h1>
+        <button class="btn" onclick="showList()">← Back to inbox</button>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="thread-meta" id="threadMeta"></div>
+          <div class="messages-list" id="messagesList"></div>
+
+          <form id="replyForm" onsubmit="submitReply(event)">
+            <textarea id="replyBody" placeholder="ナミからの返信を入力してください..." required maxlength="4000"></textarea>
+            <div class="reply-actions">
+              <button type="submit" class="btn btn-primary">送信する</button>
+              <button type="button" class="btn" onclick="setStatus('answered')">Mark Answered</button>
+              <button type="button" class="btn" onclick="setStatus('archived')">Archive</button>
+              <button type="button" class="btn" onclick="setStatus('open')">Reopen</button>
+              <div class="spacer"></div>
+              <a id="viewAsStudent" class="btn btn-sm" target="_blank" rel="noopener" style="display:none">Open watch page →</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    const COURSE_LABEL = {
+      'course-1': 'Course 1',
+      'course-2': 'Course 2',
+      'course-bundle': 'Bundle'
+    };
+
+    let currentStatus = '';
+    let currentThreadId = null;
+
+    async function loadInbox() {
+      const search = document.getElementById('searchInput').value;
+      const params = new URLSearchParams();
+      if (currentStatus) params.set('status', currentStatus);
+      if (search) params.set('search', search);
+
+      try {
+        const data = await api(`/qa?${params}`);
+        renderSummary(data.summary);
+        renderThreads(data.threads);
+      } catch (e) { console.error(e); }
+    }
+
+    function renderSummary(summary) {
+      const strip = document.getElementById('summaryStrip');
+      const items = [
+        { key: '',         label: 'All' },
+        { key: 'open',     label: 'Open', count: summary.open },
+        { key: 'answered', label: 'Answered', count: summary.answered },
+        { key: 'archived', label: 'Archived', count: summary.archived }
+      ];
+      strip.innerHTML = items.map(it => {
+        const active = currentStatus === it.key ? ' active' : '';
+        const count = typeof it.count === 'number' ? `<span class="count">${it.count}</span>` : '';
+        const unread = it.key === 'open' && summary.unread > 0 ? `<span class="unread-badge">${summary.unread}</span>` : '';
+        return `<button class="summary-chip${active}" onclick="setStatusFilter('${it.key}')">${it.label}${count}${unread}</button>`;
+      }).join('');
+    }
+
+    function setStatusFilter(status) {
+      currentStatus = status;
+      loadInbox();
+    }
+
+    function renderThreads(threads) {
+      const tb = document.getElementById('threadsTable');
+      if (!threads || !threads.length) {
+        tb.innerHTML = '<tr><td colspan="7" class="empty">No questions yet</td></tr>';
+        return;
+      }
+      tb.innerHTML = threads.map(t => {
+        const dot = t.unread ? '<span class="unread-badge" style="background:#C06060;padding:0;min-width:8px;width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;"></span>' : '';
+        const courseLabel = t.courseId ? (COURSE_LABEL[t.courseId] || t.courseId) : '';
+        const contextBits = [courseLabel, t.lessonId].filter(Boolean).join(' · ');
+        const from = t.name ? `${escapeHtml(t.name)}<div style="font-size:0.78rem;color:var(--text-light)">${escapeHtml(t.email)}</div>` : escapeHtml(t.email);
+        return `<tr class="thread-row${t.unread ? ' unread' : ''}" onclick="showThread(${t.id})">
+          <td>${dot}${from}</td>
+          <td>${escapeHtml(t.subject || '(no subject)')}</td>
+          <td style="font-size:0.82rem;color:var(--text-light)">${escapeHtml(contextBits) || '—'}</td>
+          <td><span class="status-pill status-${t.status}">${t.status}</span></td>
+          <td>${t.messageCount}</td>
+          <td>${formatDateTime(t.lastMessageAt)}</td>
+          <td><button class="btn btn-sm" onclick="event.stopPropagation();showThread(${t.id})">Open</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function showThread(id) {
+      currentThreadId = id;
+      try {
+        const data = await api(`/qa/${id}`);
+        const t = data.thread;
+        document.getElementById('detailSubject').textContent = t.subject || '(no subject)';
+
+        const metaParts = [];
+        metaParts.push(`<span>From: <strong>${escapeHtml(t.name || t.email)}</strong> &lt;${escapeHtml(t.email)}&gt;</span>`);
+        if (t.courseName) metaParts.push(`<span>Course: ${escapeHtml(t.courseName)}</span>`);
+        if (t.lessonTitle) metaParts.push(`<span>Lesson: ${escapeHtml(t.lessonTitle)}</span>`);
+        metaParts.push(`<span>Status: <span class="status-pill status-${t.status}">${t.status}</span></span>`);
+        metaParts.push(`<span>Opened: ${formatDateTime(t.createdAt)}</span>`);
+        document.getElementById('threadMeta').innerHTML = metaParts.join('');
+
+        const msgList = document.getElementById('messagesList');
+        msgList.innerHTML = (data.messages || []).map(m => {
+          const isNami = m.sender === 'nami';
+          return `<div class="msg ${isNami ? 'nami' : 'student'}">
+            <div class="msg-meta"><span>${isNami ? 'ナミ' : escapeHtml(t.name || t.email)}</span><span>${formatDateTime(m.created_at)}</span></div>
+            <div>${escapeHtml(m.body)}</div>
+          </div>`;
+        }).join('');
+
+        const watchLink = document.getElementById('viewAsStudent');
+        if (t.accessToken) {
+          const href = `/watch?token=${encodeURIComponent(t.accessToken)}${t.courseId ? `&course=${encodeURIComponent(t.courseId)}` : ''}${t.lessonId ? `&lesson=${encodeURIComponent(t.lessonId)}` : ''}`;
+          watchLink.href = href;
+          watchLink.style.display = '';
+        } else {
+          watchLink.style.display = 'none';
+        }
+
+        document.getElementById('replyBody').value = '';
+
+        document.getElementById('listView').style.display = 'none';
+        document.getElementById('detailView').classList.add('active');
+      } catch (e) { alert(e.message); }
+    }
+
+    function showList() {
+      document.getElementById('detailView').classList.remove('active');
+      document.getElementById('listView').style.display = '';
+      currentThreadId = null;
+      loadInbox();
+    }
+
+    async function submitReply(e) {
+      e.preventDefault();
+      if (!currentThreadId) return;
+      const body = document.getElementById('replyBody').value.trim();
+      if (!body) return;
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = '送信中...';
+      try {
+        await api(`/qa/${currentThreadId}/reply`, { method: 'POST', body: { body } });
+        await showThread(currentThreadId);
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '送信する';
+      }
+    }
+
+    async function setStatus(status) {
+      if (!currentThreadId) return;
+      try {
+        await api(`/qa/${currentThreadId}/status`, { method: 'POST', body: { status } });
+        await showThread(currentThreadId);
+      } catch (err) { alert(err.message); }
+    }
+
+    let searchTimer;
+    document.getElementById('searchInput').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadInbox, 300);
+    });
+
+    // Deep-link support: /admin/qa.html?thread=123 (from email notifications)
+    const urlParams = new URLSearchParams(location.search);
+    const threadParam = parseInt(urlParams.get('thread'), 10);
+    if (threadParam) {
+      showThread(threadParam);
+    } else {
+      loadInbox();
+    }
+  </script>
+</body>
+</html>

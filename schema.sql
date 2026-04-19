@@ -217,6 +217,59 @@ CREATE TABLE IF NOT EXISTS nb_course_reminders (
 
 CREATE INDEX IF NOT EXISTS idx_course_reminders_customer ON nb_course_reminders(customer_id);
 
+-- Per-lesson watch progress (keyed by access_token = student identity)
+CREATE TABLE IF NOT EXISTS nb_lesson_progress (
+  id SERIAL PRIMARY KEY,
+  access_token VARCHAR(64) NOT NULL,
+  course_id VARCHAR(50) NOT NULL,
+  lesson_id VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  customer_id INTEGER REFERENCES nb_customers(id) ON DELETE SET NULL,
+  position_seconds REAL DEFAULT 0,
+  duration_seconds REAL DEFAULT 0,
+  completed BOOLEAN DEFAULT FALSE,
+  completed_at TIMESTAMP,
+  first_watched_at TIMESTAMP DEFAULT NOW(),
+  last_watched_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(access_token, course_id, lesson_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_token ON nb_lesson_progress(access_token, course_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_email ON nb_lesson_progress(email);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_last ON nb_lesson_progress(last_watched_at DESC);
+
+-- Q&A threads between students and Nami
+CREATE TABLE IF NOT EXISTS nb_qa_threads (
+  id SERIAL PRIMARY KEY,
+  access_token VARCHAR(64) NOT NULL,
+  customer_id INTEGER REFERENCES nb_customers(id) ON DELETE SET NULL,
+  email VARCHAR(255) NOT NULL,
+  name VARCHAR(255),
+  course_id VARCHAR(50),
+  lesson_id VARCHAR(100),
+  subject VARCHAR(255),
+  status VARCHAR(20) NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'answered', 'archived')),
+  unread_for_admin BOOLEAN NOT NULL DEFAULT TRUE,
+  unread_for_student BOOLEAN NOT NULL DEFAULT FALSE,
+  last_message_at TIMESTAMP DEFAULT NOW(),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_qa_threads_token ON nb_qa_threads(access_token);
+CREATE INDEX IF NOT EXISTS idx_qa_threads_status_last ON nb_qa_threads(status, last_message_at DESC);
+CREATE INDEX IF NOT EXISTS idx_qa_threads_email ON nb_qa_threads(email);
+
+CREATE TABLE IF NOT EXISTS nb_qa_messages (
+  id SERIAL PRIMARY KEY,
+  thread_id INTEGER NOT NULL REFERENCES nb_qa_threads(id) ON DELETE CASCADE,
+  sender VARCHAR(20) NOT NULL CHECK (sender IN ('student', 'nami')),
+  body TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_qa_messages_thread ON nb_qa_messages(thread_id, created_at);
+
 -- Lumina app schema (stored in the shared Nami database)
 CREATE SCHEMA IF NOT EXISTS lumina;
 

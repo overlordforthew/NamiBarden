@@ -11,7 +11,49 @@
 <meta name="theme-color" content="#FAF7F2">
 <link rel="stylesheet" href="/fonts/fonts.css">
 <script src="/js/hls.min.js"></script>
-<style>:root{--cream:#FAF7F2;--cream-dark:#F0EAE0;--cream-darker:#E8DFD3;--warm-beige:#D4C5B2;--gold:#C4A882;--gold-dark:#A8895E;--text-dark:#2C2419;--text-medium:#5C4F3D;--text-light:#8B7E6E;--text-muted:#A99E8F;--white:#FFFFFF;--brown-deep:#2A1C10;--font-display:'Playfair Display','Noto Serif JP',serif;--font-body-jp:'Noto Sans JP',sans-serif;--transition:0.3s ease;}*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}html{font-size:16px;}body{font-family:var(--font-body-jp);color:var(--text-dark);background:var(--cream);line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh;}.watch-nav{background:rgba(250,247,242,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(196,168,130,0.15);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}.watch-nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;letter-spacing:0.05em;color:var(--text-dark);text-decoration:none;}.watch-nav-course{font-size:0.85rem;color:var(--text-light);letter-spacing:0.04em;}.watch-layout{display:grid;grid-template-columns:1fr 320px;min-height:calc(100vh - 60px);}.video-area{padding:32px;display:flex;flex-direction:column;gap:24px;}.video-container{position:relative;width:100%;padding-bottom:56.25%;background:#1a1410;border-radius:4px;overflow:hidden;}.video-container video{position:absolute;top:0;left:0;width:100%;height:100%;background:#1a1410;}.video-info h1{font-family:var(--font-display);font-size:1.4rem;font-weight:500;color:var(--text-dark);margin-bottom:8px;}.video-info p{font-size:0.9rem;color:var(--text-light);}.sidebar{background:var(--cream-dark);border-left:1px solid var(--cream-darker);overflow-y:auto;max-height:calc(100vh - 60px);position:sticky;top:60px;}.sidebar-header{padding:20px 20px 12px;border-bottom:1px solid var(--cream-darker);}.sidebar-header h2{font-family:var(--font-display);font-size:1rem;font-weight:500;color:var(--text-dark);margin-bottom:4px;}.sidebar-header p{font-size:0.78rem;color:var(--text-muted);}.course-tabs{display:flex;border-bottom:1px solid var(--cream-darker);}.course-tab{flex:1;padding:10px 12px;font-size:0.75rem;font-weight:500;text-align:center;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:var(--transition);background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font-body-jp);}.course-tab:hover{color:var(--text-medium);}.course-tab.active{color:var(--gold-dark);border-bottom-color:var(--gold-dark);}.lesson-list{padding:8px 0;}.lesson-item{display:flex;align-items:flex-start;gap:12px;padding:12px 20px;cursor:pointer;transition:var(--transition);border:none;background:none;width:100%;text-align:left;font-family:var(--font-body-jp);}.lesson-item:hover{background:rgba(196,168,130,0.08);}.lesson-item.active{background:rgba(196,168,130,0.15);}.lesson-num{width:32px;height:32px;border-radius:50%;background:var(--cream);border:1px solid var(--cream-darker);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.78rem;color:var(--text-muted);font-family:var(--font-display);}.lesson-item.active .lesson-num{background:var(--gold-dark);border-color:var(--gold-dark);color:var(--white);}.lesson-title{font-size:0.85rem;color:var(--text-medium);line-height:1.4;}.lesson-item.active .lesson-title{color:var(--text-dark);font-weight:500;}.lesson-text{display:flex;flex-direction:column;gap:2px;min-width:0;}.lesson-desc{font-size:0.73rem;color:var(--text-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}.loading-state,.error-state,.resend-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;text-align:center;}.loading-state p{color:var(--text-muted);margin-top:16px;}.error-state h2{font-family:var(--font-display);font-size:1.5rem;margin-bottom:16px;}.error-state p{color:var(--text-light);margin-bottom:24px;max-width:400px;line-height:1.8;}.error-state a,.resend-state a{display:inline-block;padding:12px 32px;background:var(--gold-dark);color:var(--white);text-decoration:none;border-radius:2px;font-size:0.9rem;transition:var(--transition);}.error-state a:hover,.resend-state a:hover{background:var(--brown-deep);}.resend-form{display:flex;gap:8px;margin-top:24px;max-width:400px;width:100%;}.resend-form input{flex:1;padding:10px 16px;border:1px solid var(--cream-darker);border-radius:2px;font-size:0.9rem;font-family:var(--font-body-jp);background:var(--white);}.resend-form button{padding:10px 24px;background:var(--gold-dark);color:var(--white);border:none;border-radius:2px;font-size:0.85rem;cursor:pointer;font-family:var(--font-body-jp);transition:var(--transition);white-space:nowrap;}.resend-form button:hover{background:var(--brown-deep);}.resend-msg{margin-top:12px;font-size:0.85rem;color:var(--gold-dark);}.sidebar-toggle{display:none;position:fixed;bottom:20px;right:20px;width:48px;height:48px;background:var(--gold-dark);color:var(--white);border:none;border-radius:50%;font-size:1.2rem;cursor:pointer;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.15);}.pdf-bonus{display:none;margin-top:24px;padding:24px;background:var(--cream-dark);border:1px solid var(--cream-darker);border-radius:4px;border-left:3px solid var(--gold);}.pdf-bonus.visible{display:block;}.pdf-bonus-label{font-size:0.7rem;font-weight:500;letter-spacing:0.1em;color:var(--gold-dark);text-transform:uppercase;margin-bottom:8px;}.pdf-bonus h3{font-family:var(--font-display);font-size:1.1rem;font-weight:500;color:var(--text-dark);margin-bottom:8px;}.pdf-bonus p{font-size:0.88rem;color:var(--text-medium);line-height:1.8;margin-bottom:16px;}.pdf-bonus-link{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:var(--gold-dark);color:var(--white);text-decoration:none;border-radius:2px;font-size:0.88rem;font-family:var(--font-body-jp);transition:var(--transition);}.pdf-bonus-link:hover{background:var(--brown-deep);}.course-ending{display:none;text-align:center;padding:48px 24px;max-width:560px;margin:0 auto;}.course-ending.visible{display:block;}.course-ending-icon{width:72px;height:72px;margin:0 auto 24px;background:var(--gold-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;}.course-ending h2{font-family:var(--font-display);font-size:1.4rem;font-weight:500;color:var(--text-dark);margin-bottom:12px;}.course-ending p{font-size:0.92rem;color:var(--text-medium);line-height:1.8;margin-bottom:16px;}.course-ending-divider{width:40px;height:1px;background:var(--gold);margin:28px auto;}.course-ending-next{background:var(--cream-dark);border:1px solid var(--cream-darker);border-radius:4px;padding:28px 24px;margin-top:24px;}.course-ending-next h3{font-family:var(--font-display);font-size:1.1rem;font-weight:500;color:var(--text-dark);margin-bottom:8px;}.course-ending-next p{font-size:0.85rem;color:var(--text-light);margin-bottom:20px;}.course-ending-price{font-size:0.85rem;color:var(--text-muted);margin-bottom:16px;}.course-ending-price .original{text-decoration:line-through;margin-right:8px;}.course-ending-price .discount{font-size:1.1rem;font-weight:500;color:var(--gold-dark);}.course-ending-btn{display:inline-block;padding:14px 40px;background:var(--gold-dark);color:var(--white);text-decoration:none;border:none;border-radius:2px;font-size:0.95rem;font-family:var(--font-body-jp);cursor:pointer;transition:var(--transition);}.course-ending-btn:hover{background:var(--brown-deep);}@media (max-width:768px){.watch-layout{grid-template-columns:1fr;}.video-area{padding:16px;}.sidebar{position:fixed;top:60px;right:0;bottom:0;width:300px;transform:translateX(100%);transition:transform 0.3s ease;z-index:150;max-height:none;box-shadow:-4px 0 24px rgba(0,0,0,0.1);}.sidebar.open{transform:translateX(0);}.sidebar-toggle{display:flex;align-items:center;justify-content:center;}.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:140;}.sidebar-overlay.open{display:block;}.watch-nav{padding:0 16px;}.watch-nav-course{display:none;}}</style>
+<style>:root{--cream:#FAF7F2;--cream-dark:#F0EAE0;--cream-darker:#E8DFD3;--warm-beige:#D4C5B2;--gold:#C4A882;--gold-dark:#A8895E;--text-dark:#2C2419;--text-medium:#5C4F3D;--text-light:#8B7E6E;--text-muted:#A99E8F;--white:#FFFFFF;--brown-deep:#2A1C10;--success:#7A9E7E;--font-display:'Playfair Display','Noto Serif JP',serif;--font-body-jp:'Noto Sans JP',sans-serif;--transition:0.3s ease;}
+.lesson-item.completed .lesson-num{background:var(--success)!important;border-color:var(--success)!important;color:#fff!important;}
+.lesson-item.completed .lesson-num::before{content:'';display:block;width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px);}
+.lesson-item.completed .lesson-num-text{display:none;}
+.resume-banner{margin-top:12px;padding:10px 14px;background:rgba(196,168,130,0.15);border-left:3px solid var(--gold-dark);border-radius:2px;font-size:0.85rem;color:var(--text-medium);display:none;align-items:center;gap:10px;}
+.resume-banner.visible{display:flex;}
+.resume-banner button{background:var(--gold-dark);color:#fff;border:none;padding:6px 14px;border-radius:2px;font-size:0.8rem;cursor:pointer;font-family:inherit;}
+.resume-banner button:hover{background:var(--brown-deep);}
+.resume-banner .dismiss{background:transparent;color:var(--text-muted);padding:4px 8px;}
+.qa-trigger{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:9px 18px;background:transparent;border:1px solid var(--gold-dark);color:var(--gold-dark);border-radius:2px;font-size:0.85rem;cursor:pointer;font-family:var(--font-body-jp);transition:var(--transition);}
+.qa-trigger:hover{background:var(--gold-dark);color:#fff;}
+.qa-trigger .qa-unread-dot{width:8px;height:8px;border-radius:50%;background:#C06060;display:none;}
+.qa-trigger.has-unread .qa-unread-dot{display:inline-block;}
+.qa-modal-overlay{position:fixed;inset:0;background:rgba(28,20,16,0.5);backdrop-filter:blur(4px);z-index:400;display:none;align-items:center;justify-content:center;padding:20px;}
+.qa-modal-overlay.visible{display:flex;}
+.qa-modal{background:var(--cream);border-radius:4px;max-width:640px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.25);}
+.qa-modal-header{padding:20px 24px;border-bottom:1px solid var(--cream-darker);display:flex;align-items:center;justify-content:space-between;}
+.qa-modal-header h3{font-family:var(--font-display);font-size:1.1rem;font-weight:500;margin:0;}
+.qa-modal-close{background:none;border:none;font-size:1.4rem;color:var(--text-muted);cursor:pointer;}
+.qa-modal-body{padding:20px 24px;overflow-y:auto;flex:1;}
+.qa-thread-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.qa-thread-item{padding:12px 14px;background:var(--white);border:1px solid var(--cream-darker);border-radius:2px;cursor:pointer;text-align:left;width:100%;font-family:inherit;transition:var(--transition);}
+.qa-thread-item:hover{border-color:var(--gold);background:var(--cream-dark);}
+.qa-thread-item .qa-thread-subject{font-size:0.9rem;font-weight:500;color:var(--text-dark);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.qa-thread-item .qa-unread-dot{width:8px;height:8px;border-radius:50%;background:#C06060;}
+.qa-thread-item .qa-thread-meta{font-size:0.75rem;color:var(--text-muted);}
+.qa-thread-item .qa-thread-status{font-size:0.72rem;color:var(--gold-dark);padding:2px 8px;background:rgba(196,168,130,0.15);border-radius:10px;margin-left:8px;}
+.qa-empty{text-align:center;color:var(--text-muted);padding:24px 0;font-size:0.88rem;}
+.qa-messages{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+.qa-message{padding:12px 14px;border-radius:4px;font-size:0.9rem;line-height:1.7;white-space:pre-wrap;}
+.qa-message.student{background:var(--cream-dark);border:1px solid var(--cream-darker);}
+.qa-message.nami{background:rgba(196,168,130,0.12);border-left:3px solid var(--gold-dark);}
+.qa-message-meta{font-size:0.72rem;color:var(--text-muted);margin-bottom:4px;display:flex;justify-content:space-between;}
+.qa-form{display:flex;flex-direction:column;gap:10px;}
+.qa-form textarea,.qa-form input{font-family:var(--font-body-jp);padding:10px 12px;border:1px solid var(--cream-darker);border-radius:2px;font-size:0.9rem;background:var(--white);resize:vertical;}
+.qa-form textarea{min-height:120px;}
+.qa-form .btn-row{display:flex;gap:8px;justify-content:flex-end;}
+.qa-form button{padding:10px 22px;border-radius:2px;font-size:0.88rem;cursor:pointer;font-family:inherit;border:none;}
+.qa-form .btn-primary{background:var(--gold-dark);color:#fff;}
+.qa-form .btn-primary:hover{background:var(--brown-deep);}
+.qa-form .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.qa-form .btn-secondary{background:transparent;border:1px solid var(--cream-darker);color:var(--text-medium);}
+.qa-context-hint{font-size:0.78rem;color:var(--text-muted);margin-bottom:4px;}*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}html{font-size:16px;}body{font-family:var(--font-body-jp);color:var(--text-dark);background:var(--cream);line-height:1.7;-webkit-font-smoothing:antialiased;min-height:100vh;}.watch-nav{background:rgba(250,247,242,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(196,168,130,0.15);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}.watch-nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;letter-spacing:0.05em;color:var(--text-dark);text-decoration:none;}.watch-nav-course{font-size:0.85rem;color:var(--text-light);letter-spacing:0.04em;}.watch-layout{display:grid;grid-template-columns:1fr 320px;min-height:calc(100vh - 60px);}.video-area{padding:32px;display:flex;flex-direction:column;gap:24px;}.video-container{position:relative;width:100%;padding-bottom:56.25%;background:#1a1410;border-radius:4px;overflow:hidden;}.video-container video{position:absolute;top:0;left:0;width:100%;height:100%;background:#1a1410;}.video-info h1{font-family:var(--font-display);font-size:1.4rem;font-weight:500;color:var(--text-dark);margin-bottom:8px;}.video-info p{font-size:0.9rem;color:var(--text-light);}.sidebar{background:var(--cream-dark);border-left:1px solid var(--cream-darker);overflow-y:auto;max-height:calc(100vh - 60px);position:sticky;top:60px;}.sidebar-header{padding:20px 20px 12px;border-bottom:1px solid var(--cream-darker);}.sidebar-header h2{font-family:var(--font-display);font-size:1rem;font-weight:500;color:var(--text-dark);margin-bottom:4px;}.sidebar-header p{font-size:0.78rem;color:var(--text-muted);}.course-tabs{display:flex;border-bottom:1px solid var(--cream-darker);}.course-tab{flex:1;padding:10px 12px;font-size:0.75rem;font-weight:500;text-align:center;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:var(--transition);background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font-body-jp);}.course-tab:hover{color:var(--text-medium);}.course-tab.active{color:var(--gold-dark);border-bottom-color:var(--gold-dark);}.lesson-list{padding:8px 0;}.lesson-item{display:flex;align-items:flex-start;gap:12px;padding:12px 20px;cursor:pointer;transition:var(--transition);border:none;background:none;width:100%;text-align:left;font-family:var(--font-body-jp);}.lesson-item:hover{background:rgba(196,168,130,0.08);}.lesson-item.active{background:rgba(196,168,130,0.15);}.lesson-num{width:32px;height:32px;border-radius:50%;background:var(--cream);border:1px solid var(--cream-darker);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.78rem;color:var(--text-muted);font-family:var(--font-display);}.lesson-item.active .lesson-num{background:var(--gold-dark);border-color:var(--gold-dark);color:var(--white);}.lesson-title{font-size:0.85rem;color:var(--text-medium);line-height:1.4;}.lesson-item.active .lesson-title{color:var(--text-dark);font-weight:500;}.lesson-text{display:flex;flex-direction:column;gap:2px;min-width:0;}.lesson-desc{font-size:0.73rem;color:var(--text-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}.loading-state,.error-state,.resend-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;text-align:center;}.loading-state p{color:var(--text-muted);margin-top:16px;}.error-state h2{font-family:var(--font-display);font-size:1.5rem;margin-bottom:16px;}.error-state p{color:var(--text-light);margin-bottom:24px;max-width:400px;line-height:1.8;}.error-state a,.resend-state a{display:inline-block;padding:12px 32px;background:var(--gold-dark);color:var(--white);text-decoration:none;border-radius:2px;font-size:0.9rem;transition:var(--transition);}.error-state a:hover,.resend-state a:hover{background:var(--brown-deep);}.resend-form{display:flex;gap:8px;margin-top:24px;max-width:400px;width:100%;}.resend-form input{flex:1;padding:10px 16px;border:1px solid var(--cream-darker);border-radius:2px;font-size:0.9rem;font-family:var(--font-body-jp);background:var(--white);}.resend-form button{padding:10px 24px;background:var(--gold-dark);color:var(--white);border:none;border-radius:2px;font-size:0.85rem;cursor:pointer;font-family:var(--font-body-jp);transition:var(--transition);white-space:nowrap;}.resend-form button:hover{background:var(--brown-deep);}.resend-msg{margin-top:12px;font-size:0.85rem;color:var(--gold-dark);}.sidebar-toggle{display:none;position:fixed;bottom:20px;right:20px;width:48px;height:48px;background:var(--gold-dark);color:var(--white);border:none;border-radius:50%;font-size:1.2rem;cursor:pointer;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.15);}.pdf-bonus{display:none;margin-top:24px;padding:24px;background:var(--cream-dark);border:1px solid var(--cream-darker);border-radius:4px;border-left:3px solid var(--gold);}.pdf-bonus.visible{display:block;}.pdf-bonus-label{font-size:0.7rem;font-weight:500;letter-spacing:0.1em;color:var(--gold-dark);text-transform:uppercase;margin-bottom:8px;}.pdf-bonus h3{font-family:var(--font-display);font-size:1.1rem;font-weight:500;color:var(--text-dark);margin-bottom:8px;}.pdf-bonus p{font-size:0.88rem;color:var(--text-medium);line-height:1.8;margin-bottom:16px;}.pdf-bonus-link{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:var(--gold-dark);color:var(--white);text-decoration:none;border-radius:2px;font-size:0.88rem;font-family:var(--font-body-jp);transition:var(--transition);}.pdf-bonus-link:hover{background:var(--brown-deep);}.course-ending{display:none;text-align:center;padding:48px 24px;max-width:560px;margin:0 auto;}.course-ending.visible{display:block;}.course-ending-icon{width:72px;height:72px;margin:0 auto 24px;background:var(--gold-dark);border-radius:50%;display:flex;align-items:center;justify-content:center;}.course-ending h2{font-family:var(--font-display);font-size:1.4rem;font-weight:500;color:var(--text-dark);margin-bottom:12px;}.course-ending p{font-size:0.92rem;color:var(--text-medium);line-height:1.8;margin-bottom:16px;}.course-ending-divider{width:40px;height:1px;background:var(--gold);margin:28px auto;}.course-ending-next{background:var(--cream-dark);border:1px solid var(--cream-darker);border-radius:4px;padding:28px 24px;margin-top:24px;}.course-ending-next h3{font-family:var(--font-display);font-size:1.1rem;font-weight:500;color:var(--text-dark);margin-bottom:8px;}.course-ending-next p{font-size:0.85rem;color:var(--text-light);margin-bottom:20px;}.course-ending-price{font-size:0.85rem;color:var(--text-muted);margin-bottom:16px;}.course-ending-price .original{text-decoration:line-through;margin-right:8px;}.course-ending-price .discount{font-size:1.1rem;font-weight:500;color:var(--gold-dark);}.course-ending-btn{display:inline-block;padding:14px 40px;background:var(--gold-dark);color:var(--white);text-decoration:none;border:none;border-radius:2px;font-size:0.95rem;font-family:var(--font-body-jp);cursor:pointer;transition:var(--transition);}.course-ending-btn:hover{background:var(--brown-deep);}@media (max-width:768px){.watch-layout{grid-template-columns:1fr;}.video-area{padding:16px;}.sidebar{position:fixed;top:60px;right:0;bottom:0;width:300px;transform:translateX(100%);transition:transform 0.3s ease;z-index:150;max-height:none;box-shadow:-4px 0 24px rgba(0,0,0,0.1);}.sidebar.open{transform:translateX(0);}.sidebar-toggle{display:flex;align-items:center;justify-content:center;}.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:140;}.sidebar-overlay.open{display:block;}.watch-nav{padding:0 16px;}.watch-nav-course{display:none;}}</style>
 </head>
 <body>
 
@@ -55,6 +97,16 @@
         <h1 id="lessonTitle"></h1>
         <p id="lessonSub"></p>
         <p id="lessonDesc" style="margin-top:12px;font-size:0.92rem;color:var(--text-medium);line-height:1.8;"></p>
+        <div id="resumeBanner" class="resume-banner">
+          <span id="resumeText"></span>
+          <button onclick="resumeFromSaved()">続きから再生</button>
+          <button class="dismiss" onclick="dismissResume()">×</button>
+        </div>
+        <button id="qaTrigger" class="qa-trigger" onclick="openQaModal()" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span>ナミに質問する</span>
+          <span class="qa-unread-dot"></span>
+        </button>
         <div id="pdfBonus" class="pdf-bonus">
           <div class="pdf-bonus-label">Bonus PDF</div>
           <h3>Big Talk — 心を深める質問集</h3>
@@ -95,6 +147,17 @@
 
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
   <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+</div>
+
+<!-- Q&A Modal -->
+<div id="qaModalOverlay" class="qa-modal-overlay" onclick="if(event.target===this)closeQaModal()">
+  <div class="qa-modal">
+    <div class="qa-modal-header">
+      <h3 id="qaModalTitle">ナミに質問する</h3>
+      <button class="qa-modal-close" onclick="closeQaModal()">×</button>
+    </div>
+    <div class="qa-modal-body" id="qaModalBody"></div>
+  </div>
 </div>
 
 <script>
@@ -184,10 +247,12 @@ async function loadCourse(courseId) {
     else if (isBasic) { num = '基' + l.id.replace('basic-', ''); }
     else { lessonNum++; num = lessonNum; }
     return sectionHeader + `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-source="${l.sourceLesson || ''}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
-      <span class="lesson-num">${num}</span>
+      <span class="lesson-num"><span class="lesson-num-text">${num}</span></span>
       <span class="lesson-text"><span class="lesson-title">${l.title}</span>${l.desc ? `<span class="lesson-desc">${l.desc}</span>` : ''}</span>
     </button>`;
   }).join('');
+
+  await loadCourseProgress(courseId);
 
   // Update tabs
   document.querySelectorAll('.course-tab').forEach(t => t.classList.remove('active'));
@@ -207,6 +272,10 @@ function switchCourse(courseId) {
 
 function playLesson(courseId, lessonId, idx) {
   currentLesson = lessonId;
+  lastSavedPosition = 0;
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+  dismissResume();
+  showQaTrigger();
   const video = document.getElementById('videoPlayer');
   const hlsUrl = `/api/courses/${courseId}/${lessonId}/hls/master.m3u8?token=${encodeURIComponent(token)}`;
   teardownEndingVideo();
@@ -416,6 +485,286 @@ async function resendAccess() {
   }
 }
 
+// ── Progress tracking ──────────────────────────────────────────
+let progressByLesson = {};           // courseId → { lessonId → { position, duration, completed } }
+let pendingResumeFor = null;         // lessonId awaiting user resume click
+let lastSavedPosition = 0;
+let saveTimer = null;
+const SAVE_INTERVAL_MS = 10000;
+const COMPLETION_THRESHOLD = 0.9;
+
+async function loadCourseProgress(courseId) {
+  try {
+    const res = await fetch(`/api/courses/${courseId}/progress?token=${encodeURIComponent(token)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    progressByLesson[courseId] = {};
+    (data.progress || []).forEach(p => { progressByLesson[courseId][p.lessonId] = p; });
+    applyProgressCheckmarks(courseId);
+  } catch (e) { /* non-blocking */ }
+}
+
+function applyProgressCheckmarks(courseId) {
+  const map = progressByLesson[courseId] || {};
+  document.querySelectorAll('.lesson-item').forEach(el => {
+    const id = el.getAttribute('data-lesson');
+    const p = map[id];
+    if (p && p.completed) el.classList.add('completed');
+    else el.classList.remove('completed');
+  });
+}
+
+function saveProgress(position, duration, completed) {
+  if (!currentCourse || !currentLesson) return;
+  const courseId = currentCourse;
+  const lessonId = currentLesson;
+  fetch(`/api/courses/${courseId}/${lessonId}/progress`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, position, duration, completed: !!completed })
+  }).then(r => {
+    if (!r.ok) return;
+    if (!progressByLesson[courseId]) progressByLesson[courseId] = {};
+    const prior = progressByLesson[courseId][lessonId] || {};
+    progressByLesson[courseId][lessonId] = {
+      lessonId,
+      position,
+      duration: Math.max(prior.duration || 0, duration || 0),
+      completed: prior.completed || !!completed || (duration > 0 && position / duration >= COMPLETION_THRESHOLD)
+    };
+    if (progressByLesson[courseId][lessonId].completed) applyProgressCheckmarks(courseId);
+  }).catch(() => {});
+}
+
+function wireProgressTracking() {
+  const video = document.getElementById('videoPlayer');
+  if (!video || video.dataset.progressWired === '1') return;
+  video.dataset.progressWired = '1';
+
+  video.addEventListener('loadedmetadata', () => {
+    const map = progressByLesson[currentCourse] || {};
+    const saved = map[currentLesson];
+    dismissResume();
+    if (saved && saved.position > 5 && !saved.completed && (!saved.duration || saved.position < saved.duration - 5)) {
+      pendingResumeFor = currentLesson;
+      const mins = Math.floor(saved.position / 60);
+      const secs = Math.floor(saved.position % 60).toString().padStart(2, '0');
+      document.getElementById('resumeText').textContent = `前回 ${mins}:${secs} で停止しました`;
+      document.getElementById('resumeBanner').classList.add('visible');
+    }
+  });
+
+  video.addEventListener('timeupdate', () => {
+    if (!video.duration || video.paused) return;
+    if (Math.abs(video.currentTime - lastSavedPosition) < 3) return;
+    if (saveTimer) return;
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      lastSavedPosition = video.currentTime;
+      saveProgress(video.currentTime, video.duration, false);
+    }, SAVE_INTERVAL_MS);
+  });
+
+  video.addEventListener('pause', () => {
+    if (!video.duration || video.currentTime < 1) return;
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    lastSavedPosition = video.currentTime;
+    saveProgress(video.currentTime, video.duration, false);
+  });
+
+  video.addEventListener('ended', () => {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    lastSavedPosition = video.duration;
+    saveProgress(video.duration, video.duration, true);
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (!video.duration || video.currentTime < 1) return;
+    try {
+      navigator.sendBeacon &&
+        navigator.sendBeacon(
+          `/api/courses/${currentCourse}/${currentLesson}/progress`,
+          new Blob([JSON.stringify({ token, position: video.currentTime, duration: video.duration })], { type: 'application/json' })
+        );
+    } catch {}
+  });
+}
+
+function resumeFromSaved() {
+  const video = document.getElementById('videoPlayer');
+  const saved = progressByLesson[currentCourse]?.[pendingResumeFor];
+  if (video && saved) {
+    const target = saved.position;
+    const seek = () => {
+      try { video.currentTime = target; video.play().catch(() => {}); } catch {}
+    };
+    if (video.readyState >= 1) seek();
+    else video.addEventListener('loadedmetadata', seek, { once: true });
+  }
+  dismissResume();
+}
+
+function dismissResume() {
+  document.getElementById('resumeBanner').classList.remove('visible');
+  pendingResumeFor = null;
+}
+
+// ── Q&A modal ──────────────────────────────────────────────────
+let qaThreads = [];
+
+async function refreshQaUnread() {
+  try {
+    const res = await fetch(`/api/courses/questions?token=${encodeURIComponent(token)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    qaThreads = data.threads || [];
+    const hasUnread = qaThreads.some(t => t.unread);
+    document.getElementById('qaTrigger').classList.toggle('has-unread', hasUnread);
+  } catch {}
+}
+
+function showQaTrigger() {
+  document.getElementById('qaTrigger').style.display = '';
+}
+
+function hideQaTrigger() {
+  document.getElementById('qaTrigger').style.display = 'none';
+}
+
+async function openQaModal() {
+  document.getElementById('qaModalOverlay').classList.add('visible');
+  await renderQaThreadList();
+}
+
+function closeQaModal() {
+  document.getElementById('qaModalOverlay').classList.remove('visible');
+  document.getElementById('qaModalTitle').textContent = 'ナミに質問する';
+}
+
+async function renderQaThreadList() {
+  await refreshQaUnread();
+  const body = document.getElementById('qaModalBody');
+  const lessonEl = document.querySelector(`.lesson-item[data-lesson="${currentLesson}"]`);
+  const lessonTitle = lessonEl?.querySelector('.lesson-title')?.textContent || '';
+  const context = lessonTitle ? `現在の場所：${lessonTitle}` : '';
+
+  let html = '';
+  if (qaThreads.length > 0) {
+    html += '<div class="qa-thread-list">';
+    qaThreads.forEach(t => {
+      const date = new Date(t.lastMessageAt).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' });
+      const statusLabel = t.status === 'answered' ? '回答済み' : t.status === 'archived' ? 'アーカイブ' : '返信待ち';
+      html += `<button class="qa-thread-item" onclick="openQaThread(${t.id})">
+        <div class="qa-thread-subject">
+          ${t.unread ? '<span class="qa-unread-dot"></span>' : ''}
+          ${escapeText(t.subject || '(件名なし)')}
+          <span class="qa-thread-status">${statusLabel}</span>
+        </div>
+        <div class="qa-thread-meta">${date}</div>
+      </button>`;
+    });
+    html += '</div>';
+  } else {
+    html += '<p class="qa-empty">まだ質問はありません。下のフォームから最初の質問を送ってみましょう。</p>';
+  }
+
+  html += `<div style="border-top:1px solid var(--cream-darker);padding-top:20px;margin-top:12px;">
+    <h4 style="font-family:var(--font-display);font-size:0.95rem;margin:0 0 10px;">新しい質問を送る</h4>
+    ${context ? `<p class="qa-context-hint">${escapeText(context)}</p>` : ''}
+    <form class="qa-form" onsubmit="submitNewQuestion(event)">
+      <input type="text" id="qaNewSubject" placeholder="件名（任意）" maxlength="200">
+      <textarea id="qaNewBody" placeholder="ご質問をどうぞ..." required maxlength="4000"></textarea>
+      <div class="btn-row">
+        <button type="submit" class="btn-primary">送信する</button>
+      </div>
+    </form>
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+async function submitNewQuestion(e) {
+  e.preventDefault();
+  const subject = document.getElementById('qaNewSubject').value.trim();
+  const body = document.getElementById('qaNewBody').value.trim();
+  if (!body) return;
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = '送信中...';
+  try {
+    const res = await fetch('/api/courses/questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, courseId: currentCourse, lessonId: currentLesson, subject, body })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '送信に失敗しました');
+    await renderQaThreadList();
+    alert('質問を送信しました。お返事をお待ちください。');
+  } catch (err) {
+    alert(err.message || '送信エラー');
+    btn.disabled = false; btn.textContent = '送信する';
+  }
+}
+
+async function openQaThread(threadId) {
+  document.getElementById('qaModalTitle').textContent = 'スレッド';
+  const body = document.getElementById('qaModalBody');
+  body.innerHTML = '<p class="qa-empty">読み込み中...</p>';
+  try {
+    const res = await fetch(`/api/courses/questions/${threadId}?token=${encodeURIComponent(token)}`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    let html = `<button class="qa-form btn-secondary" onclick="renderQaThreadList();document.getElementById('qaModalTitle').textContent='ナミに質問する';" style="background:transparent;border:1px solid var(--cream-darker);padding:6px 14px;margin-bottom:16px;font-size:0.82rem;">← すべての質問</button>`;
+    html += `<h4 style="font-family:var(--font-display);font-size:1rem;margin:0 0 12px;">${escapeText(data.thread.subject || '')}</h4>`;
+    html += '<div class="qa-messages">';
+    (data.messages || []).forEach(m => {
+      const isNami = m.sender === 'nami';
+      const when = new Date(m.created_at).toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      html += `<div class="qa-message ${isNami ? 'nami' : 'student'}">
+        <div class="qa-message-meta"><span>${isNami ? 'ナミ' : 'あなた'}</span><span>${when}</span></div>
+        <div>${escapeText(m.body)}</div>
+      </div>`;
+    });
+    html += '</div>';
+    html += `<form class="qa-form" onsubmit="submitReply(event, ${threadId})">
+      <textarea id="qaReplyBody" placeholder="返信を入力..." required maxlength="4000"></textarea>
+      <div class="btn-row">
+        <button type="submit" class="btn-primary">返信する</button>
+      </div>
+    </form>`;
+    body.innerHTML = html;
+  } catch {
+    body.innerHTML = '<p class="qa-empty">読み込みに失敗しました。</p>';
+  }
+}
+
+async function submitReply(e, threadId) {
+  e.preventDefault();
+  const body = document.getElementById('qaReplyBody').value.trim();
+  if (!body) return;
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = '送信中...';
+  try {
+    const res = await fetch(`/api/courses/questions/${threadId}/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, body })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'エラー');
+    await openQaThread(threadId);
+  } catch (err) {
+    alert(err.message || 'エラー');
+    btn.disabled = false; btn.textContent = '返信する';
+  }
+}
+
+function escapeText(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
 // Show "My Courses" link if logged in (check via httpOnly cookie)
 fetch('/api/auth/check', { credentials: 'same-origin' })
   .then(function(r) { return r.json(); })
@@ -423,7 +772,10 @@ fetch('/api/auth/check', { credentials: 'same-origin' })
     if (data.authenticated) document.getElementById('myCoursesLink').style.display = '';
   }).catch(function() {});
 
-init();
+wireProgressTracking();
+init().then(() => {
+  refreshQaUnread();
+});
 </script>
 </body>
 </html>

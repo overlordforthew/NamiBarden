@@ -19,6 +19,7 @@ const { createAdminObservability } = require('./admin-observability');
 const { createAdminRoutes } = require('./admin-routes');
 const { createPublicRoutes } = require('./public-routes');
 const { createCourseRoutes } = require('./course-routes');
+const { createCourseEngagement } = require('./course-engagement');
 const { createStripeRoutes } = require('./stripe-routes');
 const { createCourseReminders } = require('./course-reminders');
 const { createAuthUtils } = require('./auth-utils');
@@ -288,6 +289,23 @@ createCourseRoutes({
   r2Bucket: config.r2.bucket
 });
 
+const courseEngagement = createCourseEngagement({
+  app,
+  pool,
+  logger,
+  authMiddleware,
+  transporter,
+  smtpFrom: config.smtp.from,
+  siteUrl: config.siteUrl,
+  escapeHtml,
+  getIP,
+  rateLimit,
+  verifyCourseAccess,
+  courses: COURSES,
+  sendWhatsApp,
+  namiJid: NAMI_JID
+});
+
 const courseReminders = createCourseReminders({
   app,
   pool,
@@ -368,6 +386,12 @@ initializeApp({
     logger.info('Course reminder scheduler started');
   } catch (err) {
     logger.error({ err }, 'Course reminder init failed');
+  }
+  try {
+    await courseEngagement.ensureTables();
+    logger.info('Course engagement tables ready');
+  } catch (err) {
+    logger.error({ err }, 'Course engagement init failed');
   }
   startServer({
     app,
