@@ -85,18 +85,13 @@ function createCourseRoutes({
 
       const r2Key = `courses/${courseId}/${lessonId}/${filePath}`;
       if (filePath.endsWith('.ts')) {
-        const obj = await r2.send(new GetObjectCommand({ Bucket: r2Bucket, Key: r2Key }));
-        res.set('Content-Type', 'video/mp2t');
-        if (obj.ContentLength) res.set('Content-Length', String(obj.ContentLength));
-        res.set('Cache-Control', 'public, max-age=31536000, immutable');
-        obj.Body.transformToWebStream().pipeTo(
-          new WritableStream({
-            write(chunk) { res.write(chunk); },
-            close() { res.end(); },
-            abort() { res.destroy(); }
-          })
-        ).catch(() => { if (!res.destroyed) res.destroy(); });
-        return;
+        const signedUrl = await getSignedUrl(
+          r2,
+          new GetObjectCommand({ Bucket: r2Bucket, Key: r2Key }),
+          { expiresIn: 3600 }
+        );
+        res.set('Cache-Control', 'public, max-age=3500');
+        return res.redirect(302, signedUrl);
       }
 
       if (filePath.endsWith('.m3u8')) {
