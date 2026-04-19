@@ -205,6 +205,18 @@ CREATE INDEX IF NOT EXISTS idx_course_access_customer ON nb_course_access(custom
 CREATE INDEX IF NOT EXISTS idx_course_access_course ON nb_course_access(course_id);
 CREATE INDEX IF NOT EXISTS idx_course_access_email ON nb_course_access(email);
 
+-- Course lifecycle reminders (e.g. 21-day course-2 upsell follow-up)
+CREATE TABLE IF NOT EXISTS nb_course_reminders (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES nb_customers(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  reminder_type VARCHAR(50) NOT NULL,
+  sent_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(customer_id, reminder_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_course_reminders_customer ON nb_course_reminders(customer_id);
+
 -- Lumina app schema (stored in the shared Nami database)
 CREATE SCHEMA IF NOT EXISTS lumina;
 

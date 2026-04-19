@@ -20,6 +20,7 @@ const { createAdminRoutes } = require('./admin-routes');
 const { createPublicRoutes } = require('./public-routes');
 const { createCourseRoutes } = require('./course-routes');
 const { createStripeRoutes } = require('./stripe-routes');
+const { createCourseReminders } = require('./course-reminders');
 const { createAuthUtils } = require('./auth-utils');
 const { createHealthRoutes } = require('./health-routes');
 const { createSiteHelpers } = require('./site-helpers');
@@ -287,6 +288,17 @@ createCourseRoutes({
   r2Bucket: config.r2.bucket
 });
 
+const courseReminders = createCourseReminders({
+  app,
+  pool,
+  transporter,
+  logger,
+  siteUrl: config.siteUrl,
+  smtpFrom: config.smtp.from,
+  escapeHtml,
+  authMiddleware
+});
+
 createStripeRoutes({
   app,
   pool,
@@ -323,7 +335,8 @@ createStripeRoutes({
   defaultLuminaCancelUrl,
   normalizeLuminaCurrency,
   getLuminaCheckoutPrice,
-  getLuminaCheckoutCopy
+  getLuminaCheckoutCopy,
+  buildCourse2UpsellBlockHtml: courseReminders.buildCourse2UpsellBlockHtml
 });
 
 registerGlobalErrorHandling({
@@ -344,7 +357,14 @@ initializeApp({
   smtpMonitor,
   resolveOperationalAlert,
   recordOperationalAlert
-}).then(() => {
+}).then(async () => {
+  try {
+    await courseReminders.ensureReminderTable();
+    courseReminders.startScheduler();
+    logger.info('Course reminder scheduler started');
+  } catch (err) {
+    logger.error({ err }, 'Course reminder init failed');
+  }
   startServer({
     app,
     port: config.port,
