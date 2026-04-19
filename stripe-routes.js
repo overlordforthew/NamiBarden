@@ -428,6 +428,29 @@ app.post('/api/stripe/webhook', async (req, res) => {
           // Send access email
           const courseNames = courseIds.map(id => COURSES[id]?.name).join(' & ');
           const watchUrl = `${SITE_URL}/watch?token=${token}`;
+
+          const course2UpsellHtml = product === 'course-1' ? `
+                <hr style="border:none;border-top:1px solid #E8DFD3;margin:40px 0 28px;">
+                <div style="background:#F0EAE0;padding:28px 24px;border-radius:4px;border-left:3px solid #A8895E;">
+                  <p style="font-size:0.72rem;color:#A8895E;letter-spacing:0.12em;margin:0 0 8px;text-transform:uppercase;">Next Step</p>
+                  <h3 style="font-size:1.1rem;color:#2C2419;margin:0 0 12px;font-weight:500;">コース2「愛を深める心の授業」</h3>
+                  <p style="font-size:0.9rem;color:#5C4F3D;line-height:1.8;margin:0 0 14px;">コース1を終えたら、パートナーシップの深い課題へ。</p>
+                  <ul style="list-style:none;padding:0;margin:0 0 18px;font-size:0.85rem;color:#5C4F3D;line-height:1.8;">
+                    <li style="margin-bottom:4px;">・意見の食い違いを乗り越える「意識の4ステップ」</li>
+                    <li style="margin-bottom:4px;">・5つの愛の言語 — すれ違いの本当の原因</li>
+                    <li style="margin-bottom:4px;">・男性性と女性性のバランスで関係が変わる</li>
+                    <li>・裏切り・許し・再構築 — 愛の深い知恵</li>
+                  </ul>
+                  <p style="font-size:0.85rem;color:#8B7E6E;margin:0 0 16px;">
+                    <span style="text-decoration:line-through;">¥9,800</span>
+                    <span style="color:#A8895E;font-weight:500;font-size:1.05rem;margin-left:8px;">¥7,000</span>
+                    <span style="margin-left:4px;font-size:0.8rem;">（コース1受講者限定価格）</span>
+                  </p>
+                  <p style="margin:0;">
+                    <a href="${SITE_URL}/online-course-2?token=${token}" style="display:inline-block;padding:10px 26px;background:transparent;border:1px solid #A8895E;color:#A8895E;text-decoration:none;border-radius:2px;font-size:0.88rem;letter-spacing:0.04em;">コース2の詳細を見る →</a>
+                  </p>
+                </div>` : '';
+
           try {
             await transporter.sendMail({
               from: SMTP_FROM,
@@ -442,7 +465,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
                   <a href="${watchUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">コースを視聴する</a>
                 </p>
                 <p style="line-height:1.8;margin-bottom:8px;font-size:0.9rem;color:#8B7E6E;">このリンクはあなた専用です。他の方と共有しないでください。</p>
-                <p style="line-height:1.8;font-size:0.9rem;color:#8B7E6E;">リンクを紛失した場合は、購入時のメールアドレスで再送できます。</p>
+                <p style="line-height:1.8;font-size:0.9rem;color:#8B7E6E;">リンクを紛失した場合は、購入時のメールアドレスで再送できます。</p>${course2UpsellHtml}
                 <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
                 <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
               </div>`
