@@ -70,6 +70,11 @@
           </div>
           <h2>コース完了おめでとうございます！</h2>
           <p>ここまで学んでくださり、本当にありがとうございます。あなたの心の旅は、もう始まっています。</p>
+          <div id="endingVideoWrap" style="display:none;max-width:800px;margin:32px auto 0;">
+            <div style="position:relative;width:100%;padding-bottom:56.25%;background:#1a1410;border-radius:2px;overflow:hidden;">
+              <video id="endingVideo" controls playsinline style="position:absolute;top:0;left:0;width:100%;height:100%;background:#1a1410;"></video>
+            </div>
+          </div>
           <div class="course-ending-divider"></div>
           <div id="endingNextCourse" class="course-ending-next">
             <!-- Dynamically filled: upgrade or start course 2 -->
@@ -99,6 +104,7 @@ let courses = [];
 let currentCourse = null;
 let currentLesson = null;
 let hls = null;
+let endingHls = null;
 
 async function init() {
   if (!token) return showError('トークンが見つかりません。購入時に届いたメールのリンクからアクセスしてください。');
@@ -177,7 +183,7 @@ async function loadCourse(courseId) {
     if (type === 'ending') num = '★';
     else if (isBasic) { num = '基' + l.id.replace('basic-', ''); }
     else { lessonNum++; num = lessonNum; }
-    return sectionHeader + `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
+    return sectionHeader + `<button class="lesson-item" data-lesson="${l.id}" data-type="${type}" data-url="${url}" data-source="${l.sourceLesson || ''}" data-desc="${(l.desc||'').replace(/"/g,'&quot;')}" onclick="playLesson('${courseId}','${l.id}',${i})">
       <span class="lesson-num">${num}</span>
       <span class="lesson-text"><span class="lesson-title">${l.title}</span>${l.desc ? `<span class="lesson-desc">${l.desc}</span>` : ''}</span>
     </button>`;
@@ -203,6 +209,7 @@ function playLesson(courseId, lessonId, idx) {
   currentLesson = lessonId;
   const video = document.getElementById('videoPlayer');
   const hlsUrl = `/api/courses/${courseId}/${lessonId}/hls/master.m3u8?token=${encodeURIComponent(token)}`;
+  teardownEndingVideo();
 
   // Update active state
   document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
@@ -232,6 +239,7 @@ function playLesson(courseId, lessonId, idx) {
     if (hls) { hls.destroy(); hls = null; }
     video.src = '';
     renderEndingSection();
+    renderEndingVideo(courseId, lessonId, activeEl?.getAttribute('data-source') || '');
     if (window.innerWidth <= 768) toggleSidebar(false);
     return;
   }
@@ -288,6 +296,30 @@ function playLesson(courseId, lessonId, idx) {
     });
   } else {
     document.getElementById('lessonSub').textContent = 'お使いのブラウザでは動画を再生できません。';
+  }
+}
+
+function teardownEndingVideo() {
+  const wrap = document.getElementById('endingVideoWrap');
+  const el = document.getElementById('endingVideo');
+  if (endingHls) { endingHls.destroy(); endingHls = null; }
+  if (el) { el.pause(); el.removeAttribute('src'); el.load(); }
+  if (wrap) wrap.style.display = 'none';
+}
+
+function renderEndingVideo(courseId, lessonId, source) {
+  if (!source) return;
+  const wrap = document.getElementById('endingVideoWrap');
+  const el = document.getElementById('endingVideo');
+  if (!wrap || !el) return;
+  wrap.style.display = '';
+  const src = `/api/courses/${courseId}/${lessonId}/hls/master.m3u8?token=${encodeURIComponent(token)}`;
+  if (el.canPlayType('application/vnd.apple.mpegurl')) {
+    el.src = src;
+  } else if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+    endingHls = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 });
+    endingHls.loadSource(src);
+    endingHls.attachMedia(el);
   }
 }
 

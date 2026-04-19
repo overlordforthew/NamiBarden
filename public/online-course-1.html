@@ -399,31 +399,6 @@
   </div>
 </section>
 
-<!-- ===== COURSE 2 BRIDGE ===== -->
-<section style="padding: 100px 0; background: var(--cream);">
-  <div class="container">
-    <div class="section-header centered reveal">
-      <p class="section-label">What's Next</p>
-      <h2 class="section-title">コースを終えた方へ</h2>
-      <p class="section-subtitle">ナミからのメッセージ — 次のステップへ。</p>
-    </div>
-    <div class="reveal" style="max-width: 800px; margin: 0 auto;">
-      <div style="position: relative; width: 100%; padding-bottom: 56.25%; background: #1a1410; border-radius: 2px; overflow: hidden;">
-        <video id="bridgeVideo" controls playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #1a1410;"></video>
-      </div>
-      <script>
-      (function() {
-        function initHls(el, src) {
-          if (el.canPlayType('application/vnd.apple.mpegurl')) { el.src = src; }
-          else if (typeof Hls !== 'undefined' && Hls.isSupported()) { var h = new Hls({ maxBufferLength: 30, maxMaxBufferLength: 60 }); h.loadSource(src); h.attachMedia(el); }
-        }
-        initHls(document.getElementById('bridgeVideo'), '/api/preview/course-1/bridge/hls/master.m3u8');
-      })();
-      </script>
-    </div>
-  </div>
-</section>
-
 <!-- ===== CTA ===== -->
 <section class="cta-section">
   <div class="container reveal">
