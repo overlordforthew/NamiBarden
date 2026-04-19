@@ -83,6 +83,14 @@
   <a href="/#contact" onclick="toggleMobile()">お問い合わせ</a>
 </div>
 
+<!-- ===== UPGRADE BANNER (shown only when valid course-1 token) ===== -->
+<div id="upgradeBanner" style="display:none;background:linear-gradient(135deg,#D8E4C8,#C5D6AD);padding:14px 20px;text-align:center;border-bottom:1px solid rgba(168,137,94,0.2);position:relative;z-index:50;">
+  <p style="font-size:0.88rem;color:#2D3627;letter-spacing:0.03em;margin:0;line-height:1.6;">
+    <span style="display:inline-block;padding:2px 10px;background:#A8895E;color:#fff;font-size:0.72rem;letter-spacing:0.1em;border-radius:20px;margin-right:8px;vertical-align:middle;">特別価格</span>
+    おかえりなさい！コース1受講者限定の割引価格でご案内しています。
+  </p>
+</div>
+
 <!-- ===== PAGE HERO ===== -->
 <section class="page-hero">
   <div class="container">
@@ -362,7 +370,8 @@
       <p class="section-label">Pricing</p>
       <h2 class="section-title">受講料</h2>
     </div>
-    <div class="pricing-grid reveal">
+    <!-- Standard Pricing (2 cards) -->
+    <div id="pricingStandard" class="pricing-grid reveal">
       <!-- Single Course -->
       <div class="pricing-card">
         <div class="pricing-badge">このコース単品</div>
@@ -413,6 +422,38 @@
           </div>
         </div>
         <a href="#" class="btn btn-gold" onclick="purchaseCourse('course-bundle'); return false;"><span>セットで購入する</span></a>
+      </div>
+    </div>
+
+    <!-- Upgrade Pricing (hidden by default, shown when token verifies course-1 ownership) -->
+    <div id="pricingUpgrade" class="reveal" style="display:none;max-width:500px;margin:0 auto;">
+      <div class="pricing-card recommended" style="border-width:2px;border-color:var(--gold-dark);">
+        <div class="pricing-badge">コース1受講者限定</div>
+        <div class="pricing-badge-savings">2,800円おトク</div>
+        <div style="margin-bottom:8px;">
+          <span style="text-decoration:line-through;color:var(--text-muted);font-size:1.1rem;margin-right:12px;">¥9,800</span>
+        </div>
+        <div class="pricing-amount" style="color:var(--gold-dark);">¥7,000</div>
+        <p class="pricing-note">コース1を受講いただいた方への感謝価格</p>
+        <div class="pricing-includes">
+          <div class="pricing-include-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            全6レッスン + ボーナス瞑想
+          </div>
+          <div class="pricing-include-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            各レッスン内観ワーク付き
+          </div>
+          <div class="pricing-include-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            コース1と同じ視聴リンクで続けて学べる
+          </div>
+          <div class="pricing-include-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            何度でも繰り返し視聴可能
+          </div>
+        </div>
+        <a href="#" class="btn btn-gold" onclick="purchaseUpgrade(); return false;"><span>特別価格で購入する</span></a>
       </div>
     </div>
   </div>
@@ -498,6 +539,53 @@ const observer = new IntersectionObserver((entries) => {
 
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
+// Token-aware upgrade mode: verify course-1 ownership, swap pricing
+(async function checkUpgrade() {
+  const token = new URLSearchParams(location.search).get('token');
+  if (!token) return;
+  try {
+    const res = await fetch('/api/courses/verify?token=' + encodeURIComponent(token));
+    if (!res.ok) return;
+    const data = await res.json();
+    const owned = (data.courses || []).map(c => c.id);
+    if (!owned.includes('course-1')) return;
+
+    if (owned.includes('course-2')) {
+      // Already owns both — point them to watch page instead of showing purchase
+      const banner = document.getElementById('upgradeBanner');
+      banner.innerHTML = '<p style="font-size:0.88rem;color:#2D3627;margin:0;line-height:1.6;">このコースはすでにご購入済みです。<a href="/watch?token=' + encodeURIComponent(token) + '&course=course-2" style="color:#A8895E;text-decoration:underline;font-weight:500;margin-left:8px;">視聴ページへ →</a></p>';
+      banner.style.display = 'block';
+      return;
+    }
+
+    // Enable upgrade mode
+    window.__upgradeToken = token;
+    document.getElementById('upgradeBanner').style.display = 'block';
+    document.getElementById('pricingStandard').style.display = 'none';
+    document.getElementById('pricingUpgrade').style.display = 'block';
+  } catch {}
+})();
+
+async function purchaseUpgrade() {
+  const btn = event.target.closest('.btn');
+  const orig = btn.querySelector('span').textContent;
+  btn.querySelector('span').textContent = '処理中...';
+  btn.style.pointerEvents = 'none';
+  try {
+    const res = await fetch('/api/stripe/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ product: 'course-2-upgrade', token: window.__upgradeToken })
+    });
+    const data = await res.json();
+    if (data.url) { window.location.href = data.url; return; }
+    alert(data.error || 'エラーが発生しました');
+  } catch {
+    alert('接続エラーが発生しました');
+  }
+  btn.querySelector('span').textContent = orig;
+  btn.style.pointerEvents = '';
+}
 </script>
 <script src="/js/purchase.js"></script>
 

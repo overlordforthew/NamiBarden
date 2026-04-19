@@ -338,13 +338,31 @@ function renderEndingSection() {
   } else {
     el.innerHTML = `
       <h3>次のステップ：愛を深める心の授業</h3>
-      <p>パートナーとの関係をさらに深いレベルで見つめていきます。意見の食い違い、愛の言語、男性性と女性性のバランス、そして親密さの問題まで。</p>
+      <p>恋愛の基礎から、パートナーシップの深い課題へ。コース2ではこんなテーマを学びます：</p>
+      <ul style="list-style:none;padding:0;margin:0 0 20px 0;text-align:left;max-width:380px;margin-left:auto;margin-right:auto;">
+        <li style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:0.88rem;color:var(--text-medium);line-height:1.6;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#A8895E" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;margin-top:5px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          <span>意見の食い違いを乗り越える「意識の4ステップ」</span>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:0.88rem;color:var(--text-medium);line-height:1.6;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#A8895E" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;margin-top:5px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          <span>5つの愛の言語 — すれ違いの本当の原因</span>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:0.88rem;color:var(--text-medium);line-height:1.6;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#A8895E" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;margin-top:5px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          <span>男性性と女性性のバランスで関係が変わる</span>
+        </li>
+        <li style="display:flex;align-items:flex-start;gap:10px;padding:7px 0;font-size:0.88rem;color:var(--text-medium);line-height:1.6;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#A8895E" stroke-width="2" style="width:14px;height:14px;flex-shrink:0;margin-top:5px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+          <span>裏切り・許し・再構築 — 愛の深い知恵</span>
+        </li>
+      </ul>
       <div class="course-ending-price">
         <span class="original">¥9,800</span>
         <span class="discount">¥7,000</span>
         <span>（コース1受講者限定価格）</span>
       </div>
-      <button class="course-ending-btn" onclick="purchaseCourse2Upgrade()">コース2を特別価格で受講する</button>
+      <a href="/online-course-2?token=${encodeURIComponent(token)}" class="course-ending-btn" style="text-decoration:none;">コース2の詳細を見る →</a>
     `;
   }
 }
