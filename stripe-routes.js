@@ -35,7 +35,9 @@ function createStripeRoutes({
   normalizeLuminaCurrency,
   getLuminaCheckoutPrice,
   getLuminaCheckoutCopy,
-  buildCourse2UpsellBlockHtml
+  buildCourse2UpsellBlockHtml,
+  verifyFlashToken,
+  flashPrice
 }) {
 function buildLuminaCheckoutUrl(rawUrl, billingState) {
   if (!isAllowedLuminaReturnUrl(rawUrl)) return null;
@@ -77,20 +79,30 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       lang,
       currency,
       token: upgradeToken,
+      flash: flashToken,
       success_url: successUrl,
       cancel_url: cancelUrl,
       return_url: returnUrl
     } = req.body;
     const en = lang === 'en';
 
-    // Validate course-2-upgrade: must own course-1
-    if (product === 'course-2-upgrade') {
+    // Validate course-2-upgrade / course-2-flash: must own course-1
+    if (product === 'course-2-upgrade' || product === 'course-2-flash') {
       if (!upgradeToken) return res.status(400).json({ error: 'Token required for upgrade' });
       const check = await pool.query(
-        `SELECT email FROM nb_course_access WHERE access_token = $1 AND course_id = 'course-1' LIMIT 1`,
+        `SELECT email, customer_id FROM nb_course_access WHERE access_token = $1 AND course_id = 'course-1' LIMIT 1`,
         [upgradeToken]
       );
       if (check.rows.length === 0) return res.status(403).json({ error: 'Course 1 ownership required' });
+
+      if (product === 'course-2-flash') {
+        if (!flashToken) return res.status(400).json({ error: 'Flash token required' });
+        const payload = verifyFlashToken(flashToken);
+        if (!payload) return res.status(403).json({ error: 'Flash offer expired' });
+        if (String(payload.sub) !== String(check.rows[0].customer_id)) {
+          return res.status(403).json({ error: 'Flash offer not valid for this account' });
+        }
+      }
     }
 
     const products = {
@@ -136,6 +148,12 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         name: COURSES['course-2'].name + (en ? ' (Upgrade)' : '（コース1受講者限定）'),
         description: en ? 'Special price for Course 1 students (save ¥2,800)' : 'コース1受講者特別価格（¥2,800おトク）',
         amount: 7000,
+        mode: 'payment'
+      },
+      'course-2-flash': {
+        name: COURSES['course-2'].name + (en ? ' (Flash 48h)' : '（48時間限定フラッシュ価格）'),
+        description: en ? '48-hour flash deal for Course 1 students' : '48時間限定フラッシュ価格（コース1受講者限定）',
+        amount: flashPrice,
         mode: 'payment'
       },
       'single-session': {
@@ -196,7 +214,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       }],
       success_url: isLuminaProduct && resolvedLuminaSuccessUrl
         ? withCheckoutSessionId(resolvedLuminaSuccessUrl)
-        : product === 'course-2-upgrade'
+        : product === 'course-2-upgrade' || product === 'course-2-flash'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}&course=course-2`
         : product === 'single-session' || product?.startsWith('couples-')
         ? `${SITE_URL}/${product?.startsWith('couples-') ? 'couples-coaching' : ('consultation' + (en ? '-en' : ''))}?paid=1&session_id={CHECKOUT_SESSION_ID}`
@@ -205,7 +223,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
         : `${SITE_URL}/payment-success${en ? '-en' : ''}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: isLuminaProduct && resolvedLuminaCancelUrl
         ? resolvedLuminaCancelUrl
-        : product === 'course-2-upgrade'
+        : product === 'course-2-upgrade' || product === 'course-2-flash'
         ? `${SITE_URL}/watch?token=${upgradeToken || ''}`
         : product === 'single-session'
         ? `${SITE_URL}/consultation${en ? '-en' : ''}`
@@ -242,7 +260,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       sessionParams.allow_promotion_codes = true;
     }
 
-    if (product === 'course-2-upgrade') {
+    if (product === 'course-2-upgrade' || product === 'course-2-flash') {
       const r = await pool.query(`SELECT email FROM nb_course_access WHERE access_token = $1 LIMIT 1`, [upgradeToken]);
       if (r.rows[0]?.email) sessionParams.customer_email = r.rows[0].email;
     } else if (email) {
@@ -356,7 +374,7 @@ app.post('/api/stripe/webhook', async (req, res) => {
         const product = session.metadata?.product || 'coaching';
 
         // Course purchases (one-time payment)
-        if (['course-1', 'course-2', 'course-bundle', 'course-2-upgrade'].includes(product)) {
+        if (['course-1', 'course-2', 'course-bundle', 'course-2-upgrade', 'course-2-flash'].includes(product)) {
           let custId;
           try {
             custId = await upsertCustomer(email, name, customerId || `onetime_${session.id}`);
@@ -386,14 +404,15 @@ app.post('/api/stripe/webhook', async (req, res) => {
           }
 
           // Determine which courses to grant — bundle shares one token
+          const isCourse2Addon = product === 'course-2-upgrade' || product === 'course-2-flash';
           const courseIds = product === 'course-bundle' ? ['course-1', 'course-2']
-            : product === 'course-2-upgrade' ? ['course-2'] : [product];
+            : isCourse2Addon ? ['course-2'] : [product];
 
           // Grant course access
           let accessToken;
           try {
-            // For upgrades, reuse existing token so the customer's watch link stays the same
-            if (product === 'course-2-upgrade') {
+            // For upgrades/flash, reuse existing token so the customer's watch link stays the same
+            if (isCourse2Addon) {
               const existing = await pool.query(
                 `SELECT access_token FROM nb_course_access WHERE customer_id = $1 AND course_id = 'course-1' LIMIT 1`,
                 [custId]

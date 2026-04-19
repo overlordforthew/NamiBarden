@@ -293,6 +293,8 @@ const courseReminders = createCourseReminders({
   pool,
   transporter,
   logger,
+  jwt,
+  jwtSecret: config.auth.jwtSecret,
   siteUrl: config.siteUrl,
   smtpFrom: config.smtp.from,
   escapeHtml,
@@ -336,7 +338,9 @@ createStripeRoutes({
   normalizeLuminaCurrency,
   getLuminaCheckoutPrice,
   getLuminaCheckoutCopy,
-  buildCourse2UpsellBlockHtml: courseReminders.buildCourse2UpsellBlockHtml
+  buildCourse2UpsellBlockHtml: courseReminders.buildCourse2UpsellBlockHtml,
+  verifyFlashToken: courseReminders.verifyFlashToken,
+  flashPrice: courseReminders.constants.FLASH_PRICE
 });
 
 registerGlobalErrorHandling({
