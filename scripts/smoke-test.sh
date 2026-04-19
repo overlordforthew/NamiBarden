@@ -68,17 +68,23 @@ skip() {
   printf "[SKIP] %s %s\n" "$endpoint" "$reason"
 }
 
-# Test a GET endpoint for expected HTTP status code
+# Test a GET endpoint for expected HTTP status code.
+# Retries up to 3 times with 2s backoff — absorbs transient upstream flaps
+# (e.g. YouTube RSS 404/500s that would otherwise page ops on single-shot fails).
 test_get() {
   local path="$1"
   local expect="$2"
-  local code
-  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "${BASE_URL}${path}")
-  if [ "$code" = "$expect" ]; then
-    result "PASS" "$expect" "GET ${path}" "(HTTP ${code})"
-  else
-    result "FAIL" "$expect" "GET ${path}" "(expected ${expect}, got ${code})"
-  fi
+  local code=""
+  local attempt
+  for attempt in 1 2 3; do
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "${BASE_URL}${path}")
+    if [ "$code" = "$expect" ]; then
+      result "PASS" "$expect" "GET ${path}" "(HTTP ${code})"
+      return
+    fi
+    [ "$attempt" -lt 3 ] && sleep 2
+  done
+  result "FAIL" "$expect" "GET ${path}" "(expected ${expect}, got ${code} after 3 attempts)"
 }
 
 # Test a GET endpoint for expected HTTP status code and response fragment
