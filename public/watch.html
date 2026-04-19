@@ -236,6 +236,8 @@ function playLesson(courseId, lessonId, idx) {
     videoContainer.style.display = 'none';
     pdfBonus.classList.remove('visible');
     courseEnding.classList.add('visible');
+    document.getElementById('lessonTitle').textContent = '';
+    document.getElementById('lessonDesc').textContent = '';
     if (hls) { hls.destroy(); hls = null; }
     video.src = '';
     renderEndingSection();
