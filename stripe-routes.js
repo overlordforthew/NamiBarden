@@ -467,7 +467,12 @@ app.post('/api/stripe/webhook', async (req, res) => {
                   <a href="${watchUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">コースを視聴する</a>
                 </p>
                 <p style="line-height:1.8;margin-bottom:8px;font-size:0.9rem;color:#8B7E6E;">このリンクはあなた専用です。他の方と共有しないでください。</p>
-                <p style="line-height:1.8;font-size:0.9rem;color:#8B7E6E;">リンクを紛失した場合は、購入時のメールアドレスで再送できます。</p>${course2UpsellHtml}
+                <p style="line-height:1.8;margin-bottom:24px;font-size:0.9rem;color:#8B7E6E;">リンクを紛失した場合は、購入時のメールアドレスで再送できます。</p>
+                <div style="background:#F0EAE0;border-left:3px solid #C4A882;padding:16px 20px;margin:24px 0;border-radius:2px;">
+                  <p style="line-height:1.7;margin-bottom:8px;font-size:0.92rem;color:#2C2419;"><strong>いつでもマイコースにアクセスできます</strong></p>
+                  <p style="line-height:1.7;font-size:0.88rem;color:#5C4F3D;margin-bottom:10px;">パスワードを設定していなくても大丈夫。ご購入のメールアドレスだけで、ワンクリックでログインできます。</p>
+                  <p style="font-size:0.88rem;"><a href="${SITE_URL}/email-login" style="color:#A8895E;text-decoration:none;">メールでログイン →</a></p>
+                </div>${course2UpsellHtml}
                 <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
                 <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
               </div>`
