@@ -33,16 +33,17 @@ function createLuminaBilling({
   }
 
   function getAppPlanFromProduct(productName) {
-    if (productName === 'lumina-monthly') return { appSlug: 'lumina', planCode: 'monthly' };
-    if (productName === 'lumina-annual') return { appSlug: 'lumina', planCode: 'annual' };
+    if (['lumina-monthly', 'lumina-annual', 'lumina-lifetime'].includes(productName)) {
+      return { appSlug: 'lumina', planCode: 'lifetime' };
+    }
     return null;
   }
 
   function getLuminaPlanCopy(productName) {
-    if (productName === 'lumina-annual') {
+    if (['lumina-monthly', 'lumina-annual', 'lumina-lifetime'].includes(productName)) {
       return {
-        en: 'LUMINA Annual Membership',
-        ja: 'LUMINA \u5e74\u9593\u30e1\u30f3\u30d0\u30fc\u30b7\u30c3\u30d7'
+        en: 'LUMINA Lifetime Access',
+        ja: 'LUMINA \u30e9\u30a4\u30d5\u30bf\u30a4\u30e0\u30a2\u30af\u30bb\u30b9'
       };
     }
     return {
@@ -52,8 +53,7 @@ function createLuminaBilling({
   }
 
   function normalizeLuminaCurrency(rawCurrency, lang) {
-    if (rawCurrency === 'jpy' || rawCurrency === 'usd') return rawCurrency;
-    return lang === 'ja' ? 'jpy' : 'usd';
+    return 'jpy';
   }
 
   function getLuminaCheckoutPrice(productName, currency) {
@@ -111,6 +111,8 @@ function createLuminaBilling({
     const billingUrl = `${(siteUrl || 'https://namibarden.com').replace(/\/+$/, '')}/lumina`;
     const trialEnd = formatLifecycleDate(payload?.trialEnd);
     const periodEnd = formatLifecycleDate(payload?.currentPeriodEnd);
+    const refundAmount = payload?.refundAmountJpy != null ? formatMoneyAmount(payload.refundAmountJpy, 'jpy') : null;
+    const previousPlan = payload?.previousPlan || 'annual';
     let subject = 'LUMINA update';
     let title = 'LUMINA';
     let intro = '';
@@ -118,7 +120,25 @@ function createLuminaBilling({
     let ctaLabel = 'Open Lumina';
     let ctaUrl = appUrl;
 
-    if (type === 'activated') {
+    if (type === 'lifetime_activated') {
+      subject = 'Your LUMINA lifetime access is active';
+      title = 'Your LUMINA lifetime access is ready';
+      intro = `${plan.en} is now active. ${plan.ja} \u304c\u6709\u52b9\u306b\u306a\u308a\u307e\u3057\u305f\u3002`;
+      detail = `
+        <span style="display:block;margin:0 0 10px">EN: You now have all current and future Lumina content for one tax-inclusive payment of <strong>\u00a51,980</strong>. The purchase includes a 7-day money-back guarantee.</span>
+        <span style="display:block">JP: <strong>\u00a51,980\uff08\u7a0e\u8fbc\uff09</strong>\u306e\u4e00\u5ea6\u304d\u308a\u306e\u304a\u652f\u6255\u3044\u3067\u3001\u73fe\u5728\u3068\u4eca\u5f8c\u306e Lumina \u30b3\u30f3\u30c6\u30f3\u30c4\u3092\u3059\u3079\u3066\u3054\u5229\u7528\u3044\u305f\u3060\u3051\u307e\u3059\u30027\u65e5\u9593\u306e\u8fd4\u91d1\u4fdd\u8a3c\u3064\u304d\u3067\u3059\u3002</span>`;
+      ctaLabel = 'Enter Lumina';
+      ctaUrl = appUrl;
+    } else if (type === 'lifetime_upgrade') {
+      subject = 'Your LUMINA access is now lifetime';
+      title = 'Your LUMINA access is now lifetime';
+      intro = 'Thank you for being an early Lumina member. \u521d\u671f\u304b\u3089 Lumina \u3092\u652f\u3048\u3066\u304f\u3060\u3055\u308a\u3001\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059\u3002';
+      detail = `
+        <span style="display:block;margin:0 0 10px">EN: We converted your ${escapeHtml(previousPlan)} subscription to lifetime access. \u00a51,980 is the new forever price, and there are no more subscription payments.${refundAmount ? ` Because you paid for a year, we have refunded the unused portion (${escapeHtml(refundAmount)}) back to your card; please check your statement in a few days.` : ''}</span>
+        <span style="display:block">JP: ${escapeHtml(previousPlan)} \u30d7\u30e9\u30f3\u3092\u30e9\u30a4\u30d5\u30bf\u30a4\u30e0\u30a2\u30af\u30bb\u30b9\u306b\u5909\u66f4\u3057\u307e\u3057\u305f\u3002\u65b0\u3057\u3044\u4e00\u5ea6\u304d\u308a\u306e\u4fa1\u683c\u306f \u00a51,980 \u3067\u3001\u4eca\u5f8c\u306e\u30b5\u30d6\u30b9\u30af\u30ea\u30d7\u30b7\u30e7\u30f3\u8acb\u6c42\u306f\u3042\u308a\u307e\u305b\u3093\u3002${refundAmount ? `\u5e74\u9593\u5206\u3092\u304a\u652f\u6255\u3044\u6e08\u307f\u306e\u305f\u3081\u3001\u672a\u5229\u7528\u5206\uff08${escapeHtml(refundAmount)}\uff09\u3092\u30ab\u30fc\u30c9\u306b\u8fd4\u91d1\u3057\u307e\u3057\u305f\u3002\u660e\u7d30\u3078\u306e\u53cd\u6620\u307e\u3067\u6570\u65e5\u304b\u304b\u308b\u5834\u5408\u304c\u3042\u308a\u307e\u3059\u3002` : ''}</span>`;
+      ctaLabel = 'Open Lumina';
+      ctaUrl = appUrl;
+    } else if (type === 'activated') {
       subject = 'Your LUMINA access is active';
       title = 'Your LUMINA access is ready';
       intro = `${plan.en} is now active. ${plan.ja} \u306e\u30a2\u30af\u30bb\u30b9\u304c\u6709\u52b9\u306b\u306a\u308a\u307e\u3057\u305f\u3002`;
@@ -183,6 +203,7 @@ function createLuminaBilling({
       });
     } catch (e) {
       logger.error({ err: e, email, type }, 'Lumina lifecycle email failed');
+      if (payload?.throwOnError) throw e;
     }
   }
 
@@ -223,7 +244,9 @@ function createLuminaBilling({
             cancel_at = EXCLUDED.cancel_at,
             canceled_at = EXCLUDED.canceled_at,
             metadata = EXCLUDED.metadata,
-            updated_at = NOW()`,
+            updated_at = NOW()
+          WHERE nb_app_entitlements.status != 'lifetime'
+            AND nb_app_entitlements.status NOT IN ('refunded','revoked')`,
         [
           customerId,
           appPlan.appSlug,
@@ -257,6 +280,39 @@ function createLuminaBilling({
       };
     }
 
+    if (row.status === 'lifetime') {
+      return {
+        appSlug: row.app_slug,
+        planCode: row.plan_code,
+        status: row.status,
+        hasAccess: true,
+        accessState: 'active',
+        currentPeriodEnd: row.current_period_end,
+        currentPeriodStart: row.current_period_start,
+        trialEnd: row.trial_end,
+        cancelAt: row.cancel_at,
+        canceledAt: row.canceled_at,
+        lifetimeGrantedAt: row.lifetime_granted_at,
+        sourceProductName: row.source_product_name
+      };
+    }
+    if (['refunded', 'revoked'].includes(row.status)) {
+      return {
+        appSlug: row.app_slug,
+        planCode: row.plan_code,
+        status: row.status,
+        hasAccess: false,
+        accessState: row.status,
+        currentPeriodEnd: row.current_period_end,
+        currentPeriodStart: row.current_period_start,
+        trialEnd: row.trial_end,
+        cancelAt: row.cancel_at,
+        canceledAt: row.canceled_at,
+        lifetimeGrantedAt: row.lifetime_granted_at,
+        sourceProductName: row.source_product_name
+      };
+    }
+
     const now = Date.now();
     const periodEnd = row.current_period_end ? new Date(row.current_period_end).getTime() : 0;
     const trialEnd = row.trial_end ? new Date(row.trial_end).getTime() : 0;
@@ -272,6 +328,7 @@ function createLuminaBilling({
         trialEnd: row.trial_end,
         cancelAt: row.cancel_at,
         canceledAt: row.canceled_at,
+        lifetimeGrantedAt: row.lifetime_granted_at,
         sourceProductName: row.source_product_name
       };
     }
@@ -293,6 +350,7 @@ function createLuminaBilling({
       trialEnd: row.trial_end,
       cancelAt: row.cancel_at,
       canceledAt: row.canceled_at,
+      lifetimeGrantedAt: row.lifetime_granted_at,
       sourceProductName: row.source_product_name
     };
   }
@@ -304,7 +362,7 @@ function createLuminaBilling({
     try {
       const result = await pool.query(
         `SELECT e.app_slug, e.plan_code, e.status, e.current_period_start, e.current_period_end,
-                e.trial_end, e.cancel_at, e.canceled_at, e.source_product_name
+                e.trial_end, e.cancel_at, e.canceled_at, e.lifetime_granted_at, e.source_product_name
          FROM nb_customers c
          JOIN nb_app_entitlements e ON e.customer_id = c.id
          WHERE LOWER(c.email) = $1 AND e.app_slug = 'lumina'
@@ -315,6 +373,64 @@ function createLuminaBilling({
       return computeEntitlementAccess(result.rows[0] || null);
     } catch (err) {
       logger.error({ err, email: safeEmail }, 'getLuminaEntitlementByEmail DB error');
+      throw err;
+    }
+  }
+
+  async function grantLuminaLifetime(customerId, options) {
+    if (!customerId) return { wasNew: false };
+    const opts = options || {};
+    const sourceProduct = opts.sourceProduct || 'lumina-lifetime';
+    const metadata = {
+      stripe_session_id: opts.stripeSessionId || null,
+      stripe_payment_intent_id: opts.stripePaymentIntentId || null,
+      source_product: sourceProduct,
+      granted_at: new Date().toISOString()
+    };
+    try {
+      const result = await pool.query(
+        `WITH existing AS (
+            SELECT status
+            FROM nb_app_entitlements
+            WHERE customer_id = $1 AND app_slug = 'lumina'
+          ),
+          upserted AS (
+            INSERT INTO nb_app_entitlements (
+              customer_id, app_slug, plan_code, status, stripe_subscription_id, source_product_name,
+              current_period_start, current_period_end, trial_end, cancel_at, canceled_at,
+              lifetime_granted_at, metadata
+            )
+            VALUES (
+              $1, 'lumina', 'lifetime', 'lifetime', NULL, $2,
+              NULL, NULL, NULL, NULL, NULL,
+              NOW(), $3::jsonb
+            )
+            ON CONFLICT (customer_id, app_slug) DO UPDATE SET
+              plan_code = 'lifetime',
+              status = 'lifetime',
+              stripe_subscription_id = NULL,
+              source_product_name = EXCLUDED.source_product_name,
+              current_period_start = NULL,
+              current_period_end = NULL,
+              trial_end = NULL,
+              cancel_at = NULL,
+              canceled_at = NULL,
+              lifetime_granted_at = COALESCE(nb_app_entitlements.lifetime_granted_at, NOW()),
+              metadata = COALESCE(nb_app_entitlements.metadata, '{}'::jsonb) || EXCLUDED.metadata,
+              updated_at = NOW()
+            WHERE nb_app_entitlements.status NOT IN ('refunded','revoked')
+            RETURNING COALESCE((SELECT status FROM existing), '') AS previous_status
+          )
+          SELECT EXISTS (
+            SELECT 1
+            FROM upserted
+            WHERE previous_status != 'lifetime'
+          ) AS was_new`,
+        [customerId, sourceProduct, JSON.stringify(metadata)]
+      );
+      return { wasNew: !!result.rows[0]?.was_new };
+    } catch (err) {
+      logger.error({ err, customerId, sourceProduct }, 'grantLuminaLifetime DB error');
       throw err;
     }
   }
@@ -369,6 +485,7 @@ function createLuminaBilling({
     getStripePeriodStartSeconds,
     getStripePeriodEndSeconds,
     upsertAppEntitlement,
+    grantLuminaLifetime,
     getLuminaEntitlementByEmail,
     createBillingPortalSessionForEmail,
     requireLuminaBridgeAuth,

@@ -19,6 +19,7 @@ function createStripeRoutes({
   sendLuminaLifecycleEmail,
   getStripePeriodStartSeconds,
   getStripePeriodEndSeconds,
+  grantLuminaLifetime,
   recordOperationalAlert,
   stripeWebhookSecret: STRIPE_WEBHOOK_SECRET,
   escapeHtml,
@@ -61,6 +62,14 @@ function withCheckoutSessionId(rawUrl) {
     return `${baseUrl}${separator}session_id={CHECKOUT_SESSION_ID}${hash}`;
   } catch {
     return rawUrl;
+  }
+}
+
+async function deleteWebhookIdempotencyMarker(eventId) {
+  try {
+    await pool.query(`DELETE FROM nb_processed_webhooks WHERE event_id=$1`, [eventId]);
+  } catch (err) {
+    logger.error({ err, eventId }, 'Stripe webhook idempotency marker delete failed');
   }
 }
 
@@ -202,6 +211,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       },
       unit_amount: isLuminaProduct ? luminaPrice.amount : prod.amount
     };
+    if (isLuminaProduct) priceData.tax_behavior = 'inclusive';
     if (prod.recurring) priceData.recurring = prod.recurring;
     else if (prod.interval) priceData.recurring = { interval: prod.interval };
 
@@ -247,7 +257,7 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
     if (prod.mode === 'payment') {
       sessionParams.invoice_creation = { enabled: true };
     }
-    if (isLuminaProduct) {
+    if (isLuminaProduct && prod.mode === 'subscription') {
       sessionParams.subscription_data = {
         trial_period_days: prod.trialDays || 0,
         metadata: {
@@ -257,6 +267,8 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
           billing_currency: priceData.currency
         }
       };
+    }
+    if (isLuminaProduct) {
       sessionParams.allow_promotion_codes = true;
     }
 
@@ -372,6 +384,75 @@ app.post('/api/stripe/webhook', async (req, res) => {
         const email = session.customer_details?.email || session.customer_email;
         const name = session.customer_details?.name || null;
         const product = session.metadata?.product || 'coaching';
+        const appPlan = getAppPlanFromProduct(product);
+
+        // Lumina lifetime purchases (including legacy product aliases during rollout)
+        if (session.mode === 'payment' && appPlan?.appSlug === 'lumina' && appPlan.planCode === 'lifetime') {
+          let custId;
+          try {
+            custId = await upsertCustomer(email, name, customerId || `lifetime_${session.id}`);
+          } catch (e) {
+            logger.error({ err: e, email, product }, 'Lumina lifetime: upsert customer failed');
+            recordOperationalAlert({
+              alertKey: `stripe:lumina-lifetime-upsert:${session.id}`,
+              source: 'stripe',
+              severity: 'critical',
+              title: 'Lumina lifetime: customer upsert failed',
+              message: 'Paid customer could not be recorded. Deleting idempotency marker so Stripe retries.',
+              details: { sessionId: session.id, product, email, error: e?.message || String(e) }
+            }).catch((alertErr) => logger.error({ err: alertErr }, 'Operational alert write failed'));
+            await deleteWebhookIdempotencyMarker(event.id);
+            return res.status(500).json({ error: 'Customer upsert failed' });
+          }
+
+          try {
+            await pool.query(
+              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
+               VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+               ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
+              [custId, session.payment_intent, session.invoice || null, session.amount_total, session.currency, product]
+            );
+          } catch (e) {
+            logger.error({ err: e, email, product }, 'Lumina lifetime: payment insert failed');
+          }
+
+          let grantResult;
+          try {
+            grantResult = await grantLuminaLifetime(custId, {
+              stripeSessionId: session.id,
+              stripePaymentIntentId: session.payment_intent,
+              sourceProduct: product
+            });
+          } catch (e) {
+            logger.error({ err: e, email, product }, 'Lumina lifetime: entitlement grant failed');
+            recordOperationalAlert({
+              alertKey: `stripe:lumina-lifetime-grant:${session.id}`,
+              source: 'stripe',
+              severity: 'critical',
+              title: 'Lumina lifetime: entitlement grant failed',
+              message: 'Paid customer could not be granted Lumina lifetime access. Deleting idempotency marker so Stripe retries.',
+              details: { sessionId: session.id, product, email, customerId: custId, error: e?.message || String(e) }
+            }).catch((alertErr) => logger.error({ err: alertErr }, 'Operational alert write failed'));
+            await deleteWebhookIdempotencyMarker(event.id);
+            return res.status(500).json({ error: 'Entitlement grant failed' });
+          }
+
+          if (grantResult.wasNew) {
+            try {
+              await sendLuminaLifecycleEmail('lifetime_activated', { email, name, productName: product });
+            } catch (e) {
+              logger.error({ err: e, email, product }, 'Lumina lifetime: activation email failed');
+            }
+
+            sendWhatsApp(
+              NAMI_JID,
+              `Lumina Lifetime purchased\n${name || email}\n${formatMoneyAmount(session.amount_total, session.currency)}`
+            ).catch(e => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
+          }
+
+          logger.info({ email, product, wasNew: grantResult.wasNew }, 'Stripe: Lumina lifetime purchased');
+          break;
+        }
 
         // Course purchases (one-time payment)
         if (['course-1', 'course-2', 'course-bundle', 'course-2-upgrade', 'course-2-flash'].includes(product)) {
@@ -655,6 +736,18 @@ app.post('/api/stripe/webhook', async (req, res) => {
             [sub.id]
           );
           if (subRow.rows[0]) {
+            if (getAppPlanFromProduct(subRow.rows[0].product_name)) {
+              const currentEntitlement = await pool.query(
+                `SELECT status FROM nb_app_entitlements
+                 WHERE customer_id = $1 AND app_slug = 'lumina'
+                 LIMIT 1`,
+                [subRow.rows[0].customer_id]
+              );
+              if (currentEntitlement.rows[0]?.status === 'lifetime') {
+                logger.info({ subscriptionId: sub.id, customerId: subRow.rows[0].customer_id }, 'Stripe: subscription update ignored for lifetime Lumina entitlement');
+                break;
+              }
+            }
             await upsertAppEntitlement(subRow.rows[0].customer_id, subRow.rows[0].product_name, sub);
             if (
               getAppPlanFromProduct(subRow.rows[0].product_name) &&
@@ -699,6 +792,23 @@ app.post('/api/stripe/webhook', async (req, res) => {
         try {
           const sub = event.data.object;
           const periodEnd = getStripePeriodEndSeconds(sub);
+          const subRow = await pool.query(
+            `SELECT customer_id, product_name FROM nb_subscriptions WHERE stripe_subscription_id = $1 LIMIT 1`,
+            [sub.id]
+          );
+          if (subRow.rows[0] && getAppPlanFromProduct(subRow.rows[0].product_name)) {
+            const currentEntitlement = await pool.query(
+              `SELECT status FROM nb_app_entitlements
+               WHERE customer_id = $1 AND app_slug = 'lumina'
+               LIMIT 1`,
+              [subRow.rows[0].customer_id]
+            );
+            if (currentEntitlement.rows[0]?.status === 'lifetime') {
+              logger.info({ subscriptionId: sub.id, customerId: subRow.rows[0].customer_id }, 'Stripe: subscription deletion ignored for lifetime Lumina entitlement');
+              break;
+            }
+          }
+
           await pool.query(
             `UPDATE nb_subscriptions SET
                status = 'canceled',
@@ -708,10 +818,6 @@ app.post('/api/stripe/webhook', async (req, res) => {
                updated_at = NOW()
              WHERE stripe_subscription_id = $1`,
             [sub.id, periodEnd, sub.cancel_at ? new Date(sub.cancel_at * 1000) : null]
-          );
-          const subRow = await pool.query(
-            `SELECT customer_id, product_name FROM nb_subscriptions WHERE stripe_subscription_id = $1 LIMIT 1`,
-            [sub.id]
           );
           if (subRow.rows[0]) {
             await upsertAppEntitlement(subRow.rows[0].customer_id, subRow.rows[0].product_name, {

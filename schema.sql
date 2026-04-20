@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS nb_app_entitlements (
   trial_end TIMESTAMP,
   cancel_at TIMESTAMP,
   canceled_at TIMESTAMP,
+  lifetime_granted_at TIMESTAMP NULL,
   metadata JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),

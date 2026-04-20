@@ -8,33 +8,39 @@ const REDIRECT_ALLOWLIST = ['namibarden.com', 'www.namibarden.com', 'youtube.com
 const LUMINA_PRODUCTS = {
   'lumina-monthly': {
     appSlug: 'lumina',
-    planCode: 'monthly',
-    nameEn: 'LUMINA Monthly Membership',
-    nameJa: 'LUMINA Monthly Membership',
-    descriptionEn: '90-day guided journey, weekly synthesis, reflection library, and ongoing access in Lumina',
-    descriptionJa: 'Lumina app with a 90-day guided journey, weekly synthesis, and a reflection library',
+    planCode: 'lifetime',
+    nameEn: 'LUMINA Lifetime Access',
+    nameJa: 'LUMINA ライフタイムアクセス',
+    descriptionEn: '90-day guided journey, weekly synthesis, reflection library, and all future Lumina updates',
+    descriptionJa: '90日間ガイド付きジャーニー、週ごとのシンセシス、リフレクションライブラリ、今後のすべてのアップデート',
     prices: {
-      jpy: 2980,
-      usd: 2000
+      jpy: 1980
     },
-    mode: 'subscription',
-    recurring: { interval: 'month', interval_count: 1 },
-    trialDays: 7
+    mode: 'payment'
   },
   'lumina-annual': {
     appSlug: 'lumina',
-    planCode: 'annual',
-    nameEn: 'LUMINA Annual Membership',
-    nameJa: 'LUMINA Annual Membership',
-    descriptionEn: 'One year of Lumina access with weekly synthesis, insight library, and milestone rituals',
-    descriptionJa: 'One year of Lumina access with weekly synthesis, insight library, and milestone rituals',
+    planCode: 'lifetime',
+    nameEn: 'LUMINA Lifetime Access',
+    nameJa: 'LUMINA ライフタイムアクセス',
+    descriptionEn: '90-day guided journey, weekly synthesis, reflection library, and all future Lumina updates',
+    descriptionJa: '90日間ガイド付きジャーニー、週ごとのシンセシス、リフレクションライブラリ、今後のすべてのアップデート',
     prices: {
-      jpy: 29800,
-      usd: 20000
+      jpy: 1980
     },
-    mode: 'subscription',
-    recurring: { interval: 'year', interval_count: 1 },
-    trialDays: 7
+    mode: 'payment'
+  },
+  'lumina-lifetime': {
+    appSlug: 'lumina',
+    planCode: 'lifetime',
+    nameEn: 'LUMINA Lifetime Access',
+    nameJa: 'LUMINA ライフタイムアクセス',
+    descriptionEn: '90-day guided journey, weekly synthesis, reflection library, and all future Lumina updates',
+    descriptionJa: '90日間ガイド付きジャーニー、週ごとのシンセシス、リフレクションライブラリ、今後のすべてのアップデート',
+    prices: {
+      jpy: 1980
+    },
+    mode: 'payment'
   }
 };
 
