@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-COPY server.js logger.js app-config.js request-services.js whatsapp-sender.js app-startup.js operational-alerts.js lumina-billing.js customer-auth.js admin-observability.js admin-routes.js public-routes.js course-routes.js stripe-routes.js course-reminders.js auth-utils.js health-routes.js site-helpers.js course-catalog.js course-access.js customer-store.js ./
+COPY server.js logger.js app-config.js request-services.js whatsapp-sender.js app-startup.js operational-alerts.js lumina-billing.js customer-auth.js admin-observability.js admin-routes.js public-routes.js course-routes.js stripe-routes.js course-reminders.js course-engagement.js auth-utils.js health-routes.js site-helpers.js course-catalog.js course-access.js customer-store.js ./
 COPY public/ /usr/share/nginx/html/
 RUN chmod -R a+rX /usr/share/nginx/html
 COPY admin/ /usr/share/nginx/html/admin/
