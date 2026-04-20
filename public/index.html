@@ -204,6 +204,7 @@
       <a href="#contact"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
       <a href="/my-courses" id="navMyCoursesLink" style="display:none;font-size:0.72rem;padding:5px 12px;border:1px solid var(--gold);border-radius:2px;color:var(--gold-dark);letter-spacing:0.05em;white-space:nowrap;"><span data-lang="ja">マイコース</span><span data-lang="en">My Courses</span></a>
       <a href="/login" id="navLoginLink" style="font-size:0.72rem;padding:5px 12px;border:1px solid var(--cream-darker);border-radius:2px;color:var(--text-light);letter-spacing:0.05em;white-space:nowrap;"><span data-lang="ja">ログイン</span><span data-lang="en">Sign In</span></a>
+      <a href="/signup" id="navSignupLink" style="font-size:0.72rem;padding:5px 12px;border:1px solid var(--gold-dark);background:var(--gold-dark);border-radius:2px;color:var(--white);letter-spacing:0.05em;white-space:nowrap;"><span data-lang="ja">アカウント作成</span><span data-lang="en">Sign Up</span></a>
       <button class="lang-toggle" onclick="toggleLang()">
         <span class="flag-ja">JP</span><span class="flag-divider">|</span><span class="flag-en">EN</span>
       </button>
@@ -231,6 +232,7 @@
   <a href="#contact" onclick="toggleMobile()"><span data-lang="ja">お問い合わせ</span><span data-lang="en">Contact</span></a>
   <a href="/my-courses" id="mobileMyCoursesLink" onclick="toggleMobile()" style="display:none;"><span data-lang="ja">マイコース</span><span data-lang="en">My Courses</span></a>
   <a href="/login" id="mobileLoginLink" onclick="toggleMobile()"><span data-lang="ja">ログイン</span><span data-lang="en">Sign In</span></a>
+  <a href="/signup" id="mobileSignupLink" onclick="toggleMobile()"><span data-lang="ja">アカウント作成</span><span data-lang="en">Sign Up</span></a>
 </div>
 
 <!-- ===== HERO ===== -->
@@ -1315,12 +1317,16 @@ document.getElementById('thankYouModal').addEventListener('click', function(e) {
       if (data.authenticated) {
         var mc = document.getElementById('navMyCoursesLink');
         var li = document.getElementById('navLoginLink');
+        var su = document.getElementById('navSignupLink');
         var mmc = document.getElementById('mobileMyCoursesLink');
         var mli = document.getElementById('mobileLoginLink');
+        var msu = document.getElementById('mobileSignupLink');
         if (mc) mc.style.display = '';
         if (li) li.style.display = 'none';
+        if (su) su.style.display = 'none';
         if (mmc) mmc.style.display = '';
         if (mli) mli.style.display = 'none';
+        if (msu) msu.style.display = 'none';
       }
     }).catch(function() {});
 })();
