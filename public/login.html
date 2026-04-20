@@ -60,6 +60,12 @@
     </form>
 
     <div class="auth-links">
+      <a href="/email-login">
+        <span data-lang="ja">パスワードを使わずにメールでログイン →</span>
+        <span data-lang="en">Sign in with email link instead →</span>
+      </a>
+    </div>
+    <div class="auth-links" style="margin-top:10px;">
       <a href="/forgot-password">
         <span data-lang="ja">パスワードをお忘れですか？</span>
         <span data-lang="en">Forgot password?</span>
@@ -85,6 +91,25 @@ fetch('/api/auth/check', { credentials: 'same-origin' })
   .then(r => r.json())
   .then(d => { if (d.authenticated) window.location.href = '/my-courses'; })
   .catch(() => {});
+
+// Surface magic-link errors from the query string
+(function() {
+  var params = new URLSearchParams(location.search);
+  var err = params.get('error');
+  if (!err) return;
+  var isEn = document.documentElement.lang === 'en';
+  var msg = '';
+  if (err === 'expired-link') {
+    msg = isEn ? 'That login link has expired. Please request a new one.' : 'ログインリンクの有効期限が切れています。もう一度お試しください。';
+  } else if (err === 'invalid-link') {
+    msg = isEn ? 'That login link is invalid. Please request a new one.' : 'ログインリンクが無効です。もう一度お試しください。';
+  }
+  if (msg) {
+    var el = document.getElementById('error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+})();
 
 async function handleLogin(e) {
   e.preventDefault();

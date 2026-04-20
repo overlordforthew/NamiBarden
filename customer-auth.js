@@ -271,6 +271,82 @@ function createCustomerAuth({
     }
   });
 
+  function buildMagicLinkEmail(magicUrl, customerName) {
+    const greeting = customerName ? `${customerName}さん、` : '';
+    return `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
+        <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">ログインリンク</h2>
+        <p style="line-height:1.8;margin-bottom:16px;">${greeting}NamiBardenへのログインリンクをお送りします。</p>
+        <p style="line-height:1.8;margin-bottom:24px;">下のボタンをクリックすると、自動的にログインしてマイコースページに移動します。このリンクは15分間有効です。</p>
+        <p style="text-align:center;margin:32px 0;">
+          <a href="${magicUrl}" style="display:inline-block;padding:14px 40px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:1rem;letter-spacing:0.05em;">ログインする</a>
+        </p>
+        <p style="font-size:0.85rem;color:#8B7E6E;margin-top:24px;">このリンクに心当たりがない場合は、このメールを無視してください。</p>
+        <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
+        <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden - namibarden.com</p>
+      </div>`;
+  }
+
+  app.post('/api/auth/magic-link', async (req, res) => {
+    try {
+      const ip = getIP(req);
+      if (!rateLimit(`auth-magic:${ip}`, 3, 3600000)) {
+        return res.status(429).json({ error: 'リクエストが多すぎます。しばらくしてからお試しください。' });
+      }
+
+      const { email } = req.body;
+      if (!email?.trim()) return res.status(400).json({ error: 'Email required' });
+
+      const emailLower = normalizeEmail(email);
+      const result = await pool.query(
+        'SELECT id, email, name FROM nb_customers WHERE LOWER(email) = $1 ORDER BY updated_at DESC LIMIT 1',
+        [emailLower]
+      );
+
+      const successMessage = 'ログインリンクをメールで送信しました。メールをご確認ください。';
+      if (result.rows.length === 0) {
+        return res.json({ ok: true, message: successMessage });
+      }
+
+      const customer = result.rows[0];
+      const magicToken = jwt.sign(
+        { role: 'magic-link', customerId: customer.id, email: customer.email },
+        jwtSecret,
+        { expiresIn: '15m' }
+      );
+      const magicUrl = `${siteUrl}/api/auth/magic-link?token=${magicToken}`;
+
+      try {
+        await transporter.sendMail({
+          from: smtpFrom,
+          to: emailLower,
+          subject: '【NamiBarden】ログインリンク',
+          html: buildMagicLinkEmail(magicUrl, customer.name)
+        });
+      } catch (emailErr) {
+        logger.error({ err: emailErr }, 'Magic link email send failed');
+      }
+
+      res.json({ ok: true, message: successMessage });
+    } catch (e) {
+      logger.error({ err: e }, 'Magic link request error');
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.get('/api/auth/magic-link', (req, res) => {
+    const token = req.query.token;
+    if (!token) return res.redirect('/login?error=invalid-link');
+    try {
+      const decoded = jwt.verify(token, jwtSecret);
+      if (decoded.role !== 'magic-link') return res.redirect('/login?error=invalid-link');
+      const authToken = issueCustomerToken(decoded.customerId, decoded.email);
+      setAuthCookie(res, 'nb_auth_token', authToken, 30 * 24 * 60 * 60 * 1000);
+      res.redirect('/my-courses');
+    } catch {
+      res.redirect('/login?error=expired-link');
+    }
+  });
+
   app.post('/api/auth/logout', (_req, res) => {
     clearAuthCookie(res, 'nb_auth_token');
     res.json({ ok: true });
