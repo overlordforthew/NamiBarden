@@ -316,7 +316,8 @@ const courseReminders = createCourseReminders({
   siteUrl: config.siteUrl,
   smtpFrom: config.smtp.from,
   escapeHtml,
-  authMiddleware
+  authMiddleware,
+  courses: COURSES
 });
 
 createStripeRoutes({

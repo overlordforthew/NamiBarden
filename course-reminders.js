@@ -4,6 +4,11 @@ const FLASH_WINDOW_HOURS = 48;
 const SCHEDULER_INTERVAL_MS = 60 * 60 * 1000; // hourly sweep
 const REMINDER_21D_TYPE = 'course-2-upsell-21d';
 const REMINDER_45D_TYPE = 'course-2-flash-45d';
+const INACTIVITY_DAYS = 7;
+const INACTIVITY_TYPES = {
+  'course-1': 'inactivity-7d-course-1',
+  'course-2': 'inactivity-7d-course-2'
+};
 const UPSELL_PRICE = 7000;
 const FLASH_PRICE = 6500;
 const ORIGINAL_PRICE = 9800;
@@ -66,6 +71,27 @@ function buildCourse2Reminder21dEmail({ name, token, siteUrl, escapeHtml }) {
               </div>`;
 }
 
+function buildInactivityReminderEmail({ name, token, courseId, courseName, lastLessonTitle, siteUrl, escapeHtml }) {
+  const greeting = name ? `${escapeHtml(name)}様` : '';
+  const resumeUrl = `${siteUrl}/watch?token=${token}&course=${courseId}`;
+  const lastLessonLine = lastLessonTitle
+    ? `<p style="line-height:1.8;margin-bottom:16px;color:#8B7E6E;font-size:0.9rem;">最後に開かれていたレッスン：<span style="color:#5C4F3D;">${escapeHtml(lastLessonTitle)}</span></p>`
+    : '';
+  return `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
+                <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">お元気ですか？</h2>
+                <p style="line-height:1.8;margin-bottom:16px;">${greeting}</p>
+                <p style="line-height:1.8;margin-bottom:16px;">「${escapeHtml(courseName)}」のレッスンから少し時間が経ちましたね。日々の中でふと立ち止まる時間が、心の変化を育てます。</p>
+                ${lastLessonLine}
+                <p style="line-height:1.8;margin-bottom:24px;">続きは、あなたのタイミングで大丈夫。戻ってきてくださるのを、いつでもお待ちしていますよ。</p>
+                <p style="margin:0 0 8px;">
+                  <a href="${resumeUrl}" style="display:inline-block;padding:12px 32px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;font-size:0.92rem;letter-spacing:0.04em;">続きから再生する →</a>
+                </p>
+                <p style="line-height:1.8;font-size:0.9rem;color:#8B7E6E;margin-top:32px;">もし何か気になることがあれば、受講ページの「ナミに質問する」から、いつでも声を届けてくださいね。</p>
+                <hr style="border:none;border-top:1px solid #E8DFD3;margin:32px 0;">
+                <p style="font-size:0.8rem;color:#A99E8F;text-align:center;">Nami Barden — namibarden.com</p>
+              </div>`;
+}
+
 function buildCourse2Reminder45dFlashEmail({ name, token, flashToken, siteUrl, escapeHtml }) {
   const greeting = name ? `${escapeHtml(name)}様` : '';
   const link = `${siteUrl}/online-course-2?token=${token}&flash=${flashToken}`;
@@ -107,7 +133,8 @@ function createCourseReminders({
   siteUrl,
   smtpFrom,
   escapeHtml,
-  authMiddleware
+  authMiddleware,
+  courses
 }) {
   async function ensureReminderTable() {
     await pool.query(
@@ -164,6 +191,58 @@ function createCourseReminders({
     await markSent({ customerId, email, reminderType: REMINDER_21D_TYPE });
   }
 
+  async function findInactiveStudents({ courseId, reminderType, days }) {
+    const { rows } = await pool.query(
+      `SELECT a.customer_id, a.access_token, a.email, a.course_id, c.name,
+              latest.last_watched_at, latest.lesson_id AS last_lesson_id
+         FROM nb_course_access a
+         JOIN nb_customers c ON c.id = a.customer_id
+         JOIN LATERAL (
+           SELECT last_watched_at, lesson_id
+             FROM nb_lesson_progress lp
+            WHERE lp.access_token = a.access_token AND lp.course_id = a.course_id
+            ORDER BY last_watched_at DESC
+            LIMIT 1
+         ) latest ON TRUE
+        WHERE a.course_id = $1
+          AND latest.last_watched_at <= NOW() - ($2 || ' days')::interval
+          AND EXISTS (
+            SELECT 1 FROM nb_lesson_progress lp2
+             WHERE lp2.access_token = a.access_token
+               AND lp2.course_id = a.course_id
+               AND lp2.completed = FALSE
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM nb_course_reminders r
+             WHERE r.customer_id = a.customer_id AND r.reminder_type = $3
+          )`,
+      [courseId, String(days), reminderType]
+    );
+    return rows;
+  }
+
+  async function sendInactivityReminder({ email, name, token, courseId, lastLessonId, customerId }) {
+    const course = courses?.[courseId];
+    if (!course) throw new Error(`Unknown course: ${courseId}`);
+    const lesson = course.lessons?.find((l) => l.id === lastLessonId);
+    const html = buildInactivityReminderEmail({
+      name,
+      token,
+      courseId,
+      courseName: course.name,
+      lastLessonTitle: lesson?.title || null,
+      siteUrl,
+      escapeHtml
+    });
+    await transporter.sendMail({
+      from: smtpFrom,
+      to: email,
+      subject: `【NamiBarden】「${course.name}」の続き、お待ちしていますね`,
+      html
+    });
+    await markSent({ customerId, email, reminderType: INACTIVITY_TYPES[courseId] });
+  }
+
   async function send45dFlashReminder({ email, name, token, customerId }) {
     const flashToken = signFlashToken({ jwt, jwtSecret, customerId, email });
     const html = buildCourse2Reminder45dFlashEmail({ name, token, flashToken, siteUrl, escapeHtml });
@@ -212,6 +291,42 @@ function createCourseReminders({
         logger.info({ job: job.tag, ...summary[job.tag] }, 'Course reminder job finished');
       }
     }
+
+    summary.inactivity = {};
+    for (const courseId of Object.keys(INACTIVITY_TYPES)) {
+      const reminderType = INACTIVITY_TYPES[courseId];
+      const bucket = { attempted: 0, sent: 0, failed: 0 };
+      summary.inactivity[courseId] = bucket;
+      let eligible;
+      try {
+        eligible = await findInactiveStudents({ courseId, reminderType, days: INACTIVITY_DAYS });
+      } catch (err) {
+        logger.error({ err, courseId }, 'Inactivity reminder: findInactiveStudents failed');
+        continue;
+      }
+      bucket.attempted = eligible.length;
+      for (const row of eligible) {
+        try {
+          await sendInactivityReminder({
+            email: row.email,
+            name: row.name,
+            token: row.access_token,
+            courseId: row.course_id,
+            lastLessonId: row.last_lesson_id,
+            customerId: row.customer_id
+          });
+          bucket.sent++;
+          logger.info({ courseId, email: row.email, customerId: row.customer_id }, 'Inactivity reminder sent');
+        } catch (err) {
+          bucket.failed++;
+          logger.error({ err, courseId, email: row.email }, 'Inactivity reminder send failed');
+        }
+      }
+      if (eligible.length) {
+        logger.info({ courseId, ...bucket }, 'Inactivity reminder job finished');
+      }
+    }
+
     return summary;
   }
 
@@ -242,6 +357,29 @@ function createCourseReminders({
     res.send(html);
   });
 
+  app.get('/api/admin/reminders/preview/inactivity', authMiddleware, (req, res) => {
+    const name = typeof req.query.name === 'string' ? req.query.name : 'Nami';
+    const token = typeof req.query.token === 'string' ? req.query.token : 'PREVIEW_TOKEN';
+    const courseId = typeof req.query.course === 'string' && courses?.[req.query.course]
+      ? req.query.course
+      : 'course-1';
+    const course = courses?.[courseId];
+    const lessonTitle = typeof req.query.lesson === 'string'
+      ? req.query.lesson
+      : course?.lessons?.[2]?.title || null;
+    const html = buildInactivityReminderEmail({
+      name,
+      token,
+      courseId,
+      courseName: course?.name || courseId,
+      lastLessonTitle: lessonTitle,
+      siteUrl,
+      escapeHtml
+    });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  });
+
   app.post('/api/admin/reminders/test-send', authMiddleware, async (req, res) => {
     try {
       const { email, name, token, type } = req.body || {};
@@ -256,6 +394,25 @@ function createCourseReminders({
           token: courseToken,
           customerId: null
         });
+      } else if (type === 'inactivity') {
+        const courseId = req.body?.course && courses?.[req.body.course] ? req.body.course : 'course-1';
+        const course = courses?.[courseId];
+        const lessonTitle = req.body?.lessonTitle || course?.lessons?.[2]?.title || null;
+        const html = buildInactivityReminderEmail({
+          name: name || 'Nami',
+          token: courseToken,
+          courseId,
+          courseName: course?.name || courseId,
+          lastLessonTitle: lessonTitle,
+          siteUrl,
+          escapeHtml
+        });
+        await transporter.sendMail({
+          from: smtpFrom,
+          to: email,
+          subject: `【NamiBarden】「${course?.name || courseId}」の続き、お待ちしていますね`,
+          html
+        });
       } else {
         await send21dReminder({
           email,
@@ -264,7 +421,7 @@ function createCourseReminders({
           customerId: null
         });
       }
-      res.json({ ok: true, sentTo: email, type: type === 'flash' ? 'flash' : 'upsell' });
+      res.json({ ok: true, sentTo: email, type: type || 'upsell' });
     } catch (err) {
       logger.error({ err }, 'Reminder test-send failed');
       res.status(500).json({ error: 'send failed' });
@@ -282,6 +439,26 @@ function createCourseReminders({
       );
       const totals = {};
       for (const r of counts) totals[r.reminder_type] = r.count;
+
+      const inactivity = {};
+      for (const courseId of Object.keys(INACTIVITY_TYPES)) {
+        const type = INACTIVITY_TYPES[courseId];
+        const rows = await findInactiveStudents({ courseId, reminderType: type, days: INACTIVITY_DAYS });
+        inactivity[courseId] = {
+          type,
+          delayDays: INACTIVITY_DAYS,
+          eligibleNow: rows.length,
+          totalSent: totals[type] || 0,
+          eligible: rows.map((r) => ({
+            email: r.email,
+            name: r.name,
+            customerId: r.customer_id,
+            lastLessonId: r.last_lesson_id,
+            lastWatchedAt: r.last_watched_at
+          }))
+        };
+      }
+
       res.json({
         upsell21d: {
           type: REMINDER_21D_TYPE,
@@ -298,7 +475,8 @@ function createCourseReminders({
           eligibleNow: eligible45.length,
           totalSent: totals[REMINDER_45D_TYPE] || 0,
           eligible: eligible45.map((r) => ({ email: r.email, name: r.name, customerId: r.customer_id }))
-        }
+        },
+        inactivity
       });
     } catch (err) {
       logger.error({ err }, 'Reminder status failed');
