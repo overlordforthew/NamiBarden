@@ -134,13 +134,13 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       },
       'course-2': {
         name: COURSES['course-2'].name,
-        description: en ? '11 lessons — resolve relationship issues at a deeper level' : '全11レッスン — パートナーシップの問題を心の深いレベルから解決',
+        description: en ? '14 lessons — resolve relationship issues at a deeper level' : '全14レッスン — パートナーシップの問題を心の深いレベルから解決',
         amount: 9800,
         mode: 'payment'
       },
       'course-bundle': {
         name: `${COURSES['course-1'].name} + ${COURSES['course-2'].name} ${en ? 'Bundle' : 'セット'}`,
-        description: en ? '19 lessons + bonus meditation (save ¥2,800)' : '全19レッスン＋ボーナス瞑想（2,800円おトク）',
+        description: en ? '22 lessons + bonus meditation (save ¥2,800)' : '全22レッスン＋ボーナス瞑想（2,800円おトク）',
         amount: 14800,
         mode: 'payment'
       },
