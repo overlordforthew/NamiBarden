@@ -3,6 +3,27 @@ const crypto = require('crypto');
 const express = require('express');
 const courses = require('./course-catalog');
 const { getCourseLessonCount } = require('./course-catalog');
+const {
+  GRANULARITY_SQL,
+  COMPLETION_BUCKETS,
+  productsForCategory,
+  validateGranularity,
+  validateReportCategory,
+  validateCompareMode,
+  validateSort,
+  validateDir,
+  assertJstDate,
+  parseJstDateRange,
+  formatJstDate,
+  addDaysToJstDate,
+  rangeIncludesTodayJst,
+  computeComparisonRange,
+  completionBucketForPercent,
+  completionBucketLabel,
+  validateCompletionBucket,
+  escapeCsvRow,
+  buildProductCategoryCaseSql
+} = require('./reporting-lib');
 
 const LUMINA_STATUS_VALUES = new Set(['lifetime', 'active', 'trialing', 'grace', 'expired', 'refunded', 'revoked', 'none']);
 const CUSTOMER_SORTS = {
@@ -11,6 +32,12 @@ const CUSTOMER_SORTS = {
   total_paid_jpy: 's.total_paid_jpy',
   course_count: 's.course_count',
   last_activity_at: 's.last_activity_at'
+};
+const REPORT_PAYMENT_SORTS = {
+  created_at: 'p.created_at',
+  amount: 'p.amount',
+  email: 'c.email',
+  product_name: 'p.product_name'
 };
 const TAG_BLOCKLIST = /[<>"'&\x00-\x1f]/;
 
@@ -233,6 +260,623 @@ function normalizeCustomerTags(tags) {
     }
   }
   return normalized;
+}
+
+function reportsNoStore(_req, res, next) {
+  res.set('Cache-Control', 'no-store');
+  next();
+}
+
+function assertReportCourse(courseId) {
+  const value = String(courseId || '');
+  if (!courses[value] || !Array.isArray(courses[value].lessons)) {
+    const err = new Error('Invalid course');
+    err.statusCode = 400;
+    throw err;
+  }
+  return value;
+}
+
+function getPlayableLessons(courseId) {
+  return (courses[courseId]?.lessons || []).filter((lesson) => {
+    const type = lesson.type || 'video';
+    return type !== 'pdf' && type !== 'ending';
+  });
+}
+
+function addProductFilter({ conditions, params, alias, category }) {
+  const products = productsForCategory(category);
+  if (products.length === 0) return;
+  conditions.push(`${alias}.product_name = ANY($${params.length + 1}::varchar[])`);
+  params.push(products);
+}
+
+function numberValue(value) {
+  return Number(value) || 0;
+}
+
+function formatBucket(value) {
+  if (!value) return null;
+  if (value instanceof Date) return formatJstDate(value);
+  return String(value).slice(0, 10);
+}
+
+function mapRevenueRows(paymentRows, refundRows) {
+  const byBucket = new Map();
+  const ensure = (bucket) => {
+    const key = formatBucket(bucket);
+    if (!byBucket.has(key)) {
+      byBucket.set(key, { bucket: key, gross: 0, refunds: 0, net: 0, payments: 0, uniquePayers: 0 });
+    }
+    return byBucket.get(key);
+  };
+
+  for (const row of paymentRows) {
+    const target = ensure(row.bucket);
+    target.gross += numberValue(row.gross);
+    target.payments += numberValue(row.payment_count);
+    target.uniquePayers += numberValue(row.unique_payers);
+  }
+  for (const row of refundRows) {
+    const target = ensure(row.bucket);
+    target.refunds += numberValue(row.refund_amount);
+  }
+
+  return Array.from(byBucket.values())
+    .sort((a, b) => a.bucket.localeCompare(b.bucket))
+    .map((row) => ({ ...row, net: row.gross - row.refunds }));
+}
+
+function totalsForRevenue(rows) {
+  return rows.reduce((acc, row) => {
+    acc.gross += numberValue(row.gross);
+    acc.refunds += numberValue(row.refunds);
+    acc.net += numberValue(row.net);
+    acc.payments += numberValue(row.payments);
+    acc.uniquePayers += numberValue(row.uniquePayers);
+    return acc;
+  }, { gross: 0, refunds: 0, net: 0, payments: 0, uniquePayers: 0 });
+}
+
+async function getNonJpyExcluded(pool) {
+  const result = await pool.query(
+    `SELECT currency, payment_count, total_minor_units
+     FROM nb_non_jpy_payments
+     ORDER BY currency ASC`
+  );
+  const breakdown = result.rows.map((row) => ({
+    currency: row.currency,
+    paymentCount: numberValue(row.payment_count),
+    totalMinorUnits: numberValue(row.total_minor_units)
+  }));
+  return {
+    count: breakdown.reduce((sum, row) => sum + row.paymentCount, 0),
+    breakdown
+  };
+}
+
+async function getReportingLastRefreshedAt(pool, source) {
+  if (source === 'live') return new Date().toISOString();
+  const result = await pool.query(
+    `SELECT GREATEST(
+       (SELECT MAX(day) FROM nb_revenue_daily),
+       (SELECT MAX(day) FROM nb_refunds_daily)
+     ) AS last_refreshed_at`
+  );
+  return result.rows[0]?.last_refreshed_at || null;
+}
+
+async function getLegacyActiveSubscriptionCount(pool) {
+  const result = await pool.query(
+    `SELECT COUNT(*) AS count
+     FROM nb_subscriptions
+     WHERE status IN ('active', 'trialing', 'past_due')`
+  );
+  return numberValue(result.rows[0]?.count);
+}
+
+async function queryRevenueBuckets(pool, { range, granularity, category, source }) {
+  const paymentParams = [range.fromUtc, range.toUtc];
+  const paymentConditions = [];
+  const refundParams = [range.fromUtc, range.toUtc];
+  const refundConditions = [];
+  let paymentBucketSql;
+  let refundBucketSql;
+  let paymentFromSql;
+  let refundFromSql;
+  let paymentGrossSql;
+  let paymentCountSql;
+  let uniquePayersSql;
+  let refundAmountSql;
+
+  if (source === 'live') {
+    paymentBucketSql = GRANULARITY_SQL[granularity]('p.created_at');
+    refundBucketSql = GRANULARITY_SQL[granularity]('r.stripe_created_at');
+    paymentFromSql = 'nb_payments p';
+    refundFromSql = 'nb_refunds r';
+    paymentGrossSql = 'p.amount';
+    paymentCountSql = '1';
+    uniquePayersSql = 'p.customer_id';
+    refundAmountSql = 'r.amount';
+    paymentConditions.push('p.status = \'succeeded\'', 'p.currency = \'jpy\'', 'p.created_at >= $1', 'p.created_at < $2');
+    refundConditions.push('r.status = \'succeeded\'', 'r.currency = \'jpy\'', 'r.stripe_created_at >= $1', 'r.stripe_created_at < $2');
+  } else {
+    paymentBucketSql = GRANULARITY_SQL[granularity]('p.day');
+    refundBucketSql = GRANULARITY_SQL[granularity]('r.day');
+    paymentFromSql = 'nb_revenue_daily p';
+    refundFromSql = 'nb_refunds_daily r';
+    paymentGrossSql = 'p.gross';
+    paymentCountSql = 'p.payment_count';
+    uniquePayersSql = 'p.unique_payers';
+    refundAmountSql = 'r.refund_amount';
+    paymentConditions.push('p.day >= $1', 'p.day < $2');
+    refundConditions.push('r.day >= $1', 'r.day < $2');
+  }
+
+  addProductFilter({ conditions: paymentConditions, params: paymentParams, alias: 'p', category });
+  addProductFilter({ conditions: refundConditions, params: refundParams, alias: 'r', category });
+
+  const paymentRows = (await pool.query(
+    `SELECT ${paymentBucketSql} AS bucket,
+            COALESCE(SUM(${paymentGrossSql}), 0) AS gross,
+            COALESCE(SUM(${paymentCountSql}), 0) AS payment_count,
+            ${source === 'live' ? `COUNT(DISTINCT ${uniquePayersSql})` : `COALESCE(SUM(${uniquePayersSql}), 0)`} AS unique_payers
+     FROM ${paymentFromSql}
+     WHERE ${paymentConditions.join(' AND ')}
+     GROUP BY 1
+     ORDER BY 1 ASC`,
+    paymentParams
+  )).rows;
+
+  const refundRows = (await pool.query(
+    `SELECT ${refundBucketSql} AS bucket,
+            COALESCE(SUM(${refundAmountSql}), 0) AS refund_amount
+     FROM ${refundFromSql}
+     WHERE ${refundConditions.join(' AND ')}
+     GROUP BY 1
+     ORDER BY 1 ASC`,
+    refundParams
+  )).rows;
+
+  return mapRevenueRows(paymentRows, refundRows);
+}
+
+async function queryRevenueByProduct(pool, range) {
+  const categoryCasePayments = buildProductCategoryCaseSql('p.product_name');
+  const categoryCaseRefunds = buildProductCategoryCaseSql('r.product_name');
+  const paymentRows = (await pool.query(
+    `WITH payment_lines AS (
+       SELECT ${categoryCasePayments} AS category,
+              p.amount::numeric AS gross,
+              1::numeric AS payment_count,
+              p.customer_id
+       FROM nb_payments p
+       WHERE p.status = 'succeeded'
+         AND p.currency = 'jpy'
+         AND (p.product_name IS NULL OR p.product_name <> 'course-bundle')
+         AND p.created_at >= $1
+         AND p.created_at < $2
+       UNION ALL
+       SELECT 'course-1' AS category, (p.amount::numeric / 2.0) AS gross, 1::numeric AS payment_count, p.customer_id
+       FROM nb_payments p
+       WHERE p.status = 'succeeded'
+         AND p.currency = 'jpy'
+         AND p.product_name = 'course-bundle'
+         AND p.created_at >= $1
+         AND p.created_at < $2
+       UNION ALL
+       SELECT 'course-2' AS category, (p.amount::numeric / 2.0) AS gross, 1::numeric AS payment_count, p.customer_id
+       FROM nb_payments p
+       WHERE p.status = 'succeeded'
+         AND p.currency = 'jpy'
+         AND p.product_name = 'course-bundle'
+         AND p.created_at >= $1
+         AND p.created_at < $2
+     )
+     SELECT category,
+            COALESCE(SUM(gross), 0) AS gross,
+            COALESCE(SUM(payment_count), 0) AS payment_count,
+            COUNT(DISTINCT customer_id) AS unique_payers
+     FROM payment_lines
+     GROUP BY category`,
+    [range.fromUtc, range.toUtc]
+  )).rows;
+
+  const refundRows = (await pool.query(
+    `WITH refund_lines AS (
+       SELECT ${categoryCaseRefunds} AS category,
+              r.amount::numeric AS refund_amount,
+              1::numeric AS refund_count
+       FROM nb_refunds r
+       WHERE r.status = 'succeeded'
+         AND r.currency = 'jpy'
+         AND (r.product_name IS NULL OR r.product_name <> 'course-bundle')
+         AND r.stripe_created_at >= $1
+         AND r.stripe_created_at < $2
+       UNION ALL
+       SELECT 'course-1' AS category, (r.amount::numeric / 2.0) AS refund_amount, 1::numeric AS refund_count
+       FROM nb_refunds r
+       WHERE r.status = 'succeeded'
+         AND r.currency = 'jpy'
+         AND r.product_name = 'course-bundle'
+         AND r.stripe_created_at >= $1
+         AND r.stripe_created_at < $2
+       UNION ALL
+       SELECT 'course-2' AS category, (r.amount::numeric / 2.0) AS refund_amount, 1::numeric AS refund_count
+       FROM nb_refunds r
+       WHERE r.status = 'succeeded'
+         AND r.currency = 'jpy'
+         AND r.product_name = 'course-bundle'
+         AND r.stripe_created_at >= $1
+         AND r.stripe_created_at < $2
+     )
+     SELECT category,
+            COALESCE(SUM(refund_amount), 0) AS refund_amount
+     FROM refund_lines
+     GROUP BY category`,
+    [range.fromUtc, range.toUtc]
+  )).rows;
+
+  const byCategory = new Map();
+  const ensure = (category) => {
+    if (!byCategory.has(category)) {
+      byCategory.set(category, { category, gross: 0, refunds: 0, net: 0, payments: 0, uniquePayers: 0 });
+    }
+    return byCategory.get(category);
+  };
+  for (const row of paymentRows) {
+    const target = ensure(row.category);
+    target.gross += numberValue(row.gross);
+    target.payments += numberValue(row.payment_count);
+    target.uniquePayers += numberValue(row.unique_payers);
+  }
+  for (const row of refundRows) {
+    const target = ensure(row.category);
+    target.refunds += numberValue(row.refund_amount);
+  }
+
+  return Array.from(byCategory.values())
+    .map((row) => ({ ...row, net: row.gross - row.refunds }))
+    .sort((a, b) => b.net - a.net || a.category.localeCompare(b.category));
+}
+
+async function loadCompletionStudents(pool, courseId) {
+  return (await pool.query(
+    `WITH owned AS (
+       SELECT ca.access_token, ca.course_id, ca.customer_id, ca.email, c.name
+       FROM nb_course_access ca
+       LEFT JOIN nb_customers c ON c.id = ca.customer_id
+       WHERE ca.course_id = $1
+         AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
+         AND NOT EXISTS (
+           SELECT 1 FROM nb_refunds r
+           JOIN nb_payments p ON r.payment_id = p.id
+           WHERE r.status = 'succeeded'
+             AND p.customer_id = ca.customer_id
+             AND (p.product_name = ca.course_id OR p.product_name = 'course-bundle' OR (ca.course_id = 'course-2' AND p.product_name IN ('course-2-upgrade','course-2-flash')))
+         )
+     ),
+     progress AS (
+       SELECT o.access_token, o.course_id, o.customer_id, o.email, o.name,
+              COUNT(*) FILTER (WHERE lp.completed) AS completed_count,
+              MAX(lp.last_watched_at) AS last_watched_at
+       FROM owned o
+       LEFT JOIN nb_lesson_progress lp
+         ON lp.access_token = o.access_token AND lp.course_id = o.course_id
+       GROUP BY o.access_token, o.course_id, o.customer_id, o.email, o.name
+     )
+     SELECT access_token, customer_id, email, name, completed_count, last_watched_at
+     FROM progress
+     ORDER BY email ASC, access_token ASC`,
+    [courseId]
+  )).rows;
+}
+
+function mapCompletionStudent(row, totalLessons) {
+  const completedCount = numberValue(row.completed_count);
+  const completionPct = totalLessons > 0 ? Math.min(100, Math.round(100 * completedCount / totalLessons)) : 0;
+  return {
+    customerId: row.customer_id || null,
+    email: row.email || '',
+    name: row.name || '',
+    completionPct,
+    lastWatchedAt: row.last_watched_at || null,
+    bucket: completionBucketForPercent(completionPct)
+  };
+}
+
+async function queryDropoffRows(pool, courseId) {
+  const lessons = getPlayableLessons(courseId);
+  const lessonIds = lessons.map((lesson) => lesson.id);
+  const lessonOrders = lessons.map((_, index) => index + 1);
+  const lessonTitles = lessons.map((lesson) => lesson.title || lesson.id);
+  const nextLessonIds = lessons.map((_, index) => lessons[index + 1]?.id || null);
+  const result = await pool.query(
+    `WITH lesson_catalog AS (
+       SELECT *
+       FROM unnest($2::varchar[], $3::int[], $4::varchar[], $5::varchar[])
+         AS t(lesson_id, lesson_order, title, next_lesson_id)
+     ),
+     owned AS (
+       SELECT ca.access_token, ca.course_id, ca.customer_id
+       FROM nb_course_access ca
+       WHERE ca.course_id = $1
+         AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
+         AND NOT EXISTS (
+           SELECT 1 FROM nb_refunds r
+           JOIN nb_payments p ON r.payment_id = p.id
+           WHERE r.status = 'succeeded'
+             AND p.customer_id = ca.customer_id
+             AND (p.product_name = ca.course_id OR p.product_name = 'course-bundle' OR (ca.course_id = 'course-2' AND p.product_name IN ('course-2-upgrade','course-2-flash')))
+         )
+     )
+     SELECT lc.lesson_id, lc.lesson_order, lc.title, lc.next_lesson_id,
+            COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.id IS NOT NULL) AS started_count,
+            COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.completed) AS completed_count,
+            COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.completed AND next_lp.id IS NOT NULL) AS next_started_count
+     FROM lesson_catalog lc
+     LEFT JOIN owned o ON TRUE
+     LEFT JOIN nb_lesson_progress current_lp
+       ON current_lp.access_token = o.access_token
+      AND current_lp.course_id = o.course_id
+      AND current_lp.lesson_id = lc.lesson_id
+     LEFT JOIN nb_lesson_progress next_lp
+       ON next_lp.access_token = o.access_token
+      AND next_lp.course_id = o.course_id
+      AND next_lp.lesson_id = lc.next_lesson_id
+     GROUP BY lc.lesson_id, lc.lesson_order, lc.title, lc.next_lesson_id
+     ORDER BY lc.lesson_order ASC`,
+    [courseId, lessonIds, lessonOrders, lessonTitles, nextLessonIds]
+  );
+
+  return result.rows.map((row) => {
+    const completedCount = numberValue(row.completed_count);
+    const nextStartedCount = numberValue(row.next_started_count);
+    const hasNext = !!row.next_lesson_id;
+    const dropoffRate = completedCount > 0 && hasNext ? 1 - (nextStartedCount / completedCount) : 0;
+    return {
+      lessonId: row.lesson_id,
+      title: row.title,
+      order: numberValue(row.lesson_order),
+      startedCount: numberValue(row.started_count),
+      completedCount,
+      nextStartedCount,
+      dropoffCount: hasNext ? Math.max(completedCount - nextStartedCount, 0) : 0,
+      dropoffRate
+    };
+  });
+}
+
+function buildRevenueExportSql({ range, granularity, category }) {
+  const paymentParams = [range.fromUtc, range.toUtc];
+  const paymentConditions = [
+    'p.status = \'succeeded\'',
+    'p.currency = \'jpy\'',
+    'p.created_at >= $1',
+    'p.created_at < $2'
+  ];
+  const refundParams = [range.fromUtc, range.toUtc];
+  const refundConditions = [
+    'r.status = \'succeeded\'',
+    'r.currency = \'jpy\'',
+    'r.stripe_created_at >= $1',
+    'r.stripe_created_at < $2'
+  ];
+  addProductFilter({ conditions: paymentConditions, params: paymentParams, alias: 'p', category });
+  addProductFilter({ conditions: refundConditions, params: refundParams, alias: 'r', category });
+  const params = paymentParams;
+  const refundOffsetConditions = refundConditions.map((condition) =>
+    condition.replace(/\$(\d+)/g, (_, n) => `$${Number(n) + paymentParams.length}`)
+  );
+  params.push(...refundParams);
+
+  return {
+    params,
+    query: `WITH movements AS (
+       SELECT ${GRANULARITY_SQL[granularity]('p.created_at')} AS bucket,
+              COALESCE(SUM(p.amount), 0)::numeric AS gross,
+              0::numeric AS refunds,
+              COUNT(*)::numeric AS payments,
+              COUNT(DISTINCT p.customer_id)::numeric AS unique_payers
+       FROM nb_payments p
+       WHERE ${paymentConditions.join(' AND ')}
+       GROUP BY 1
+       UNION ALL
+       SELECT ${GRANULARITY_SQL[granularity]('r.stripe_created_at')} AS bucket,
+              0::numeric AS gross,
+              COALESCE(SUM(r.amount), 0)::numeric AS refunds,
+              0::numeric AS payments,
+              0::numeric AS unique_payers
+       FROM nb_refunds r
+       WHERE ${refundOffsetConditions.join(' AND ')}
+       GROUP BY 1
+     )
+     SELECT bucket::date AS bucket,
+            COALESCE(SUM(gross), 0) AS gross,
+            COALESCE(SUM(refunds), 0) AS refunds,
+            COALESCE(SUM(gross), 0) - COALESCE(SUM(refunds), 0) AS net,
+            COALESCE(SUM(payments), 0) AS payments,
+            COALESCE(SUM(unique_payers), 0) AS unique_payers
+     FROM movements
+     GROUP BY bucket
+     ORDER BY bucket ASC`
+  };
+}
+
+function buildRevenueByProductExportSql(range) {
+  const categoryCasePayments = buildProductCategoryCaseSql('p.product_name');
+  const categoryCaseRefunds = buildProductCategoryCaseSql('r.product_name');
+  return {
+    params: [range.fromUtc, range.toUtc],
+    query: `WITH payment_lines AS (
+       SELECT ${categoryCasePayments} AS category,
+              p.amount::numeric AS gross,
+              0::numeric AS refunds,
+              1::numeric AS payments,
+              p.customer_id
+       FROM nb_payments p
+       WHERE p.status = 'succeeded'
+         AND p.currency = 'jpy'
+         AND (p.product_name IS NULL OR p.product_name <> 'course-bundle')
+         AND p.created_at >= $1
+         AND p.created_at < $2
+       UNION ALL
+       SELECT 'course-1', p.amount::numeric / 2.0, 0::numeric, 1::numeric, p.customer_id
+       FROM nb_payments p
+       WHERE p.status = 'succeeded' AND p.currency = 'jpy' AND p.product_name = 'course-bundle'
+         AND p.created_at >= $1 AND p.created_at < $2
+       UNION ALL
+       SELECT 'course-2', p.amount::numeric / 2.0, 0::numeric, 1::numeric, p.customer_id
+       FROM nb_payments p
+       WHERE p.status = 'succeeded' AND p.currency = 'jpy' AND p.product_name = 'course-bundle'
+         AND p.created_at >= $1 AND p.created_at < $2
+     ),
+     refund_lines AS (
+       SELECT ${categoryCaseRefunds} AS category,
+              0::numeric AS gross,
+              r.amount::numeric AS refunds,
+              0::numeric AS payments,
+              NULL::integer AS customer_id
+       FROM nb_refunds r
+       WHERE r.status = 'succeeded'
+         AND r.currency = 'jpy'
+         AND (r.product_name IS NULL OR r.product_name <> 'course-bundle')
+         AND r.stripe_created_at >= $1
+         AND r.stripe_created_at < $2
+       UNION ALL
+       SELECT 'course-1', 0::numeric, r.amount::numeric / 2.0, 0::numeric, NULL::integer
+       FROM nb_refunds r
+       WHERE r.status = 'succeeded' AND r.currency = 'jpy' AND r.product_name = 'course-bundle'
+         AND r.stripe_created_at >= $1 AND r.stripe_created_at < $2
+       UNION ALL
+       SELECT 'course-2', 0::numeric, r.amount::numeric / 2.0, 0::numeric, NULL::integer
+       FROM nb_refunds r
+       WHERE r.status = 'succeeded' AND r.currency = 'jpy' AND r.product_name = 'course-bundle'
+         AND r.stripe_created_at >= $1 AND r.stripe_created_at < $2
+     ),
+     movements AS (
+       SELECT * FROM payment_lines
+       UNION ALL
+       SELECT * FROM refund_lines
+     )
+     SELECT category,
+            COALESCE(SUM(gross), 0) AS gross,
+            COALESCE(SUM(refunds), 0) AS refunds,
+            COALESCE(SUM(gross), 0) - COALESCE(SUM(refunds), 0) AS net,
+            COALESCE(SUM(payments), 0) AS payments,
+            COUNT(DISTINCT customer_id) FILTER (WHERE customer_id IS NOT NULL) AS unique_payers
+     FROM movements
+     GROUP BY category
+     ORDER BY net DESC, category ASC`
+  };
+}
+
+function buildCompletionExportSql(courseId, totalLessons) {
+  return {
+    params: [courseId, totalLessons],
+    query: `WITH owned AS (
+       SELECT ca.access_token, ca.course_id, ca.customer_id
+       FROM nb_course_access ca
+       WHERE ca.course_id = $1
+         AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
+         AND NOT EXISTS (
+           SELECT 1 FROM nb_refunds r
+           JOIN nb_payments p ON r.payment_id = p.id
+           WHERE r.status = 'succeeded'
+             AND p.customer_id = ca.customer_id
+             AND (p.product_name = ca.course_id OR p.product_name = 'course-bundle' OR (ca.course_id = 'course-2' AND p.product_name IN ('course-2-upgrade','course-2-flash')))
+         )
+     ),
+     progress AS (
+       SELECT o.access_token,
+              COUNT(*) FILTER (WHERE lp.completed) AS completed_count
+       FROM owned o
+       LEFT JOIN nb_lesson_progress lp
+         ON lp.access_token = o.access_token AND lp.course_id = o.course_id
+       GROUP BY o.access_token
+     ),
+     bucketed AS (
+       SELECT CASE
+         WHEN $2::int <= 0 THEN '0-24%'
+         WHEN ROUND(100.0 * completed_count / $2::int) >= 100 THEN '100%'
+         WHEN ROUND(100.0 * completed_count / $2::int) >= 75 THEN '75-99%'
+         WHEN ROUND(100.0 * completed_count / $2::int) >= 50 THEN '50-74%'
+         WHEN ROUND(100.0 * completed_count / $2::int) >= 25 THEN '25-49%'
+         ELSE '0-24%'
+       END AS range
+       FROM progress
+     ),
+     labels AS (
+       SELECT *
+       FROM (VALUES
+         ('0-24%', 1),
+         ('25-49%', 2),
+         ('50-74%', 3),
+         ('75-99%', 4),
+         ('100%', 5)
+       ) AS l(range, sort_order)
+     )
+     SELECT labels.range, COALESCE(COUNT(bucketed.range), 0) AS student_count
+     FROM labels
+     LEFT JOIN bucketed ON bucketed.range = labels.range
+     GROUP BY labels.range, labels.sort_order
+     ORDER BY labels.sort_order ASC`
+  };
+}
+
+function buildDropoffExportSql(courseId) {
+  const lessons = getPlayableLessons(courseId);
+  return {
+    params: [
+      courseId,
+      lessons.map((lesson) => lesson.id),
+      lessons.map((_, index) => index + 1),
+      lessons.map((lesson) => lesson.title || lesson.id),
+      lessons.map((_, index) => lessons[index + 1]?.id || null)
+    ],
+    query: `WITH lesson_catalog AS (
+       SELECT *
+       FROM unnest($2::varchar[], $3::int[], $4::varchar[], $5::varchar[])
+         AS t(lesson_id, lesson_order, title, next_lesson_id)
+     ),
+     owned AS (
+       SELECT ca.access_token, ca.course_id, ca.customer_id
+       FROM nb_course_access ca
+       WHERE ca.course_id = $1
+         AND (ca.expires_at IS NULL OR ca.expires_at > NOW())
+         AND NOT EXISTS (
+           SELECT 1 FROM nb_refunds r
+           JOIN nb_payments p ON r.payment_id = p.id
+           WHERE r.status = 'succeeded'
+             AND p.customer_id = ca.customer_id
+             AND (p.product_name = ca.course_id OR p.product_name = 'course-bundle' OR (ca.course_id = 'course-2' AND p.product_name IN ('course-2-upgrade','course-2-flash')))
+         )
+     )
+     SELECT lc.lesson_id, lc.lesson_order AS "order", lc.title, lc.next_lesson_id,
+            COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.id IS NOT NULL) AS started_count,
+            COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.completed) AS completed_count,
+            COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.completed AND next_lp.id IS NOT NULL) AS next_started_count,
+            CASE
+              WHEN lc.next_lesson_id IS NULL THEN 0
+              ELSE GREATEST(
+                COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.completed)
+                - COUNT(DISTINCT o.access_token) FILTER (WHERE current_lp.completed AND next_lp.id IS NOT NULL),
+                0
+              )
+            END AS dropoff_count
+     FROM lesson_catalog lc
+     LEFT JOIN owned o ON TRUE
+     LEFT JOIN nb_lesson_progress current_lp
+       ON current_lp.access_token = o.access_token
+      AND current_lp.course_id = o.course_id
+      AND current_lp.lesson_id = lc.lesson_id
+     LEFT JOIN nb_lesson_progress next_lp
+       ON next_lp.access_token = o.access_token
+      AND next_lp.course_id = o.course_id
+      AND next_lp.lesson_id = lc.next_lesson_id
+     GROUP BY lc.lesson_id, lc.lesson_order, lc.title, lc.next_lesson_id
+     ORDER BY lc.lesson_order ASC`
+  };
 }
 
 function writeCsvHeader(res, columns, stringify) {
@@ -1039,6 +1683,363 @@ function createAdminRoutes({
       });
     } catch (e) {
       logger.error({ err: e }, 'Matrix export setup error');
+      if (!res.headersSent) res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/revenue', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const range = parseJstDateRange(req.query);
+      const granularity = validateGranularity(req.query.granularity);
+      const category = validateReportCategory(req.query.category);
+      const compareMode = validateCompareMode(req.query.compare);
+      const source = (parseBool(req.query.live) || rangeIncludesTodayJst(range)) ? 'live' : 'matview';
+      const [buckets, nonJpyExcluded, lastRefreshedAt, legacyActiveSubscriptions] = await Promise.all([
+        queryRevenueBuckets(pool, { range, granularity, category, source }),
+        getNonJpyExcluded(pool),
+        getReportingLastRefreshedAt(pool, source),
+        getLegacyActiveSubscriptionCount(pool)
+      ]);
+      const comparisonRange = computeComparisonRange(range, compareMode);
+      const comparisonSource = comparisonRange && (source === 'live' || rangeIncludesTodayJst(comparisonRange)) ? 'live' : source;
+      const comparison = comparisonRange
+        ? await queryRevenueBuckets(pool, { range: comparisonRange, granularity, category, source: comparisonSource })
+        : null;
+
+      res.json({
+        buckets,
+        comparison,
+        totals: totalsForRevenue(buckets),
+        comparisonTotals: comparison ? totalsForRevenue(comparison) : null,
+        meta: {
+          currency: 'jpy',
+          lastRefreshedAt,
+          source,
+          nonJpyExcluded,
+          legacyActiveSubscriptions
+        }
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting revenue error');
+      res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/revenue-by-product', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const range = parseJstDateRange(req.query);
+      const rows = await queryRevenueByProduct(pool, range);
+      const totals = totalsForRevenue(rows.map((row) => ({
+        gross: row.gross,
+        refunds: row.refunds,
+        net: row.net,
+        payments: row.payments,
+        uniquePayers: row.uniquePayers
+      })));
+      const [nonJpyExcluded, lastRefreshedAt] = await Promise.all([
+        getNonJpyExcluded(pool),
+        getReportingLastRefreshedAt(pool, 'live')
+      ]);
+      res.json({
+        rows,
+        totals,
+        meta: {
+          currency: 'jpy',
+          source: 'live',
+          lastRefreshedAt,
+          nonJpyExcluded
+        }
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting revenue by product error');
+      res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/completion', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const courseId = assertReportCourse(req.query.course);
+      const totalLessons = getCourseLessonCount(courseId);
+      const students = (await loadCompletionStudents(pool, courseId))
+        .map((row) => mapCompletionStudent(row, totalLessons));
+      const counts = new Map(COMPLETION_BUCKETS.map((bucket) => [bucket, 0]));
+      let completionTotal = 0;
+      for (const student of students) {
+        counts.set(student.bucket, (counts.get(student.bucket) || 0) + 1);
+        completionTotal += student.completionPct;
+      }
+      res.json({
+        courseId,
+        totalLessons,
+        totalLessonsSource: 'current-catalog',
+        buckets: COMPLETION_BUCKETS.map((bucket) => ({
+          range: completionBucketLabel(bucket),
+          studentCount: counts.get(bucket) || 0
+        })),
+        studentTotal: students.length,
+        averageCompletion: students.length ? Math.round(completionTotal / students.length) : 0
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting completion error');
+      res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/completion/students', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const courseId = assertReportCourse(req.query.course);
+      const bucket = validateCompletionBucket(req.query.bucket);
+      const totalLessons = getCourseLessonCount(courseId);
+      const students = (await loadCompletionStudents(pool, courseId))
+        .map((row) => mapCompletionStudent(row, totalLessons))
+        .filter((student) => student.bucket === bucket)
+        .map((student) => ({
+          customerId: student.customerId,
+          email: student.email,
+          name: student.name,
+          completionPct: student.completionPct,
+          lastWatchedAt: student.lastWatchedAt
+        }));
+      res.json({ courseId, bucket, students });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting completion students error');
+      res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/dropoff', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const courseId = assertReportCourse(req.query.course);
+      const lessons = await queryDropoffRows(pool, courseId);
+      res.json({ courseId, lessons });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting dropoff error');
+      res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/payments', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const paymentDate = assertJstDate(req.query.date, 'date');
+      const date = parseJstDateRange({ from: paymentDate, to: addDaysToJstDate(paymentDate, 1) });
+      const category = validateReportCategory(req.query.product || 'all');
+      const sortKey = validateSort(req.query.sort, REPORT_PAYMENT_SORTS, 'created_at');
+      const sortSql = REPORT_PAYMENT_SORTS[sortKey];
+      const dir = validateDir(req.query.dir);
+      const params = [date.fromUtc, date.toUtc];
+      const conditions = [
+        'p.status = \'succeeded\'',
+        'p.currency = \'jpy\'',
+        'p.created_at >= $1',
+        'p.created_at < $2'
+      ];
+      addProductFilter({ conditions, params, alias: 'p', category });
+      const result = await pool.query(
+        `SELECT p.id, p.amount, p.currency, p.status, p.product_name,
+                p.stripe_payment_intent_id, p.stripe_invoice_id, p.created_at,
+                c.id AS customer_id, c.email, c.name
+         FROM nb_payments p
+         LEFT JOIN nb_customers c ON c.id = p.customer_id
+         WHERE ${conditions.join(' AND ')}
+         ORDER BY ${sortSql} ${dir} NULLS LAST, p.id DESC
+         LIMIT 500`,
+        params
+      );
+      res.json({
+        date: paymentDate,
+        product: category,
+        payments: result.rows.map((row) => ({
+          id: row.id,
+          amount: numberValue(row.amount),
+          currency: row.currency,
+          status: row.status,
+          productName: row.product_name,
+          stripePaymentIntentId: row.stripe_payment_intent_id,
+          stripeInvoiceId: row.stripe_invoice_id,
+          stripeDashboardUrl: buildStripeDashboardUrl(row.stripe_payment_intent_id),
+          createdAt: row.created_at,
+          customerId: row.customer_id,
+          email: row.email,
+          name: row.name
+        }))
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting payments drilldown error');
+      res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/non-jpy', authMiddleware, reportsNoStore, async (_req, res) => {
+    try {
+      const result = await pool.query(
+        `SELECT currency, payment_count, total_minor_units
+         FROM nb_non_jpy_payments
+         ORDER BY currency ASC`
+      );
+      res.json({
+        rows: result.rows.map((row) => ({
+          currency: row.currency,
+          paymentCount: numberValue(row.payment_count),
+          totalMinorUnits: numberValue(row.total_minor_units)
+        }))
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting non-JPY diagnostic error');
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/revenue/export', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const range = parseJstDateRange(req.query);
+      const granularity = validateGranularity(req.query.granularity);
+      const category = validateReportCategory(req.query.category);
+      const built = buildRevenueExportSql({ range, granularity, category });
+      const columns = [
+        { key: 'bucket', header: 'bucket' },
+        { key: 'gross', header: 'gross_jpy' },
+        { key: 'refunds', header: 'refunds_jpy' },
+        { key: 'net', header: 'net_jpy' },
+        { key: 'payments', header: 'payments' },
+        { key: 'unique_payers', header: 'unique_payers' }
+      ];
+      await streamRowsWithSqlCursor({
+        pool,
+        res,
+        req,
+        logger,
+        query: built.query,
+        params: built.params,
+        columns,
+        filename: 'reporting-revenue.csv',
+        stringify,
+        logContext: { admin: req.admin || null, exportType: 'reporting-revenue', filters: req.query },
+        mapRows: (rows) => rows.map((row) => escapeCsvRow({
+          bucket: formatBucket(row.bucket),
+          gross: numberValue(row.gross),
+          refunds: numberValue(row.refunds),
+          net: numberValue(row.net),
+          payments: numberValue(row.payments),
+          unique_payers: numberValue(row.unique_payers)
+        }))
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting revenue export setup error');
+      if (!res.headersSent) res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/revenue-by-product/export', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const range = parseJstDateRange(req.query);
+      const built = buildRevenueByProductExportSql(range);
+      const columns = [
+        { key: 'category', header: 'category' },
+        { key: 'gross', header: 'gross_jpy' },
+        { key: 'refunds', header: 'refunds_jpy' },
+        { key: 'net', header: 'net_jpy' },
+        { key: 'payments', header: 'payments' },
+        { key: 'unique_payers', header: 'unique_payers' }
+      ];
+      await streamRowsWithSqlCursor({
+        pool,
+        res,
+        req,
+        logger,
+        query: built.query,
+        params: built.params,
+        columns,
+        filename: 'reporting-revenue-by-product.csv',
+        stringify,
+        logContext: { admin: req.admin || null, exportType: 'reporting-revenue-by-product', filters: req.query },
+        mapRows: (rows) => rows.map((row) => escapeCsvRow({
+          category: row.category,
+          gross: numberValue(row.gross),
+          refunds: numberValue(row.refunds),
+          net: numberValue(row.net),
+          payments: numberValue(row.payments),
+          unique_payers: numberValue(row.unique_payers)
+        }))
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting revenue by product export setup error');
+      if (!res.headersSent) res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/completion/export', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const courseId = assertReportCourse(req.query.course);
+      const built = buildCompletionExportSql(courseId, getCourseLessonCount(courseId));
+      const columns = [
+        { key: 'range', header: 'range' },
+        { key: 'student_count', header: 'student_count' }
+      ];
+      await streamRowsWithSqlCursor({
+        pool,
+        res,
+        req,
+        logger,
+        query: built.query,
+        params: built.params,
+        columns,
+        filename: `reporting-completion-${courseId}.csv`,
+        stringify,
+        logContext: { admin: req.admin || null, exportType: 'reporting-completion', courseId },
+        mapRows: (rows) => rows.map((row) => escapeCsvRow({
+          range: row.range,
+          student_count: numberValue(row.student_count)
+        }))
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting completion export setup error');
+      if (!res.headersSent) res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/reports/dropoff/export', authMiddleware, reportsNoStore, async (req, res) => {
+    try {
+      const courseId = assertReportCourse(req.query.course);
+      const built = buildDropoffExportSql(courseId);
+      const columns = [
+        { key: 'lesson_id', header: 'lesson_id' },
+        { key: 'order', header: 'order' },
+        { key: 'title', header: 'title' },
+        { key: 'started_count', header: 'started_count' },
+        { key: 'completed_count', header: 'completed_count' },
+        { key: 'next_started_count', header: 'next_started_count' },
+        { key: 'dropoff_count', header: 'dropoff_count' },
+        { key: 'dropoff_rate', header: 'dropoff_rate' }
+      ];
+      await streamRowsWithSqlCursor({
+        pool,
+        res,
+        req,
+        logger,
+        query: built.query,
+        params: built.params,
+        columns,
+        filename: `reporting-dropoff-${courseId}.csv`,
+        stringify,
+        logContext: { admin: req.admin || null, exportType: 'reporting-dropoff', courseId },
+        mapRows: (rows) => rows.map((row) => {
+          const completedCount = numberValue(row.completed_count);
+          const nextStartedCount = numberValue(row.next_started_count);
+          const dropoffRate = completedCount > 0 && row.next_lesson_id ? 1 - (nextStartedCount / completedCount) : 0;
+          return escapeCsvRow({
+            lesson_id: row.lesson_id,
+            order: numberValue(row.order),
+            title: row.title || '',
+            started_count: numberValue(row.started_count),
+            completed_count: completedCount,
+            next_started_count: nextStartedCount,
+            dropoff_count: numberValue(row.dropoff_count),
+            dropoff_rate: dropoffRate
+          });
+        })
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Reporting dropoff export setup error');
       if (!res.headersSent) res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
     }
   });

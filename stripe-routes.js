@@ -1,3 +1,8 @@
+const {
+  findPaymentForRefund,
+  upsertStripeRefund
+} = require('./reporting-lib');
+
 function createStripeRoutes({
   app,
   pool,
@@ -70,6 +75,24 @@ async function deleteWebhookIdempotencyMarker(eventId) {
     await pool.query(`DELETE FROM nb_processed_webhooks WHERE event_id=$1`, [eventId]);
   } catch (err) {
     logger.error({ err, eventId }, 'Stripe webhook idempotency marker delete failed');
+  }
+}
+
+// Best-effort: resolve the Stripe charge id for a Checkout Session so we can
+// store it on nb_payments for refund linkage. If Stripe is unavailable or the
+// retrieve fails, returns null — refund webhook will backfill later.
+async function resolveSessionChargeId(session) {
+  if (!stripe || !session?.payment_intent) return null;
+  try {
+    const pi = await stripe.paymentIntents.retrieve(session.payment_intent, {
+      expand: ['latest_charge']
+    });
+    const charge = pi?.latest_charge;
+    if (!charge) return null;
+    return typeof charge === 'string' ? charge : charge.id || null;
+  } catch (err) {
+    logger.warn({ err, sessionId: session.id }, 'resolveSessionChargeId failed — will backfill via refund webhook');
+    return null;
   }
 }
 
@@ -406,11 +429,12 @@ app.post('/api/stripe/webhook', async (req, res) => {
           }
 
           try {
+            const chargeId = await resolveSessionChargeId(session);
             await pool.query(
-              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
-               VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_charge_id, stripe_invoice_id, amount, currency, status, product_name)
+               VALUES ($1, $2, $3, $4, $5, $6, 'succeeded', $7)
                ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
-              [custId, session.payment_intent, session.invoice || null, session.amount_total, session.currency, product]
+              [custId, session.payment_intent, chargeId, session.invoice || null, session.amount_total, session.currency, product]
             );
           } catch (e) {
             logger.error({ err: e, email, product }, 'Lumina lifetime: payment insert failed');
@@ -474,11 +498,12 @@ app.post('/api/stripe/webhook', async (req, res) => {
 
           // Record payment
           try {
+            const chargeId = await resolveSessionChargeId(session);
             await pool.query(
-              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
-               VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_charge_id, stripe_invoice_id, amount, currency, status, product_name)
+               VALUES ($1, $2, $3, $4, $5, $6, 'succeeded', $7)
                ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
-              [custId, session.payment_intent, null, session.amount_total, session.currency, product]
+              [custId, session.payment_intent, chargeId, null, session.amount_total, session.currency, product]
             );
           } catch (e) {
             logger.error({ err: e, product, email }, 'Stripe course: payment insert failed');
@@ -588,11 +613,12 @@ app.post('/api/stripe/webhook', async (req, res) => {
           }
 
           try {
+            const chargeId = await resolveSessionChargeId(session);
             await pool.query(
-              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
-               VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_charge_id, stripe_invoice_id, amount, currency, status, product_name)
+               VALUES ($1, $2, $3, $4, $5, $6, 'succeeded', $7)
                ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
-              [custId, session.payment_intent, null, session.amount_total, session.currency, product]
+              [custId, session.payment_intent, chargeId, null, session.amount_total, session.currency, product]
             );
           } catch (e) {
             logger.error({ err: e, product, email }, 'Stripe payment: payment insert failed');
@@ -871,6 +897,39 @@ app.post('/api/stripe/webhook', async (req, res) => {
         break;
       }
 
+      case 'refund.created':
+      case 'refund.updated': {
+        const refund = event.data.object;
+        try {
+          const { paymentRow, pi, ch } = await findPaymentForRefund(pool, refund);
+          await upsertStripeRefund(pool, refund, paymentRow, { pi, ch, eventCreated: event.created });
+
+          if (!paymentRow) {
+            logger.warn({ refundId: refund.id, pi, ch }, 'Refund recorded as orphan; will reconcile when payment arrives');
+          } else {
+            logger.info({ refundId: refund.id, paymentId: paymentRow.id, eventType: event.type }, 'Stripe refund recorded');
+          }
+        } catch (e) {
+          logger.error({ err: e, eventId: event.id, refundId: refund?.id, eventType: event.type }, 'Stripe refund handler failed');
+          recordOperationalAlert({
+            alertKey: `stripe:refund-record:${refund?.id || event.id}`,
+            source: 'stripe',
+            severity: 'critical',
+            title: 'Stripe refund record failed',
+            message: 'A refund webhook could not be recorded. Deleting the idempotency marker so Stripe retries.',
+            details: {
+              eventId: event.id,
+              eventType: event.type,
+              refundId: refund?.id || null,
+              error: e?.message || String(e)
+            }
+          }).catch((alertErr) => logger.error({ err: alertErr }, 'Operational alert write failed'));
+          await deleteWebhookIdempotencyMarker(event.id);
+          return res.status(500).json({ error: 'Refund record failed' });
+        }
+        break;
+      }
+
       case 'invoice.payment_succeeded': {
         try {
           const invoice = event.data.object;
@@ -888,10 +947,10 @@ app.post('/api/stripe/webhook', async (req, res) => {
               if (subRow.rows[0]?.product_name) invoiceProduct = subRow.rows[0].product_name;
             }
             await pool.query(
-              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_invoice_id, amount, currency, status, product_name)
-               VALUES ($1, $2, $3, $4, $5, 'succeeded', $6)
+              `INSERT INTO nb_payments (customer_id, stripe_payment_intent_id, stripe_charge_id, stripe_invoice_id, amount, currency, status, product_name)
+               VALUES ($1, $2, $3, $4, $5, $6, 'succeeded', $7)
                ON CONFLICT (stripe_payment_intent_id) DO NOTHING`,
-              [custRow.rows[0].id, invoice.payment_intent, invoice.id,
+              [custRow.rows[0].id, invoice.payment_intent, invoice.charge || null, invoice.id,
                invoice.amount_paid, invoice.currency, invoiceProduct]
             );
           }
