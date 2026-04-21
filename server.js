@@ -370,7 +370,8 @@ const courseReminders = createCourseReminders({
   smtpFrom: config.smtp.from,
   escapeHtml,
   authMiddleware,
-  courses: COURSES
+  courses: COURSES,
+  getIP
 });
 
 createStripeRoutes({

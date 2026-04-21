@@ -79,7 +79,8 @@ function createCourseReminders({
   siteUrl,
   smtpFrom,
   authMiddleware,
-  courses
+  courses,
+  getIP
 }) {
   async function ensureReminderTable() {
     await pool.query(
@@ -236,7 +237,24 @@ function createCourseReminders({
   }
 
   // ─── Scheduler ──────────────────────────────────────────────────────────
+  // Single-flight: the hourly interval and admin /run-now share this promise so
+  // two concurrent sweeps can't double-send before markSent lands (unique
+  // constraint on (customer_id, reminder_type) only prevents duplicate rows,
+  // not duplicate emails).
+  let jobPromise = null;
   async function runReminderJob() {
+    if (jobPromise) return jobPromise;
+    jobPromise = (async () => {
+      try {
+        return await runReminderJobImpl();
+      } finally {
+        jobPromise = null;
+      }
+    })();
+    return jobPromise;
+  }
+
+  async function runReminderJobImpl() {
     const summary = { upsell21d: null, flash45d: null, inactivity: {} };
 
     // 21d upsell + 45d flash (both gated on Course 1 purchase time)
@@ -375,6 +393,7 @@ function createCourseReminders({
       const out = await renderPreviewForRule(RULE_KEYS.UPSELL_21D, { name, token });
       if (!out) return res.status(404).json({ error: 'Rule not found' });
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src * data:; font-src data:; frame-ancestors 'self'");
       res.send(out.html);
     } catch (err) {
       logger.error({ err }, 'Preview upsell failed');
@@ -389,6 +408,7 @@ function createCourseReminders({
       const out = await renderPreviewForRule(RULE_KEYS.FLASH_45D, { name, token });
       if (!out) return res.status(404).json({ error: 'Rule not found' });
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src * data:; font-src data:; frame-ancestors 'self'");
       res.send(out.html);
     } catch (err) {
       logger.error({ err }, 'Preview flash failed');
@@ -408,6 +428,7 @@ function createCourseReminders({
       const out = await renderPreviewForRule(ruleKey, { name, token, lastLessonTitle });
       if (!out) return res.status(404).json({ error: 'Rule not found' });
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; img-src * data:; font-src data:; frame-ancestors 'self'");
       res.send(out.html);
     } catch (err) {
       logger.error({ err }, 'Preview inactivity failed');
@@ -528,6 +549,268 @@ function createCourseReminders({
     } catch (err) {
       logger.error({ err }, 'Reminder run-now failed');
       res.status(500).json({ error: 'run failed' });
+    }
+  });
+
+  // ─── Admin: email-rules CRUD ────────────────────────────────────────────
+  const RULE_KEY_VALUES = new Set(Object.values(RULE_KEYS));
+  const MAX_SUBJECT_LEN = 500;
+  const MAX_BODY_LEN = 50000;
+  const MAX_PRICE = 1000000;
+
+  function auditBy(req) {
+    const ip = getIP ? getIP(req) : (req.ip || null);
+    return ip ? `admin:${ip}` : 'admin';
+  }
+
+  // Returns the floor-int representation or null. Caller must use the returned
+  // integer, not the original raw input, so a decimal like 1.9 doesn't leak
+  // into a Postgres INTEGER column.
+  function validateIntInRange(value, { min, max }) {
+    const n = Math.floor(Number(value));
+    if (!Number.isFinite(n) || n < min || n > max) return null;
+    return n;
+  }
+
+  function ruleConfigSchema(ruleKey) {
+    if (ruleKey === RULE_KEYS.UPSELL_21D) {
+      return {
+        upsell_price:   { min: 100, max: MAX_PRICE, required: true },
+        original_price: { min: 100, max: MAX_PRICE, required: true }
+      };
+    }
+    if (ruleKey === RULE_KEYS.FLASH_45D) {
+      return {
+        flash_price:        { min: 100, max: MAX_PRICE, required: true },
+        upsell_price:       { min: 100, max: MAX_PRICE, required: true },
+        original_price:     { min: 100, max: MAX_PRICE, required: true },
+        flash_window_hours: { min: 1,   max: 336,       required: true }
+      };
+    }
+    return {};
+  }
+
+  function validateConfig(ruleKey, incoming) {
+    if (incoming == null) return { ok: true, config: undefined };
+    if (typeof incoming !== 'object' || Array.isArray(incoming)) {
+      return { ok: false, error: 'config must be an object' };
+    }
+    const schema = ruleConfigSchema(ruleKey);
+    const allowed = Object.keys(schema);
+    for (const key of Object.keys(incoming)) {
+      if (!allowed.includes(key)) return { ok: false, error: `unknown config key: ${key}` };
+    }
+    const out = {};
+    for (const key of allowed) {
+      const raw = incoming[key];
+      const parsed = validateIntInRange(raw, schema[key]);
+      if (parsed == null) {
+        if (schema[key].required) return { ok: false, error: `config.${key} must be integer in [${schema[key].min}, ${schema[key].max}]` };
+        continue;
+      }
+      out[key] = parsed;
+    }
+    return { ok: true, config: out };
+  }
+
+  function validateRuleFields(ruleKey, body) {
+    const errors = [];
+    const fields = {};
+
+    if (body.enabled !== undefined) {
+      if (typeof body.enabled !== 'boolean') errors.push('enabled must be boolean');
+      else fields.enabled = body.enabled;
+    }
+    if (body.delayDays !== undefined) {
+      const d = validateIntInRange(body.delayDays, { min: 0, max: 365 });
+      if (d == null) errors.push('delayDays must be integer in [0, 365]');
+      else fields.delayDays = d;
+    }
+    if (body.subject !== undefined) {
+      if (typeof body.subject !== 'string' || body.subject.length === 0 || body.subject.length > MAX_SUBJECT_LEN) {
+        errors.push(`subject must be non-empty string up to ${MAX_SUBJECT_LEN} chars`);
+      } else fields.subject = body.subject;
+    }
+    if (body.bodyHtml !== undefined) {
+      if (typeof body.bodyHtml !== 'string' || body.bodyHtml.length === 0 || body.bodyHtml.length > MAX_BODY_LEN) {
+        errors.push(`bodyHtml must be non-empty string up to ${MAX_BODY_LEN} chars`);
+      } else fields.bodyHtml = body.bodyHtml;
+    }
+    if (body.name !== undefined) {
+      if (typeof body.name !== 'string' || body.name.length === 0 || body.name.length > 255) errors.push('name must be non-empty string up to 255 chars');
+      else fields.name = body.name;
+    }
+    if (body.description !== undefined) {
+      if (typeof body.description !== 'string' || body.description.length > 2000) errors.push('description must be string up to 2000 chars');
+      else fields.description = body.description;
+    }
+    if (body.config !== undefined) {
+      const result = validateConfig(ruleKey, body.config);
+      if (!result.ok) errors.push(result.error);
+      else fields.config = result.config;
+    }
+    return { errors, fields };
+  }
+
+  function ruleResponse(rule) {
+    if (!rule) return null;
+    const defaults = reminderConfig.DEFAULT_RULES.find((r) => r.rule_key === rule.ruleKey);
+    const reminderType = REMINDER_TYPES[rule.ruleKey];
+    return {
+      ruleKey: rule.ruleKey,
+      name: rule.name,
+      description: rule.description,
+      enabled: rule.enabled,
+      delayDays: rule.delayDays,
+      subject: rule.subject,
+      bodyHtml: rule.bodyHtml,
+      config: rule.config,
+      updatedAt: rule.updatedAt,
+      updatedBy: rule.updatedBy,
+      reminderType,
+      variables: reminderConfig.VARIABLE_DOCS[rule.ruleKey] || [],
+      defaults: defaults ? {
+        name: defaults.name,
+        description: defaults.description,
+        enabled: defaults.enabled,
+        delayDays: defaults.delay_days,
+        subject: defaults.subject,
+        bodyHtml: defaults.body_html,
+        config: defaults.config
+      } : null
+    };
+  }
+
+  app.get('/api/admin/email-rules', authMiddleware, async (_req, res) => {
+    try {
+      const rules = await reminderConfig.loadAllRules(pool);
+      const { rows: counts } = await pool.query(
+        `SELECT reminder_type, COUNT(*)::int AS count FROM nb_course_reminders GROUP BY reminder_type`
+      );
+      const totals = {};
+      for (const r of counts) totals[r.reminder_type] = r.count;
+
+      const enriched = await Promise.all(rules.map(async (rule) => {
+        const reminderType = REMINDER_TYPES[rule.ruleKey];
+        let eligibleNow = 0;
+        try {
+          if (rule.ruleKey === RULE_KEYS.UPSELL_21D || rule.ruleKey === RULE_KEYS.FLASH_45D) {
+            const rows = await findEligibleForType(reminderType, rule.delayDays);
+            eligibleNow = rows.length;
+          } else {
+            const courseId = rule.ruleKey === RULE_KEYS.INACTIVITY_COURSE_2 ? 'course-2' : 'course-1';
+            const rows = await findInactiveStudents({ courseId, reminderType, days: rule.delayDays });
+            eligibleNow = rows.length;
+          }
+        } catch (err) {
+          logger.error({ err, ruleKey: rule.ruleKey }, 'eligible count failed');
+        }
+        return {
+          ...ruleResponse(rule),
+          eligibleNow,
+          totalSent: totals[reminderType] || 0
+        };
+      }));
+
+      res.json({ rules: enriched });
+    } catch (err) {
+      logger.error({ err }, 'email-rules list failed');
+      res.status(500).json({ error: 'list failed' });
+    }
+  });
+
+  app.get('/api/admin/email-rules/:key', authMiddleware, async (req, res) => {
+    const key = req.params.key;
+    if (!RULE_KEY_VALUES.has(key)) return res.status(404).json({ error: 'Rule not found' });
+    try {
+      const rule = await reminderConfig.loadRule(pool, key);
+      if (!rule) return res.status(404).json({ error: 'Rule not found' });
+      res.json({ rule: ruleResponse(rule) });
+    } catch (err) {
+      logger.error({ err, key }, 'email-rules get failed');
+      res.status(500).json({ error: 'get failed' });
+    }
+  });
+
+  app.put('/api/admin/email-rules/:key', authMiddleware, async (req, res) => {
+    const key = req.params.key;
+    if (!RULE_KEY_VALUES.has(key)) return res.status(404).json({ error: 'Rule not found' });
+    const body = req.body || {};
+    const { errors, fields } = validateRuleFields(key, body);
+    if (errors.length) return res.status(400).json({ error: 'Validation failed', details: errors });
+    if (Object.keys(fields).length === 0) return res.status(400).json({ error: 'No fields to update' });
+    try {
+      const updated = await reminderConfig.updateRule(pool, key, fields, auditBy(req));
+      if (!updated) return res.status(404).json({ error: 'Rule not found' });
+      logger.info({ key, updatedBy: auditBy(req), fields: Object.keys(fields) }, 'Email rule updated');
+      res.json({ rule: ruleResponse(updated) });
+    } catch (err) {
+      logger.error({ err, key }, 'email-rules update failed');
+      res.status(500).json({ error: 'update failed' });
+    }
+  });
+
+  app.post('/api/admin/email-rules/:key/reset', authMiddleware, async (req, res) => {
+    const key = req.params.key;
+    if (!RULE_KEY_VALUES.has(key)) return res.status(404).json({ error: 'Rule not found' });
+    try {
+      const reset = await reminderConfig.resetRule(pool, key, auditBy(req));
+      if (!reset) return res.status(404).json({ error: 'Rule not found' });
+      logger.info({ key, updatedBy: auditBy(req) }, 'Email rule reset to default');
+      res.json({ rule: ruleResponse(reset) });
+    } catch (err) {
+      logger.error({ err, key }, 'email-rules reset failed');
+      res.status(500).json({ error: 'reset failed' });
+    }
+  });
+
+  // Render a draft (unsaved subject/body/config) against the rule's sample vars.
+  // Used by the admin editor's live preview iframe so Nami sees edits before saving.
+  app.post('/api/admin/email-rules/:key/preview', authMiddleware, async (req, res) => {
+    const key = req.params.key;
+    if (!RULE_KEY_VALUES.has(key)) return res.status(404).json({ error: 'Rule not found' });
+    const body = req.body || {};
+    const { errors, fields } = validateRuleFields(key, body);
+    if (errors.length) return res.status(400).json({ error: 'Validation failed', details: errors });
+    try {
+      const saved = await reminderConfig.loadRule(pool, key);
+      if (!saved) return res.status(404).json({ error: 'Rule not found' });
+      const draft = {
+        ...saved,
+        subject: fields.subject ?? saved.subject,
+        bodyHtml: fields.bodyHtml ?? saved.bodyHtml,
+        delayDays: fields.delayDays ?? saved.delayDays,
+        config: { ...saved.config, ...(fields.config || {}) }
+      };
+      const previewName = typeof body.previewName === 'string' ? body.previewName : 'ナミ';
+      const previewToken = typeof body.previewToken === 'string' ? body.previewToken : 'PREVIEW_TOKEN';
+      let vars;
+      if (key === RULE_KEYS.UPSELL_21D) {
+        vars = upsellVars({ name: previewName, token: previewToken, rule: draft });
+      } else if (key === RULE_KEYS.FLASH_45D) {
+        const windowHours = draft.config.flash_window_hours ?? 48;
+        const flashToken = signFlashToken({ jwt, jwtSecret, customerId: 0, email: 'preview@example.com', windowHours });
+        vars = flashVars({ name: previewName, token: previewToken, flashToken, rule: draft });
+      } else {
+        const courseId = key === RULE_KEYS.INACTIVITY_COURSE_2 ? 'course-2' : 'course-1';
+        const course = courses?.[courseId];
+        const lessonTitle = typeof body.lastLessonTitle === 'string'
+          ? body.lastLessonTitle
+          : (course?.lessons?.[2]?.title || '');
+        vars = inactivityVars({ name: previewName, token: previewToken, courseId, lastLessonTitle: lessonTitle });
+      }
+      const subjectResult = reminderConfig.renderTemplateDetailed(draft.subject, vars);
+      const bodyResult = reminderConfig.renderTemplateDetailed(draft.bodyHtml, vars);
+      const unknownVars = Array.from(new Set([...subjectResult.unknownVars, ...bodyResult.unknownVars]));
+      res.json({
+        subject: subjectResult.html,
+        html: bodyResult.html,
+        unknownVars,
+        availableVars: reminderConfig.VARIABLE_DOCS[key] || []
+      });
+    } catch (err) {
+      logger.error({ err, key }, 'email-rules preview draft failed');
+      res.status(500).json({ error: 'preview failed' });
     }
   });
 
