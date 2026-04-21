@@ -8,6 +8,7 @@ function createCourseRoutes({
   getIP,
   rateLimit,
   verifyCourseAccess,
+  getCourseAccessRowsForToken,
   courses,
   siteUrl,
   smtpFrom,
@@ -26,14 +27,16 @@ function createCourseRoutes({
       const { token } = req.query;
       if (!token) return res.status(400).json({ error: 'Token required' });
 
-      const result = await pool.query(
-        `SELECT course_id, email FROM nb_course_access
-         WHERE access_token = $1 AND (expires_at IS NULL OR expires_at > NOW())`,
-        [token]
-      );
-      if (result.rows.length === 0) return res.status(403).json({ error: 'Invalid or expired token' });
+      const rows = getCourseAccessRowsForToken
+        ? await getCourseAccessRowsForToken(token)
+        : (await pool.query(
+          `SELECT course_id, email FROM nb_course_access
+           WHERE access_token = $1 AND (expires_at IS NULL OR expires_at > NOW())`,
+          [token]
+        )).rows;
+      if (rows.length === 0) return res.status(403).json({ error: 'Invalid or expired token' });
 
-      const ownedCourses = result.rows.map((row) => ({
+      const ownedCourses = rows.map((row) => ({
         id: row.course_id,
         name: courses[row.course_id]?.name || row.course_id,
         lessonCount: courses[row.course_id]?.lessons?.length || 0

@@ -129,7 +129,7 @@
             <td>${lastActive}</td>
             <td>${formatDate(s.lastPurchasedAt)}</td>
             <td>${threads}</td>
-            <td><button class="btn btn-sm" onclick="showDetail('${encodeURIComponent(s.accessToken)}')">View</button></td>
+            <td>${s.customerId ? `<a class="btn btn-sm" href="/admin/customers.html#/c/${encodeURIComponent(s.customerId)}">Customer</a>` : '—'}</td>
           </tr>`;
         }).join('');
       } catch (e) { console.error(e); }

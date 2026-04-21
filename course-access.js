@@ -1,5 +1,20 @@
-function createCourseAccess({ pool, logger, ttlMs = 120000 }) {
+function createCourseAccess({ pool, logger, jwt, jwtSecret, ttlMs = 120000 }) {
   const accessCache = new Map();
+
+  function decodeAdminImpersonationToken(token) {
+    if (!jwt || !jwtSecret) return null;
+    try {
+      const decoded = jwt.verify(token, jwtSecret, {
+        issuer: 'namibarden-admin',
+        audience: 'course-watch-impersonation'
+      });
+      if (decoded.kind !== 'admin-impersonate') return null;
+      if (!decoded.customerId || !decoded.courseId) return null;
+      return decoded;
+    } catch {
+      return null;
+    }
+  }
 
   async function verifyCourseAccess(token, courseId) {
     const cacheKey = `${token}:${courseId}`;
@@ -13,11 +28,54 @@ function createCourseAccess({ pool, logger, ttlMs = 120000 }) {
         [token, courseId]
       );
       const ok = result.rows.length > 0;
-      accessCache.set(cacheKey, { ok, ts: Date.now() });
-      return ok;
+      if (ok) {
+        accessCache.set(cacheKey, { ok: true, ts: Date.now() });
+        return true;
+      }
+
+      const impersonation = decodeAdminImpersonationToken(token);
+      if (!impersonation || impersonation.courseId !== courseId) {
+        accessCache.set(cacheKey, { ok: false, ts: Date.now() });
+        return false;
+      }
+
+      const adminResult = await pool.query(
+        `SELECT id FROM nb_course_access
+         WHERE customer_id = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
+        [impersonation.customerId, courseId]
+      );
+      return adminResult.rows.length > 0;
     } catch (err) {
       logger.error({ err }, 'verifyCourseAccess DB error');
       return false;
+    }
+  }
+
+  async function getCourseAccessRowsForToken(token) {
+    try {
+      const result = await pool.query(
+        `SELECT access_token, course_id, email, customer_id
+         FROM nb_course_access
+         WHERE access_token = $1 AND (expires_at IS NULL OR expires_at > NOW())
+         ORDER BY purchased_at ASC`,
+        [token]
+      );
+      if (result.rows.length > 0) return result.rows;
+
+      const impersonation = decodeAdminImpersonationToken(token);
+      if (!impersonation) return [];
+
+      const adminResult = await pool.query(
+        `SELECT access_token, course_id, email, customer_id
+         FROM nb_course_access
+         WHERE customer_id = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())
+         ORDER BY purchased_at ASC`,
+        [impersonation.customerId, impersonation.courseId]
+      );
+      return adminResult.rows;
+    } catch (err) {
+      logger.error({ err }, 'getCourseAccessRowsForToken DB error');
+      return [];
     }
   }
 
@@ -29,6 +87,7 @@ function createCourseAccess({ pool, logger, ttlMs = 120000 }) {
 
   return {
     verifyCourseAccess,
+    getCourseAccessRowsForToken,
     cleanupAccessCache
   };
 }

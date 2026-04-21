@@ -14,6 +14,7 @@ function createCourseEngagement({
   getIP,
   rateLimit,
   verifyCourseAccess,
+  getCourseAccessRowsForToken,
   courses,
   sendWhatsApp,
   namiJid
@@ -74,27 +75,34 @@ function createCourseEngagement({
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_qa_messages_thread ON nb_qa_messages(thread_id, created_at)`);
   }
 
-  async function lookupAccessRow(token, courseId) {
-    const result = await pool.query(
-      `SELECT access_token, course_id, email, customer_id
-       FROM nb_course_access
-       WHERE access_token = $1 AND course_id = $2
-       LIMIT 1`,
-      [token, courseId]
-    );
-    return result.rows[0] || null;
+  // Returns { accessToken, courseId, email, customerId, impersonated } or null.
+  // Resolves both raw access_tokens and admin-impersonation JWTs via course-access.js.
+  async function resolveAccessForCourse(token, courseId) {
+    if (!getCourseAccessRowsForToken) return null;
+    const rows = await getCourseAccessRowsForToken(token);
+    const match = rows.find((r) => r.course_id === courseId);
+    if (!match) return null;
+    return {
+      accessToken: match.access_token,
+      courseId: match.course_id,
+      email: match.email,
+      customerId: match.customer_id,
+      impersonated: match.access_token !== token
+    };
   }
 
-  async function lookupTokenIdentity(token) {
-    const result = await pool.query(
-      `SELECT access_token, email, customer_id
-       FROM nb_course_access
-       WHERE access_token = $1
-       ORDER BY purchased_at ASC
-       LIMIT 1`,
-      [token]
-    );
-    return result.rows[0] || null;
+  async function resolveTokenIdentity(token) {
+    if (!getCourseAccessRowsForToken) return null;
+    const rows = await getCourseAccessRowsForToken(token);
+    if (!rows.length) return null;
+    const first = rows[0];
+    return {
+      accessToken: first.access_token,
+      email: first.email,
+      customerId: first.customer_id,
+      impersonated: first.access_token !== token,
+      accessTokens: Array.from(new Set(rows.map((r) => r.access_token)))
+    };
   }
 
   // ─── Student progress ─────────────────────────────────────────
@@ -110,8 +118,11 @@ function createCourseEngagement({
       if (!courses[courseId]) return res.status(404).json({ error: 'Course not found' });
       if (!await verifyCourseAccess(token, courseId)) return res.status(403).json({ error: 'Access denied' });
 
-      const access = await lookupAccessRow(token, courseId);
+      const access = await resolveAccessForCourse(token, courseId);
       if (!access) return res.status(403).json({ error: 'Access denied' });
+
+      // Admin-impersonation mode is read-only — don't pollute student progress metrics
+      if (access.impersonated) return res.json({ ok: true, impersonated: true, skipped: true });
 
       const pos = Math.max(0, Number(position) || 0);
       const dur = Math.max(0, Number(duration) || 0);
@@ -139,7 +150,7 @@ function createCourseEngagement({
            email = EXCLUDED.email,
            customer_id = COALESCE(EXCLUDED.customer_id, nb_lesson_progress.customer_id)`,
         [
-          token, courseId, lessonId, access.email, access.customer_id || null,
+          access.accessToken, courseId, lessonId, access.email, access.customerId || null,
           pos, dur, isComplete, isComplete ? new Date() : null
         ]
       );
@@ -162,11 +173,14 @@ function createCourseEngagement({
       if (!token) return res.status(401).json({ error: 'Token required' });
       if (!await verifyCourseAccess(token, courseId)) return res.status(403).json({ error: 'Access denied' });
 
+      const access = await resolveAccessForCourse(token, courseId);
+      if (!access) return res.status(403).json({ error: 'Access denied' });
+
       const result = await pool.query(
         `SELECT lesson_id, position_seconds, duration_seconds, completed, last_watched_at
          FROM nb_lesson_progress
          WHERE access_token = $1 AND course_id = $2`,
-        [token, courseId]
+        [access.accessToken, courseId]
       );
       res.json({
         ok: true,
@@ -194,16 +208,16 @@ function createCourseEngagement({
       const { token } = req.query;
       if (!token) return res.status(401).json({ error: 'Token required' });
 
-      const identity = await lookupTokenIdentity(token);
+      const identity = await resolveTokenIdentity(token);
       if (!identity) return res.status(403).json({ error: 'Invalid token' });
 
       const threads = await pool.query(
         `SELECT id, course_id, lesson_id, subject, status, unread_for_student, last_message_at, created_at
          FROM nb_qa_threads
-         WHERE access_token = $1
+         WHERE access_token = ANY($1::varchar[])
          ORDER BY last_message_at DESC
          LIMIT 100`,
-        [token]
+        [identity.accessTokens]
       );
 
       res.json({
@@ -236,9 +250,11 @@ function createCourseEngagement({
       const threadId = parseInt(req.params.threadId, 10);
       if (!threadId) return res.status(400).json({ error: 'Invalid thread' });
 
+      const identity = await resolveTokenIdentity(token);
+      if (!identity) return res.status(403).json({ error: 'Invalid token' });
       const thread = await pool.query(
-        `SELECT id, course_id, lesson_id, subject, status FROM nb_qa_threads WHERE id = $1 AND access_token = $2`,
-        [threadId, token]
+        `SELECT id, course_id, lesson_id, subject, status FROM nb_qa_threads WHERE id = $1 AND access_token = ANY($2::varchar[])`,
+        [threadId, identity.accessTokens]
       );
       if (thread.rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
@@ -247,7 +263,10 @@ function createCourseEngagement({
         [threadId]
       );
 
-      await pool.query(`UPDATE nb_qa_threads SET unread_for_student = FALSE WHERE id = $1`, [threadId]);
+      // Admin-impersonation reads don't clear student unread state
+      if (!identity.impersonated) {
+        await pool.query(`UPDATE nb_qa_threads SET unread_for_student = FALSE WHERE id = $1`, [threadId]);
+      }
 
       res.json({
         ok: true,
@@ -273,8 +292,13 @@ function createCourseEngagement({
       if (!trimmedBody) return res.status(400).json({ error: 'Question body required' });
       if (trimmedBody.length > MAX_QUESTION_LENGTH) return res.status(400).json({ error: 'Question too long' });
 
-      const identity = await lookupTokenIdentity(token);
+      const identity = await resolveTokenIdentity(token);
       if (!identity) return res.status(403).json({ error: 'Invalid token' });
+
+      // Admin-impersonation mode is read-only — don't create threads as the customer
+      if (identity.impersonated) {
+        return res.status(403).json({ error: 'Admin impersonation is read-only' });
+      }
 
       if (courseId && !await verifyCourseAccess(token, courseId)) {
         return res.status(403).json({ error: 'Access denied' });
@@ -290,7 +314,7 @@ function createCourseEngagement({
            (access_token, customer_id, email, name, course_id, lesson_id, subject, status, unread_for_admin, last_message_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, 'open', TRUE, NOW())
          RETURNING id`,
-        [token, identity.customer_id || null, identity.email, (name || '').trim() || null,
+        [identity.accessToken, identity.customerId || null, identity.email, (name || '').trim() || null,
          courseId || null, lessonId || null, derivedSubject]
       );
       const threadId = threadRes.rows[0].id;
@@ -343,9 +367,13 @@ function createCourseEngagement({
       if (!trimmed) return res.status(400).json({ error: 'Message required' });
       if (trimmed.length > MAX_QUESTION_LENGTH) return res.status(400).json({ error: 'Message too long' });
 
+      const identity = await resolveTokenIdentity(token);
+      if (!identity) return res.status(403).json({ error: 'Invalid token' });
+      if (identity.impersonated) return res.status(403).json({ error: 'Admin impersonation is read-only' });
+
       const thread = await pool.query(
-        `SELECT id, subject, email FROM nb_qa_threads WHERE id = $1 AND access_token = $2`,
-        [threadId, token]
+        `SELECT id, subject, email FROM nb_qa_threads WHERE id = $1 AND access_token = ANY($2::varchar[])`,
+        [threadId, identity.accessTokens]
       );
       if (thread.rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
@@ -421,7 +449,6 @@ function createCourseEngagement({
 
       res.json({
         students: rows.map((r) => ({
-          accessToken: r.access_token,
           email: r.email,
           customerId: r.customer_id,
           name: r.customer_name,
@@ -495,7 +522,6 @@ function createCourseEngagement({
       const student = accessRows[0];
       res.json({
         student: {
-          accessToken: student.access_token,
           email: student.email,
           customerId: student.customer_id,
           name: student.customer_name
@@ -579,7 +605,7 @@ function createCourseEngagement({
       if (!id) return res.status(400).json({ error: 'Invalid id' });
 
       const thread = (await pool.query(
-        `SELECT id, access_token, email, name, course_id, lesson_id, subject, status,
+        `SELECT id, customer_id, email, name, course_id, lesson_id, subject, status,
                 unread_for_admin, last_message_at, created_at
          FROM nb_qa_threads WHERE id = $1`,
         [id]
@@ -601,7 +627,9 @@ function createCourseEngagement({
           id: thread.id,
           email: thread.email,
           name: thread.name,
-          accessToken: thread.access_token,
+          openAsStudentUrl: thread.customer_id && thread.course_id
+            ? `/api/admin/customers/${thread.customer_id}/open-as-student?course=${encodeURIComponent(thread.course_id)}`
+            : null,
           courseId: thread.course_id,
           courseName: course?.name || null,
           lessonId: thread.lesson_id,

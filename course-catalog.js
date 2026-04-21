@@ -1,4 +1,4 @@
-module.exports = {
+const courses = {
   'course-1': {
     name: '愛を引き寄せる心の授業',
     lessons: [
@@ -47,3 +47,18 @@ module.exports = {
     ]
   }
 };
+
+function getCourseLessonCount(courseId) {
+  const lessons = courses[courseId]?.lessons || [];
+  return lessons.filter((lesson) => {
+    const type = lesson.type || 'video';
+    return type !== 'pdf' && type !== 'ending';
+  }).length;
+}
+
+Object.defineProperty(courses, 'getCourseLessonCount', {
+  value: getCourseLessonCount,
+  enumerable: false
+});
+
+module.exports = courses;

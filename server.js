@@ -117,10 +117,13 @@ createHealthRoutes({
 
 const {
   verifyCourseAccess,
+  getCourseAccessRowsForToken,
   cleanupAccessCache
 } = createCourseAccess({
   pool,
-  logger
+  logger,
+  jwt,
+  jwtSecret: config.auth.jwtSecret
 });
 
 const {
@@ -280,6 +283,7 @@ createCourseRoutes({
   getIP,
   rateLimit,
   verifyCourseAccess,
+  getCourseAccessRowsForToken,
   courses: COURSES,
   siteUrl: config.siteUrl,
   smtpFrom: config.smtp.from,
@@ -302,6 +306,7 @@ const courseEngagement = createCourseEngagement({
   getIP,
   rateLimit,
   verifyCourseAccess,
+  getCourseAccessRowsForToken,
   courses: COURSES,
   sendWhatsApp,
   namiJid: NAMI_JID

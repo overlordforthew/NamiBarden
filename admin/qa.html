@@ -203,9 +203,8 @@
         }).join('');
 
         const watchLink = document.getElementById('viewAsStudent');
-        if (t.accessToken) {
-          const href = `/watch?token=${encodeURIComponent(t.accessToken)}${t.courseId ? `&course=${encodeURIComponent(t.courseId)}` : ''}${t.lessonId ? `&lesson=${encodeURIComponent(t.lessonId)}` : ''}`;
-          watchLink.href = href;
+        if (t.openAsStudentUrl) {
+          watchLink.href = t.openAsStudentUrl;
           watchLink.style.display = '';
         } else {
           watchLink.style.display = 'none';
@@ -258,9 +257,10 @@
       searchTimer = setTimeout(loadInbox, 300);
     });
 
-    // Deep-link support: /admin/qa.html?thread=123 (from email notifications)
+    // Deep-link support: /admin/qa.html?thread=123 and /admin/qa.html#thread-123
     const urlParams = new URLSearchParams(location.search);
-    const threadParam = parseInt(urlParams.get('thread'), 10);
+    const hashThread = (location.hash || '').match(/^#thread-(\d+)$/);
+    const threadParam = parseInt(urlParams.get('thread') || (hashThread && hashThread[1]), 10);
     if (threadParam) {
       showThread(threadParam);
     } else {

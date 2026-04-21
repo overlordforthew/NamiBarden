@@ -50,6 +50,13 @@ function createCustomerAuth({
     return jwt.sign({ role: 'customer', customerId, email }, jwtSecret, { expiresIn: '30d' });
   }
 
+  function recordLastLogin(customerId) {
+    pool.query(
+      `UPDATE nb_customers SET last_login_at=NOW(), updated_at=NOW() WHERE id=$1`,
+      [customerId]
+    ).catch((err) => logger.warn({ err, customerId }, 'last_login_at update failed'));
+  }
+
   function buildForgotPasswordEmail(resetUrl) {
     return `<div style="max-width:600px;margin:0 auto;font-family:'Helvetica Neue',Arial,sans-serif;color:#2C2419;background:#FAF7F2;padding:40px;">
         <h2 style="font-size:1.4rem;color:#2C2419;margin-bottom:24px;">${MESSAGES.resetTitleJa}</h2>
@@ -117,6 +124,7 @@ function createCustomerAuth({
 
       const token = issueCustomerToken(customerId, emailLower);
       setAuthCookie(res, 'nb_auth_token', token, 30 * 24 * 60 * 60 * 1000);
+      recordLastLogin(customerId);
       res.json({ ok: true });
     } catch (e) {
       logger.error({ err: e }, 'Auth register error');
@@ -147,6 +155,7 @@ function createCustomerAuth({
 
       const token = issueCustomerToken(customer.id, customer.email);
       setAuthCookie(res, 'nb_auth_token', token, 30 * 24 * 60 * 60 * 1000);
+      recordLastLogin(customer.id);
       res.json({ ok: true, name: customer.name });
     } catch (e) {
       logger.error({ err: e }, 'Auth login error');
@@ -264,6 +273,7 @@ function createCustomerAuth({
 
       const authToken = issueCustomerToken(result.rows[0].id, result.rows[0].email);
       setAuthCookie(res, 'nb_auth_token', authToken, 30 * 24 * 60 * 60 * 1000);
+      recordLastLogin(result.rows[0].id);
       res.json({ ok: true });
     } catch (e) {
       logger.error({ err: e }, 'Reset password error');
@@ -341,6 +351,7 @@ function createCustomerAuth({
       if (decoded.role !== 'magic-link') return res.redirect('/login?error=invalid-link');
       const authToken = issueCustomerToken(decoded.customerId, decoded.email);
       setAuthCookie(res, 'nb_auth_token', authToken, 30 * 24 * 60 * 60 * 1000);
+      recordLastLogin(decoded.customerId);
       res.redirect('/my-courses');
     } catch {
       res.redirect('/login?error=expired-link');

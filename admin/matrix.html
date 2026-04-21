@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Matrix — Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .matrix-wrap{background:var(--white);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.04);overflow:auto;max-height:calc(100vh - 210px);}
+    .matrix-table{min-width:920px;border-collapse:separate;border-spacing:0;}
+    .matrix-table th{position:sticky;top:0;background:var(--white);z-index:5;box-shadow:0 1px 0 var(--border);}
+    .matrix-table th:first-child,.matrix-table td:first-child{position:sticky;left:0;background:var(--white);z-index:6;box-shadow:1px 0 0 var(--border);min-width:260px;}
+    .matrix-table th:first-child{z-index:7;}
+    .matrix-table td{text-align:center;vertical-align:middle;}
+    .matrix-table td:first-child{text-align:left;}
+    .matrix-table tr{cursor:pointer;}
+    .matrix-table tr:hover td{background:rgba(196,168,130,0.07);}
+    .student-name{font-weight:600;}
+    .student-email{font-size:0.78rem;color:var(--text-light);margin-top:2px;}
+    .cell-owned{display:inline-flex;align-items:center;gap:8px;justify-content:center;}
+    .check{color:var(--success);font-weight:700;}
+    .missing{color:var(--text-light);}
+    .pct{font-size:0.78rem;color:var(--text-light);}
+    .lumina-refunded{color:var(--danger);font-weight:600;}
+    .lumina-active{color:var(--success);font-weight:700;}
+    .toggle-label{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--text-light);margin:0;}
+    .toggle-label input{width:auto;}
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg><span>Dashboard</span></a>
+    <a href="/admin/customers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 11c1.657 0 3-1.567 3-3.5S17.657 4 16 4s-3 1.567-3 3.5S14.343 11 16 11zM8 11c1.657 0 3-1.567 3-3.5S9.657 4 8 4 5 5.567 5 7.5 6.343 11 8 11zM2 20c.5-3 2.5-5 6-5s5.5 2 6 5M10 20c.4-2.4 2-4 6-4 3.2 0 5 1.5 6 4"/></svg><span>Customers</span></a>
+    <a href="/admin/matrix.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16M4 12h16M4 19h16M9 5v14M15 5v14"/></svg><span>Matrix</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20H7a5 5 0 0110 0zM12 10a3 3 0 100-6 3 3 0 000 6z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/students.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 14l9-5-9-5-9 5 9 5zM6 12v5c2 2 10 2 12 0v-5"/></svg><span>Students</span></a>
+    <a href="/admin/qa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12c0 4-4 7-9 7-1.4 0-2.8-.3-4-.8L3 20l1.5-4C3.6 14.8 3 13.4 3 12c0-4 4-7 9-7s9 3 9 7z"/></svg><span>Q&A</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16v12H4zM4 7l8 6 8-6"/></svg><span>Campaigns</span></a>
+    <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.3 4l-8 14h19.4l-8-14a2 2 0 00-3.4 0z"/></svg><span>Alerts</span></a>
+    <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
+    <div class="sidebar-logout"><a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4-4-4M21 12H7M13 20H5a2 2 0 01-2-2V6a2 2 0 012-2h8"/></svg><span>Logout</span></a></div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Matrix</h1>
+      <button class="btn" id="exportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Download CSV</button>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Search email or name..." style="min-width:250px">
+      <select id="ownershipFilter">
+        <option value="">Any ownership</option>
+        <option value="course-1:owned">Owns Course 1</option>
+        <option value="course-1:missing">Missing Course 1</option>
+        <option value="course-2:owned">Owns Course 2</option>
+        <option value="course-2:missing">Missing Course 2</option>
+      </select>
+      <label class="toggle-label"><input type="checkbox" id="includeEmptyStudents"> Include empty students</label>
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="matrix-table">
+        <thead id="matrixHead"></thead>
+        <tbody id="matrixBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <script src="/admin/admin.js"></script>
+  <script>
+    if (!requireAuth()) throw 'auth';
+    initSidebar();
+
+    let currentPage = 1;
+    const limit = 100;
+
+    function clear(el) {
+      while (el.firstChild) el.removeChild(el.firstChild);
+    }
+
+    function buildParams(page) {
+      const params = new URLSearchParams({ page: page || currentPage, limit });
+      const search = document.getElementById('searchInput').value.trim();
+      const ownership = document.getElementById('ownershipFilter').value;
+      if (search) params.set('search', search);
+      if (ownership) params.set('courseOwnership', ownership);
+      if (document.getElementById('includeEmptyStudents').checked) params.set('includeEmptyStudents', 'true');
+      return params;
+    }
+
+    function renderCourseCell(td, cell) {
+      const wrap = document.createElement('span');
+      wrap.className = 'cell-owned';
+      const mark = document.createElement('span');
+      mark.className = cell.owned ? 'check' : 'missing';
+      mark.textContent = cell.owned ? '✓' : '✗';
+      wrap.appendChild(mark);
+      if (cell.owned) {
+        const pct = document.createElement('span');
+        pct.className = 'pct';
+        pct.textContent = `${cell.completionPct || 0}%`;
+        wrap.appendChild(pct);
+        td.title = `${cell.completedCount || 0}/${cell.totalLessons || 0} completed`;
+      }
+      td.appendChild(wrap);
+    }
+
+    function renderLuminaCell(td, cell) {
+      const status = cell.normalizedStatus || 'none';
+      if (status === 'refunded' || status === 'revoked') {
+        const badge = document.createElement('span');
+        badge.className = 'lumina-refunded';
+        badge.textContent = '—';
+        td.title = status;
+        td.appendChild(badge);
+        return;
+      }
+      const mark = document.createElement('span');
+      mark.className = cell.owned ? 'lumina-active' : 'missing';
+      mark.textContent = cell.owned ? (status === 'lifetime' ? '✓' : '⏳') : '✗';
+      td.title = status;
+      td.appendChild(mark);
+      if (cell.owned && status !== 'lifetime') {
+        const pct = document.createElement('span');
+        pct.className = 'pct';
+        pct.style.marginLeft = '6px';
+        pct.textContent = status;
+        td.appendChild(pct);
+      }
+    }
+
+    async function loadMatrix(page) {
+      currentPage = page || 1;
+      const data = await api(`/matrix?${buildParams(currentPage)}`);
+      const head = document.getElementById('matrixHead');
+      const body = document.getElementById('matrixBody');
+      clear(head);
+      clear(body);
+
+      const trh = document.createElement('tr');
+      const first = document.createElement('th');
+      first.textContent = 'Customer';
+      trh.appendChild(first);
+      data.columns.forEach(function(col) {
+        const th = document.createElement('th');
+        th.textContent = col.name;
+        if (col.totalLessons) th.title = `${col.totalLessons} playable lessons`;
+        trh.appendChild(th);
+      });
+      head.appendChild(trh);
+
+      if (!data.rows.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = data.columns.length + 1;
+        td.className = 'empty';
+        td.textContent = 'No customers found';
+        tr.appendChild(td);
+        body.appendChild(tr);
+      } else {
+        data.rows.forEach(function(row) {
+          const tr = document.createElement('tr');
+          tr.onclick = function() { window.location.href = `/admin/customers.html#/c/${row.customerId}`; };
+          const customer = document.createElement('td');
+          const name = document.createElement('div');
+          name.className = 'student-name';
+          name.textContent = row.name || row.email;
+          const email = document.createElement('div');
+          email.className = 'student-email';
+          email.textContent = row.email;
+          customer.append(name, email);
+          tr.appendChild(customer);
+          data.columns.forEach(function(col) {
+            const td = document.createElement('td');
+            const cell = row.cells[col.courseId] || { owned: false };
+            if (col.courseId === 'lumina') renderLuminaCell(td, cell);
+            else renderCourseCell(td, cell);
+            tr.appendChild(td);
+          });
+          body.appendChild(tr);
+        });
+      }
+      renderPagination(document.getElementById('pagination'), data.page, data.total, limit, loadMatrix);
+    }
+
+    function exportCSV() {
+      const params = buildParams(currentPage);
+      params.delete('page');
+      params.delete('limit');
+      const url = `/api/admin/matrix/export?${params}`;
+      fetch(url, { credentials: 'same-origin' })
+        .then(function(r) { if (!r.ok) throw new Error('Export failed'); return r.blob(); })
+        .then(function(blob) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'customer-matrix.csv';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        })
+        .catch(function(e) { alert(e.message); });
+    }
+
+    let searchTimer;
+    document.getElementById('searchInput').addEventListener('input', function() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() { loadMatrix(1).catch(function(e) { alert(e.message); }); }, 300);
+    });
+    document.getElementById('ownershipFilter').addEventListener('change', function() { loadMatrix(1).catch(function(e) { alert(e.message); }); });
+    document.getElementById('includeEmptyStudents').addEventListener('change', function() { loadMatrix(1).catch(function(e) { alert(e.message); }); });
+    document.getElementById('exportBtn').addEventListener('click', exportCSV);
+    loadMatrix(1).catch(function(e) { alert(e.message); });
+  </script>
+</body>
+</html>
