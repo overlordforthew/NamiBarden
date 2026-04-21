@@ -1,145 +1,234 @@
-# Phase 3 — Student ↔ Nami chat: SSE realtime + email alerts + magic deep-link + attachments + "DM Nami" channel
+# Phase 3 — Student ↔ Nami chat: SSE + DM + email alerts + attachments + magic deep-link
 
-**Status:** draft pending consensus
-**Dependencies:** Phase 1 (lifetime entitlement model live) + Phase 2 (admin customer-detail; not strictly blocking but overlapping files)
+**Status:** post-consensus (Opus + GPT-5.4 xhigh adversarial review; 1 CRITICAL + 16 HIGH + 14 MEDIUM items resolved)
+**Dependencies:** Phase 1 (Lumina lifetime) + Phase 2 (admin customer-detail) both LIVE
 
 ## 1. Goals
 
-Transform the existing Q&A threads into something students actually use as a DM channel with Nami:
+- **"DM Nami" channel** — one canonical DM thread per customer. Not tied to a course or lesson.
+- **Server-Sent Events** — admin sees new messages without polling; students see Nami's replies without refresh; durable reconnect via `Last-Event-ID` cursor.
+- **Instant email alert** with opaque magic deep-link that auto-auths Nami **scope-limited to that thread**.
+- **Attachments** — images / PDFs / audio via R2, server-side magic-byte validation, pending-upload table keeps GC safe.
+- **Admin UI** — extends `/admin/qa.html` with attachment uploader + SSE + DM filter + proper DOM-text rendering.
+- **Student UI** — "DM Nami" tile on `/watch` + standalone `/messages` page for Lumina-only customers.
+- Fixes the Phase 2 deferred regression: admin workflow for token-only Q&A threads.
 
-- **General "DM Nami" channel** — students can message Nami independent of any course or lesson (`course_id`/`lesson_id` NULL).
-- **Server-Sent Events (SSE) realtime** — admin sees new student messages in `/admin/qa.html` without polling; students see Nami's replies without refresh.
-- **Email alerts** — `namibarden@gmail.com` pings Nami within seconds of any student message, with a magic-link deep jump that auto-auths her straight into the thread.
-- **Attachments** — students and Nami can attach images / PDFs / short audio; stored in R2, signed-URL delivered.
-- **Magic deep-link auto-auth for Nami** — email → one click → `/admin/qa.html?thread=123` with admin cookie already set, no password re-entry.
-- **Nami reply UI** — the existing admin reply textarea already works; we add attachment upload + typing indicator + unread counts + optimistic rendering.
-
-Out of scope for Phase 3: voice/video messages, group chats, read-receipts beyond unread_for_student/admin booleans, message edit/delete.
-
-## 2. Product decisions (locked — challenge in consensus)
+## 2. Product decisions (post-consensus, locked)
 
 | Item | Decision |
 |---|---|
-| General channel identifier | `course_id=NULL, lesson_id=NULL` with new `channel='dm'` enum column. Course-context threads get `channel='course'`. Schema CHECK enforces one of two. |
-| Email alert strategy | Fire instantly per student message (no batching). Debounce: if Nami has already replied in the last 10 min to the same thread, suppress the email (she's actively engaged). |
-| SSE vs WebSocket | SSE — one-way server → client, works on our Express+nginx stack without new infra. Nami's reply still goes through POST. Bidirectional chat illusion assembled client-side. |
-| SSE scope | Per admin: one SSE stream showing all thread events (new thread, new message, status change). Per student: one SSE stream for their own threads (keyed by access_token + customer_id). |
-| Attachment types | `image/*` (jpeg/png/gif/webp, max 5 MB), `application/pdf` (max 10 MB), `audio/*` (mp4/m4a/mp3, max 10 MB, length < 3 min). Reject anything else. |
-| Attachment retention | Indefinite. R2 lifecycle policies deferred to ops (not spec). |
-| Magic deep-link TTL | 15 minutes. One-time use (token consumed on first auth). |
-| Deep-link authorization | Signed short-TTL JWT `{role:'admin', kind:'thread-deep-link', threadId, exp}`. Grants admin cookie + redirects. Rate-limited: 1 issue per thread per 30 sec (prevents email resend abuse). |
-| Alert from address | `SMTP_FROM` (domain-owned). ReplyTo = `namibarden@gmail.com` so Nami can reply-in-email AND click the deep-link. |
-| Admin UI scope | Extend `/admin/qa.html` — don't fork. Add attachment uploader, SSE live update, DM Nami channel filter. |
-| Student UI scope | A "Messages" section on the existing watch page (`/watch?token=...`) — scoped to that student's threads. Plus a public page `/messages` where a logged-in customer can DM Nami without owning any course. |
-| Unread semantics | `unread_for_admin` clears when Nami opens the thread (existing behavior). `unread_for_student` clears when student opens the thread (currently not implemented). |
+| DM cardinality | **One canonical DM thread per customer** (UNIQUE partial index `(customer_id) WHERE channel='dm'`). Multi-topic deferred. |
+| Channel column | `channel ENUM('course','dm')` with CHECK that DM means `course_id IS NULL AND lesson_id IS NULL`; course means `course_id IS NOT NULL`. |
+| DM access_token | `access_token` becomes **nullable** for `channel='dm'`. DM threads keyed by `customer_id`; old `access_token` stays NOT NULL for `channel='course'`. |
+| SSE durability | Native `EventSource` reconnect + server emits `id: <messageId>` line + client resync via `GET /api/chat/threads/:id?since=<lastSeenMessageId>` on reconnect. Not Redis — single container. |
+| Deep-link token | **Opaque random 32-byte hex.** Raw in URL query; SHA-256 hash in DB. Atomic consume: `UPDATE ... SET consumed_at=NOW() WHERE token_hash=$1 AND consumed_at IS NULL AND expires_at>NOW() RETURNING thread_id`. |
+| Deep-link consumption | **POST-consume.** GET `/api/admin/link-thread?token=X` renders a one-tap "Open thread as Nami" button → POST `/api/admin/link-thread` with token in form body → consume + redirect. Stops email-scanner prefetch from consuming the token. |
+| Deep-link admin scope | **Thread-scoped admin JWT**, 15-min TTL, audience `thread-admin:<threadId>`. Not a full 24h admin cookie. To access the rest of the admin panel, Nami still has to log in normally. |
+| Reply-by-email | **No.** Nami alert email copy explicitly: "Reply to this email goes to the student's inbox only and is NOT stored. Use Open thread to send + track." `replyTo` = student email. |
+| Attachment types + sizes | image/* up to **10 MB**, application/pdf up to **15 MB**, audio/* up to **25 MB** (voice notes). Audio duration enforced only if `ffprobe` available; if not, accept without duration cap. ffprobe install deferred — enforcement fails-closed only for images/PDFs. |
+| Attachment MIME validation | Server-side **magic-byte check** via the `file-type` npm package (or an equivalent 200-byte-signature comparison). Reject SVG + HTML polyglots. Stored MIME = detected, not submitted. |
+| Pending-upload table | `nb_qa_pending_attachments` — uploads go here first with `expires_at = NOW() + 1h`. Committed to `nb_qa_attachments` inside the message POST transaction. GC deletes pending rows + R2 keys older than expires_at. |
+| Transactional commit | Message insert + attachment commit + thread update = one BEGIN/COMMIT. SSE + email fire **after** commit, on the returned `messageId + created_at`. |
+| Message ordering | SQL `ORDER BY created_at ASC, id ASC`. SSE payload always includes `{id, createdAt}`. Clients de-dupe by id on resync. |
+| Rate limits | See §7. Separate quotas for DM create, reply (course + DM), attachment upload, deep-link issuance. |
+| Email debounce | First unread student message in a thread → email immediately. Subsequent unread messages within 15 min → coalesced (no email). Next email only after Nami opens thread OR after 15 min elapses with no reply. |
+| nginx body size | Bump to **30 MB** for `/api/chat/attachments` location (covers 25 MB audio + multipart overhead). Rest of `/api/` stays at current 5 MB. |
+| SSE nginx config | Dedicated `location` for `/api/chat/stream` + `/api/admin/qa/stream`: `proxy_buffering off; proxy_read_timeout 3600;` |
+| Upload JWT | Dedicated signing audience `chat-upload`, separate from customer/admin auth. Claims: `{kind, uploader (role+id), r2Key, mime, size, sha256, exp=1h}`. Binds the upload to the uploader; leak risk limited to same uploader's future threads. |
+| Attachment URL in SSE | Stable route `/api/chat/attachments/:id/view` (mints signed URL on demand). SSE payload never contains signed URLs. |
+| Token-only Q&A regression (Phase 2 holdover) | Resolved here: new endpoint `/api/admin/qa/:id/open-as-student` issues a course-impersonation JWT for the thread's `access_token` (no raw token in response). |
+| Nginx route ordering | `/api/chat/stream`, `/api/admin/qa/stream`, `/api/chat/attachments` — each **before** the catch-all `/api/` in nginx.conf. |
+| ensureTables runtime | Phase 3 removes the runtime `ensureTables()` drift in course-engagement.js — `schema.sql` + `migrations/` are the only source of truth. |
+| CSP | `connect-src 'self' https://*.r2.cloudflarestorage.com`, `img-src`/`media-src` likewise. Final host confirmed from current R2_ENDPOINT. |
 
 ## 3. Schema changes
 
 ```sql
 -- migrations/003_chat_sse_attachments.sql
 
--- 1) channel column on threads
+BEGIN;
+
+-- 1) channel column + consistency
 ALTER TABLE nb_qa_threads
-  ADD COLUMN IF NOT EXISTS channel VARCHAR(20) NOT NULL DEFAULT 'course'
-    CHECK (channel IN ('course', 'dm'));
+  ADD COLUMN IF NOT EXISTS channel VARCHAR(20) NOT NULL DEFAULT 'course';
 
--- When channel='dm', course_id and lesson_id must be NULL
-ALTER TABLE nb_qa_threads
-  ADD CONSTRAINT nb_qa_threads_channel_consistency
-  CHECK (
-    (channel = 'dm' AND course_id IS NULL AND lesson_id IS NULL)
-    OR channel = 'course'
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'nb_qa_threads_channel_chk'
+  ) THEN
+    ALTER TABLE nb_qa_threads
+      ADD CONSTRAINT nb_qa_threads_channel_chk CHECK (channel IN ('course','dm'));
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'nb_qa_threads_channel_consistency'
+  ) THEN
+    ALTER TABLE nb_qa_threads
+      ADD CONSTRAINT nb_qa_threads_channel_consistency CHECK (
+        (channel = 'dm' AND course_id IS NULL AND lesson_id IS NULL)
+        OR (channel = 'course' AND course_id IS NOT NULL)
+      );
+  END IF;
+END $$;
 
-CREATE INDEX IF NOT EXISTS idx_qa_threads_channel_last ON nb_qa_threads(channel, last_message_at DESC);
+-- DM threads don't need an access_token
+ALTER TABLE nb_qa_threads ALTER COLUMN access_token DROP NOT NULL;
 
--- 2) attachments table
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'nb_qa_threads_token_required_for_course'
+  ) THEN
+    ALTER TABLE nb_qa_threads
+      ADD CONSTRAINT nb_qa_threads_token_required_for_course CHECK (
+        channel = 'dm' OR access_token IS NOT NULL
+      );
+  END IF;
+END $$;
+
+-- One DM thread per customer
+CREATE UNIQUE INDEX IF NOT EXISTS idx_qa_threads_dm_one_per_customer
+  ON nb_qa_threads(customer_id) WHERE channel = 'dm';
+
+CREATE INDEX IF NOT EXISTS idx_qa_threads_channel_last
+  ON nb_qa_threads(channel, last_message_at DESC);
+
+-- 2) nb_qa_messages.body allow empty when attachments exist — already TEXT NOT NULL;
+-- use empty string '' when user sends attachment-only (not NULL). Enforced at API layer.
+
+-- 3) pending uploads (mutated by upload endpoint, committed by message POST)
+CREATE TABLE IF NOT EXISTS nb_qa_pending_attachments (
+  id SERIAL PRIMARY KEY,
+  uploader VARCHAR(20) NOT NULL CHECK (uploader IN ('student','nami')),
+  uploader_customer_id INTEGER REFERENCES nb_customers(id) ON DELETE SET NULL,
+  uploader_access_token VARCHAR(64),   -- for guest/course-token uploads
+  r2_key VARCHAR(512) NOT NULL UNIQUE,
+  detected_mime VARCHAR(100) NOT NULL,
+  declared_mime VARCHAR(100),
+  size_bytes INTEGER NOT NULL,
+  sha256 CHAR(64) NOT NULL,
+  original_filename VARCHAR(255),
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_qa_pending_expires
+  ON nb_qa_pending_attachments(expires_at);
+
+-- 4) committed attachments
 CREATE TABLE IF NOT EXISTS nb_qa_attachments (
   id SERIAL PRIMARY KEY,
   message_id INTEGER NOT NULL REFERENCES nb_qa_messages(id) ON DELETE CASCADE,
   thread_id INTEGER NOT NULL REFERENCES nb_qa_threads(id) ON DELETE CASCADE,
-  uploader VARCHAR(20) NOT NULL CHECK (uploader IN ('student', 'nami')),
+  uploader VARCHAR(20) NOT NULL CHECK (uploader IN ('student','nami')),
   r2_key VARCHAR(512) NOT NULL UNIQUE,
-  original_filename VARCHAR(255),
-  mime_type VARCHAR(100) NOT NULL,
+  detected_mime VARCHAR(100) NOT NULL,
   size_bytes INTEGER NOT NULL,
-  duration_seconds INTEGER,   -- for audio only; null otherwise
+  sha256 CHAR(64) NOT NULL,
+  original_filename VARCHAR(255),
+  duration_seconds INTEGER,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_qa_attachments_message ON nb_qa_attachments(message_id);
 CREATE INDEX IF NOT EXISTS idx_qa_attachments_thread ON nb_qa_attachments(thread_id);
 
--- 3) magic deep-link tokens (one-time use, short TTL)
+-- 5) magic deep-link tokens
 CREATE TABLE IF NOT EXISTS nb_admin_thread_link_tokens (
   id SERIAL PRIMARY KEY,
-  token_hash VARCHAR(128) NOT NULL UNIQUE,  -- SHA-256 of the token (never store raw)
+  token_hash CHAR(64) NOT NULL UNIQUE,          -- sha256 hex of raw token
   thread_id INTEGER NOT NULL REFERENCES nb_qa_threads(id) ON DELETE CASCADE,
   issued_at TIMESTAMP DEFAULT NOW(),
   expires_at TIMESTAMP NOT NULL,
-  consumed_at TIMESTAMP,     -- NULL until first use
+  consumed_at TIMESTAMP,
   consumed_ip VARCHAR(45),
-  created_reason VARCHAR(100)  -- 'email-alert' | 'manual' | etc.
+  created_reason VARCHAR(100)
 );
 
-CREATE INDEX IF NOT EXISTS idx_thread_link_tokens_expires ON nb_admin_thread_link_tokens(expires_at) WHERE consumed_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_thread_link_tokens_pending
+  ON nb_admin_thread_link_tokens(expires_at)
+  WHERE consumed_at IS NULL;
+
+COMMIT;
 ```
 
 ## 4. API surface
 
-### Student → threads
+Every route below states its **auth rule** explicitly.
+
+### Student-facing
 
 ```
 POST /api/chat/dm
-Auth: customerAuth OR access_token OR guest (email+name, same as existing /api/courses/questions)
-Body: { body: string, attachments: [<uploadId>, ...] }  // creates a new DM thread
-Response: { thread: {...}, message: {...} }
+Auth: customerAuth (JWT cookie) — Lumina-only customers allowed
+Body: { body?: string, attachments: [<uploadId>] }
+Behavior: on first call creates the DM thread (channel='dm', customer_id=req.customer.id, access_token=NULL);
+          subsequent calls append to same thread.
+Response: { threadId, messageId, createdAt, attachments: [{id, detectedMime, sizeBytes, durationSeconds, originalFilename}] }
+Rate limit: 30 messages per customer per hour, 200 per IP per day.
+Body constraint: body may be empty ("") if attachments.length > 0; else required.
 ```
 
 ```
 POST /api/chat/threads/:id/messages
-Auth: customerAuth OR access_token matching thread.access_token
-Body: { body: string, attachments: [<uploadId>, ...] }
-Response: { message: {...} }
+Auth rule (any):
+  - admin JWT cookie; OR
+  - customerAuth && thread.customer_id = req.customer.id; OR
+  - ?token=<access_token> matches thread.access_token (course threads only).
+Body: { body?: string, attachments: [<uploadId>] }
+Rate limit: 60 per customer per hour / 30 per access_token per hour.
+Transactional: message + attachment claim + thread.last_message_at + unread_for_admin/student in one BEGIN/COMMIT; SSE emit after commit.
 ```
 
 ```
 GET /api/chat/threads
 Auth: customerAuth OR ?token=<access_token>
-Returns: list of threads belonging to this student (DM + course Q&A)
+Returns: all threads for the authenticated identity (customer_id OR access_token match), ordered by last_message_at DESC.
 ```
 
 ```
 GET /api/chat/threads/:id
-Returns: thread + messages + attachments (signed URLs)
-Side effect: clears unread_for_student
+Auth rule (same as POST above — explicit ownership enforced in the same DB query that selects the thread).
+Query: ?since=<lastSeenMessageId> optional; returns only messages with id > since.
+Side effect: sets unread_for_student = FALSE (only if admin is not impersonating).
 ```
 
 ```
 GET /api/chat/stream
-Auth: customerAuth OR ?token=<access_token>
-Response: text/event-stream
-Events:
-  event: message   data: {threadId, messageId, body, senderRole, createdAt, attachments}
-  event: status    data: {threadId, status}
+Auth: customerAuth (for DM + customer_id-linked course threads) OR ?token=<access_token> (for specific course).
+Response: text/event-stream; res.flushHeaders() immediately, initial `:ok\n\n`, heartbeat every 20s.
+Events emitted:
+  id: <messageId>
+  event: message
+  data: {threadId, messageId, body, sender, senderRole, createdAt, hasAttachments, attachmentCount}
+
+Supports Last-Event-ID header — server replays missed messages since that id (cap 100 replay messages, else instruct client to full-refetch).
+Rate limit: max 3 concurrent streams per customer/token.
 ```
 
-### Attachments (shared by student + admin paths)
+### Attachment endpoints
 
 ```
 POST /api/chat/attachments
-Auth: customerAuth/access_token (student) OR admin JWT
-multipart/form-data, single file field "file"
-Limits: type allowlist + size limits from §2
-Response: { uploadId, r2Key, previewUrl (signed, 1h TTL) }
-Note: attachment is uncommitted — becomes durable only when referenced from a message in POST /messages.
-Uncommitted uploads older than 1 hour get garbage-collected nightly (cron job).
+Auth: customerAuth OR ?token=<access_token> (student); OR admin JWT (Nami).
+multipart/form-data, single file "file" field, max 30 MB.
+Server pipeline:
+  1. Stream to buffer (multer memory, cap to declared size + 1 MB slack).
+  2. Read first 4 KB, run file-type magic byte check → detected MIME.
+  3. Reject if detected MIME not in allowlist (image/*, application/pdf, audio/*).
+  4. Compute SHA-256.
+  5. Upload to R2 (PutObjectCommand, private ACL, key: qa/<yyyy>/<mm>/<dd>/<uuid>-<sanitized>.
+  6. INSERT nb_qa_pending_attachments (expires_at = NOW() + 1h).
+  7. Sign uploadId JWT with audience 'chat-upload' expiring in 1h, claims:
+       {kind:'upload', uploader:{role,id}, r2Key, mime:detected, size, sha256, expPerMatch:true}
+Response: { uploadId, viewUrl: '/api/chat/attachments/<pendingId>/view', previewMime: detected, sizeBytes }
+Rate limit: 20 uploads per customer per hour / 10 per guest IP per hour.
 ```
 
 ```
 GET /api/chat/attachments/:id/view
-Auth: student who owns the thread OR admin JWT
-Response: 302 → signed R2 URL (1h TTL)
+Auth rule: reader must own the thread containing this attachment (committed path) OR be the original uploader of the pending upload.
+Behavior: 302 → signed R2 GET URL (5 min TTL). Signed URL never appears in SSE payloads.
 ```
 
 ### Admin-facing
@@ -147,223 +236,222 @@ Response: 302 → signed R2 URL (1h TTL)
 ```
 GET /api/admin/qa/stream
 Auth: admin JWT
-Response: text/event-stream (all threads)
-Events:
-  event: thread-created
-  event: thread-updated
-  event: message-added
-  event: status-changed
+Events: thread-created, thread-updated, message (with id: <messageId>), status-changed, attachment-committed.
+Supports Last-Event-ID like student stream.
+Route registration: MUST be mounted BEFORE /api/admin/qa/:id (Express route order).
 ```
 
 ```
 POST /api/admin/qa/:id/deep-link
 Auth: admin JWT
-Rate limited: 1 per thread per 30 seconds
+Rate limit: 1 per thread per 30s (email resend abuse guard).
 Body: { reason?: string }
-Response: { url: 'https://namibarden.com/admin/link-thread?token=<raw>' }
-Purpose: emit an email-friendly link. Stored as SHA-256 hash in nb_admin_thread_link_tokens.
+Behavior:
+  - token = crypto.randomBytes(32).toString('hex')
+  - tokenHash = sha256(token)
+  - INSERT nb_admin_thread_link_tokens (token_hash, thread_id, expires_at = NOW() + 15min)
+  - Response: { url: 'https://namibarden.com/api/admin/link-thread?token=<token>', expiresAt }
+  - Caller (email sender) embeds `url` in the alert mail.
 ```
 
 ```
 GET /api/admin/link-thread?token=<raw>
-No auth (token IS the auth)
-Verifies token: exists, not expired, not consumed.
-On success: sets admin JWT cookie, marks token consumed, 302 → /admin/qa.html?thread=<id>
-On failure: 302 → /admin/ with error flash
+Auth: none (the token IS the auth).
+Behavior: ** render interstitial HTML ** with a single form that POSTs the token to the next endpoint.
+          NEVER consume on GET (email security scanners would pre-consume).
 ```
 
-### Attachment upload from admin
+```
+POST /api/admin/link-thread
+Body: { token: <raw> }  (from interstitial form)
+SQL (atomic consume):
+  UPDATE nb_admin_thread_link_tokens
+  SET consumed_at = NOW(), consumed_ip = $2
+  WHERE token_hash = $1 AND consumed_at IS NULL AND expires_at > NOW()
+  RETURNING thread_id;
+On hit:
+  - Sign thread-scoped admin JWT: { role:'admin', scope:'thread-admin', threadId, exp: 15m }, audience 'thread-admin:<threadId>'.
+  - Set cookie `nb_thread_admin_<threadId>` with that JWT, Path=/, HttpOnly, Secure, SameSite=Lax, Max-Age=900.
+  - 302 → /admin/qa.html?thread=<threadId>&scope=thread-admin
+On miss: 302 → /admin/?error=invalid_link
+```
 
-Same shared `POST /api/chat/attachments` works for both student and admin uploads (uploader inferred from auth context). Admin posts attachments in `POST /api/admin/qa/:id/reply` by passing the `uploadId`.
+Admin routes that require full admin:
+  - `/api/admin/qa/stream` — requires full `nb_admin_token`, NOT the thread-scoped one.
+  - `/api/admin/qa/:id/reply` — accepts thread-scoped cookie IFF threadId matches, else falls back to full admin.
+  - `/api/admin/qa/:id/status` — same.
 
-## 5. Email alert flow
+```
+GET /api/admin/qa/:id/open-as-student
+Auth: admin JWT (full or thread-scoped matching :id)
+Behavior: looks up thread.access_token server-side; for course threads, delegates to the existing /api/admin/customers/:id/open-as-student pattern; for DM threads, returns 404 (no watch page).
+Fixes Phase 2 token-only Q&A regression — admin never receives the raw access_token.
+```
 
-**Trigger:** any new student message (not admin).
+## 5. Admin UI
 
-**Path (inside `POST /api/chat/threads/:id/messages` after insert):**
+Extends `/admin/qa.html`:
 
-1. Check debounce: if any `nb_qa_messages.sender='nami'` row exists with `created_at > NOW() - INTERVAL '10 minutes'` for this thread → skip email.
-2. Generate deep-link token (see §4). TTL 15 min.
-3. Send email to `namibarden@gmail.com` (SMTP_FROM envelope, `replyTo: thread.email`).
-4. Email body includes:
-   - Student name + email
-   - Channel: DM Nami OR course-course-1 / lesson-name
-   - First 400 chars of the message
-   - Attachment icons if any (`3 attachments: 2 images, 1 PDF`)
-   - **"Open thread" button** → deep-link URL
-   - **Reply-by-email note:** "Reply directly to this email to respond. Or open the thread to send attachments."
+- New `EventSource('/api/admin/qa/stream')` client. Reconnects honor `Last-Event-ID`. On open, fetches `/api/admin/qa?since=<lastSeenMessageId>` to fill gaps.
+- DM filter chip: `[DM] [Course] [All]` (All default).
+- Attachment uploader: drag-drop + file input, up to 5 files per message. Each uploads to `/api/chat/attachments` → stores returned uploadIds → sent with final reply POST.
+- Attachment display in thread view: inline images (max height 300px), PDF + audio as click-to-preview chips. Each uses `/api/chat/attachments/:id/view` (stable URL).
+- Message rendering switched to **DOM node creation with textContent** for body + filenames (not innerHTML). Only markdown-style emoji/linebreaks from a safelist permitted.
+- Thread-scoped deep-link arrivals render a banner: "Signed in for this thread only (15 min). Log in fully to access the admin panel." Hides navigation to other admin pages.
 
-**Reply-by-email handling:** out of scope for Phase 3. The `replyTo: thread.email` supports a direct-reply back to the student, but threading into our DB requires inbound SMTP processing — defer.
+New student UI:
 
-## 6. SSE implementation
+- `/watch` page: add "Messages" tab showing the student's threads (course + DM). SSE client: `new EventSource('/api/chat/stream?token=...')`.
+- `/messages` standalone page: requires customerAuth. Shows DM thread + all owned-course threads. Magic-link flow supports `returnTo=/messages` (new query param whitelisted in `customer-auth.js:/api/auth/magic-link`).
 
-### Server
+## 6. Email alert flow
+
+Trigger: new student message inserted (not admin-authored).
+
+Coalesce rule (per thread):
+1. Query: `SELECT MAX(created_at) as last_alert_at FROM nb_qa_thread_email_alerts WHERE thread_id=$1` (new tiny table — or reuse `nb_qa_threads.last_admin_notified_at` column, simpler).
+2. If `last_alert_at < NOW() - 15 min` OR NULL → send. If Nami opened the thread (`unread_for_admin = FALSE`) since last alert → reset timer.
+3. Mark `last_admin_notified_at = NOW()` on send.
+
+Payload:
+- From: `SMTP_FROM` (domain-owned)
+- To: `NAMI_ALERT_EMAIL` (default `namibarden@gmail.com`, overridable via env var)
+- Reply-To: **student's email** (so Nami can reply directly, but email body explains that direct email is not logged in the thread)
+- Subject: `[DM|Course] <thread.subject>` (with Japanese + English in template)
+- Body (bilingual sections): student name, channel + course/lesson context, first 400 chars, attachment badges, `[Open thread]` button that points to the `/api/admin/link-thread?token=<raw>` URL, plus caveat: "Reply to this email goes to the student inbox and is not stored — use Open thread to reply inside the system."
+
+## 7. Rate limits
+
+| Action | Limit | Scope |
+|---|---|---|
+| Create DM / first course Q&A | 10 per IP per hour | IP |
+| DM reply | 60 per customer per hour | customer_id |
+| Course reply | 30 per access_token per hour | access_token |
+| Attachment upload | 20 per customer per hour; 10 per IP per hour for guests | customer_id / IP |
+| SSE open | max 3 concurrent per customer/token | customer_id / access_token |
+| Deep-link issue | 1 per thread per 30s (abuse guard for Nami-initiated retries) | thread_id |
+| Email alert to Nami | Coalesced: 1 per thread per 15 min | thread_id |
+
+## 8. Transactional message POST
 
 ```js
-// New chat-routes.js
+const client = await pool.connect();
+try {
+  await client.query('BEGIN');
 
-const sseClients = {
-  admin: new Set(),   // one stream per admin session
-  students: new Map() // customerId → Set<res>
-};
+  const msgRes = await client.query(
+    `INSERT INTO nb_qa_messages (thread_id, sender, body) VALUES ($1, $2, $3)
+     RETURNING id, created_at`,
+    [threadId, sender, body || '']
+  );
+  const messageId = msgRes.rows[0].id;
+  const createdAt = msgRes.rows[0].created_at;
 
-function emitAdminEvent(eventName, payload) {
-  const line = `event: ${eventName}\ndata: ${JSON.stringify(payload)}\n\n`;
-  for (const res of sseClients.admin) { try { res.write(line); } catch {} }
+  if (attachments.length > 0) {
+    const pendingRes = await client.query(
+      `DELETE FROM nb_qa_pending_attachments
+       WHERE r2_key = ANY($1::varchar[]) AND uploader_customer_id = $2
+       RETURNING r2_key, detected_mime, size_bytes, sha256, original_filename`,
+      [r2Keys, req.customer.id]
+    );
+    for (const p of pendingRes.rows) {
+      await client.query(
+        `INSERT INTO nb_qa_attachments (message_id, thread_id, uploader, r2_key, detected_mime, size_bytes, sha256, original_filename)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [messageId, threadId, sender, p.r2_key, p.detected_mime, p.size_bytes, p.sha256, p.original_filename]
+      );
+    }
+  }
+
+  await client.query(
+    `UPDATE nb_qa_threads SET last_message_at=NOW(), unread_for_admin=TRUE WHERE id=$1`,
+    [threadId]
+  );
+
+  await client.query('COMMIT');
+
+  // SSE + email fire ONLY after commit
+  emitStreamEvent({ id: messageId, threadId, body, sender, createdAt, hasAttachments: attachments.length>0 });
+  maybeSendAlertEmail(threadId);
+} catch (err) {
+  await client.query('ROLLBACK').catch(() => {});
+  throw err;
+} finally {
+  client.release();
 }
-
-function emitStudentEvent(customerId, eventName, payload) {
-  const set = sseClients.students.get(customerId);
-  if (!set) return;
-  const line = `event: ${eventName}\ndata: ${JSON.stringify(payload)}\n\n`;
-  for (const res of set) { try { res.write(line); } catch {} }
-}
-
-// Called from within DB write paths:
-// emitAdminEvent('message-added', {...})
-// emitStudentEvent(thread.customer_id, 'message', {...})
 ```
 
-### Connection management
+## 9. GC script (`scripts/gc-qa-attachments.js`)
 
-- On connection: set headers `Content-Type: text/event-stream; Cache-Control: no-cache; Connection: keep-alive; X-Accel-Buffering: no`.
-- Emit heartbeat `:ping\n\n` every 25s (nginx default timeout is 60s).
-- Rate limit: 1 open SSE per admin session per 60s. On student side: 3 opens per customerId per 60s (accommodates multiple tabs).
-- On `req.on('close')`: remove from set.
-- Process restart drops all streams; clients reconnect automatically (native EventSource).
+Runs nightly via host cron. Purges:
+- `nb_qa_pending_attachments` rows with `expires_at < NOW()` — plus R2 keys referenced.
+- Never lists R2 to find "orphans" — only deletes what the DB says is expired. **Safe by construction.**
 
-### Nginx
+Dry-run / live flags. Logs deleted counts.
 
-`proxy_buffering off;` on the `/api/chat/stream` and `/api/admin/qa/stream` locations. Already probably set globally but verify.
-
-### Payload size
-
-Keep each event payload under 8 KB. Attachments never inlined — only metadata + signed URL that expires 1h.
-
-## 7. Attachment pipeline
-
-### Upload
-
-```
-1. Client POST /api/chat/attachments (multipart/form-data, one file).
-2. Server: multer memory storage (max 10 MB).
-3. Validate MIME against allowlist. For audio, decode duration via ffprobe (optional — if not available, accept but flag).
-4. Compute SHA-256 of file body for dedupe (optional — out of scope).
-5. Key: qa/<YYYY>/<MM>/<DD>/<uuid>-<sanitized-filename>.
-6. Upload to R2 via PutObjectCommand (ACL: private).
-7. Return { uploadId: <signed JWT 1h TTL>, previewUrl: <signed GET URL 1h TTL> }.
-```
-
-### Attach to message
-
-```
-1. Client POST /api/chat/threads/:id/messages with body + attachments: [<uploadId>].
-2. Server verifies each uploadId JWT, extracts r2Key.
-3. INSERT nb_qa_attachments rows with message_id.
-4. DELETE the "pending" marker (optional — see garbage-collect).
-```
-
-### Garbage collect
-
-Nightly cron: find R2 keys under `qa/…` that have no matching `nb_qa_attachments.r2_key` row → delete from R2. Keeps orphan uploads from accruing. Implementation: new script `scripts/gc-qa-attachments.js`, invoked via `node scripts/gc-qa-attachments.js --dry-run|--live`.
-
-## 8. Magic deep-link security
-
-Token lifecycle:
-
-1. `POST /api/admin/qa/:id/deep-link` — generates `raw = crypto.randomBytes(32).toString('hex')`, stores `sha256(raw)` + metadata.
-2. Email includes `https://namibarden.com/admin/link-thread?token=<raw>`.
-3. GET endpoint:
-   - SELECT ... WHERE token_hash = sha256($token) AND consumed_at IS NULL AND expires_at > NOW().
-   - If not found → log attempt, 302 → /admin/ with `?error=invalid_link`.
-   - If found → UPDATE consumed_at=NOW(), consumed_ip=req.ip, SET admin cookie (24h JWT), 302 → /admin/qa.html?thread=<id>.
-4. Rate-limit per thread: reject if token issued in last 30s (prevents email resend abuse).
-
-Token format: 64 hex chars (32 bytes). SHA-256 hash stored (never raw).
-
-## 9. Admin UI changes (`/admin/qa.html`)
-
-Additions:
-
-- **SSE client** — `new EventSource('/api/admin/qa/stream')`. On `message-added`: re-fetch thread list if visible, increment unread badge. On `thread-created`: prepend. On reconnect-after-disconnect: fetch last-10-min delta.
-- **DM Nami filter** — add a filter chip `[DM][Course][All]`. Default All.
-- **Attachment UI on reply** — drag-drop zone + file input. Previews in the compose pane. Max 5 files per message. Each file hits `POST /api/chat/attachments` for staging, returned `uploadId` sent with final POST.
-- **Attachment display in thread view** — inline images with max-height 300px, PDF/audio as download chips.
-- **Typing indicator** — skip for Phase 3; nice to add but requires two-way RTC; defer.
-
-All HTML rendered via `textContent` / safe DOM; no `innerHTML` for message bodies or attachment filenames.
-
-## 10. Student UI changes
-
-Two contexts:
-
-### Inside watch page (`/watch?token=...`)
-
-Already has Q&A per lesson (student side of `course-engagement.js`). Extend to:
-- New "Messages" tab next to lesson list — lists all threads (DM + course) for this student's `access_token`.
-- SSE client for student's threads — auto-append Nami's replies.
-
-### Standalone `/messages` page (new)
-
-For customers without a course (or as a general-purpose entry):
-- Requires customer auth (login OR magic link).
-- Shows all threads for `req.customer.id` (by customer_id match OR access_token match across owned courses).
-- Same SSE + send/attach UI as the watch-page embedded view.
-- Entry link from account dropdown in the site header.
-
-## 11. Files to change
-
-### NamiBarden
+## 10. Files to change
 
 | File | Change |
 |---|---|
-| `schema.sql` | Add channel column + constraints + attachments table + link-tokens table at bottom |
-| `migrations/003_chat_sse_attachments.sql` (new) | Same DDL, idempotent |
-| `chat-routes.js` (new) | Home for /api/chat/* endpoints + SSE emit helpers |
-| `course-engagement.js` | Hook new message paths into SSE emit helpers; keep back-compat with existing POST /api/courses/questions routes (which now also emit SSE) |
-| `admin-routes.js` | New /api/admin/qa/stream + /api/admin/qa/:id/deep-link + /api/admin/link-thread |
-| `customer-auth.js` | No change — existing /api/auth/* still handles customer login |
-| `server.js` | Mount chat-routes, wire transporter/r2/pool dependencies |
-| `app-config.js` | If new env var `NAMI_ALERT_EMAIL` needed (replaces 4 hardcoded 'namibarden@gmail.com'); default to `namibarden@gmail.com` |
-| `nginx.conf` | Explicit `proxy_buffering off;` on `/api/chat/stream` and `/api/admin/qa/stream` locations |
-| `public/watch.html` | Add Messages tab + SSE client JS |
+| `schema.sql` | Append DDL from §3 |
+| `migrations/003_chat_sse_attachments.sql` (new) | Same DDL, idempotent via `DO $$ IF NOT EXISTS` |
+| `chat-routes.js` (new) | All /api/chat/* + SSE emitters |
+| `admin-routes.js` | /api/admin/qa/stream (route order!), deep-link issue + consume, /api/admin/qa/:id/open-as-student |
+| `course-engagement.js` | Remove runtime ensureTables schema drift; reuse SSE emitters from chat-routes; update existing Q&A POST handlers to call emit-after-commit |
+| `customer-auth.js` | `/api/auth/magic-link` whitelist `returnTo=/messages` |
+| `server.js` | Wire chat-routes deps (pool, jwt, multer, r2, SSE emitters shared with course-engagement) |
+| `app-config.js` | New env var `NAMI_ALERT_EMAIL` (default `namibarden@gmail.com`) |
+| `Dockerfile` | Append `chat-routes.js` to the COPY list; install `ffmpeg` for ffprobe IF we keep audio duration enforcement (else drop the enforcement); install `file-type` via `npm install file-type@19` in package.json |
+| `nginx.conf` | Add dedicated locations `/api/chat/stream`, `/api/admin/qa/stream`, `/api/chat/attachments` before `/api/` catch-all. 30 MB body on attachments location. |
+| `security-headers.conf` | Update CSP: `connect-src 'self'`, `img-src 'self' https://<r2-host>`, `media-src 'self' https://<r2-host>` (host confirmed from R2_ENDPOINT). |
+| `public/watch.html` | Messages tab + SSE client |
 | `public/messages.html` (new) | Standalone DM page |
-| `admin/qa.html` | Add DM filter, SSE client, attachment UI |
-| `scripts/gc-qa-attachments.js` (new) | Orphan R2 cleanup |
-| `Dockerfile` | Add `chat-routes.js` to COPY; add `scripts/gc-qa-attachments.js` already covered by scripts/ copy from Phase 1 fix |
+| `admin/qa.html` | SSE client + DM filter + attachment uploader + DOM-text rendering + thread-scope banner |
+| `scripts/gc-qa-attachments.js` (new) | Pending-table-driven GC |
+
+## 11. Rate-limit / abuse defenses summary
+
+Phase 3 introduces 3 new surfaces subject to abuse; all covered:
+- **Email floods:** coalesce per-thread 15 min.
+- **Storage floods:** 30 MB nginx cap, per-customer/IP quotas, magic-byte rejection.
+- **Link token abuse:** 1 issue per thread per 30s, 15-min TTL, atomic one-time consume, POST-to-confirm (scanner-safe).
 
 ## 12. Test plan
 
-### Unit / local
-1. POST DM creates thread with channel='dm', course_id=null. CHECK constraint passes.
-2. POST DM with course_id set AND channel='dm' → DB rejects.
-3. Attachment upload with MIME `image/png` 4 MB → accepted.
-4. Attachment upload with `application/zip` → rejected (415).
-5. Attachment upload 12 MB image → rejected (413).
-6. Deep-link token: issue, GET → admin cookie set, consumed_at set. Second GET with same token → fail (consumed).
-7. Deep-link rate limit: issue 2× within 30s → second 429.
-8. SSE admin stream: open + POST student message → event emitted.
-9. SSE debounce: two student messages to same thread within 10 sec of Nami reply → only 0 emails sent.
-10. Completion % regression (carry-over from Phase 2): still passes.
+### Schema / unit
+1. DM thread with `access_token=NULL, customer_id=42, channel='dm'` inserts cleanly; second DM insert for same customer_id fails UNIQUE.
+2. DM thread with `course_id='course-1'` rejected (channel_consistency CHECK).
+3. Attachment upload with `multipart mime=image/png` but file body is HTML → rejected (magic-byte mismatch).
+4. Deep-link: issue, GET renders interstitial without consuming, POST consumes atomically, second POST with same token returns 302 to /admin/?error=invalid_link.
+5. Deep-link race: two concurrent POSTs — exactly one receives 302-success; the other errors.
+6. Message POST with body='' and attachments=[] → 400. With body='' and attachments=[id] → 201.
+7. SSE Last-Event-ID replay: reconnect with `Last-Event-ID: 5` returns messages 6,7,8 in order.
+8. Pending upload expires at NOW()+1h → GC removes both DB row and R2 object.
+9. Rate limit: 20+1 attachment uploads in an hour — 21st returns 429.
+10. Token-scoped admin JWT cannot access `/api/admin/customers` (scope mismatch).
 
-### E2E
-11. Chrome: login as customer, send DM Nami message with image, verify preview in thread, verify email sent to namibarden@gmail.com with deep-link.
-12. Click deep-link from a fresh browser (no admin cookie) → lands in /admin/qa.html?thread=<id> logged in.
-13. Admin replies with an attached PDF → student page receives SSE event, renders message live.
-14. Open deep-link twice → second click shows "link already used" error and redirects to /admin.
+### E2E post-deploy
+11. Customer DMs Nami with an image → namibarden@gmail.com receives alert with deep-link.
+12. Fresh browser with no admin cookie → GET link → interstitial renders → click "Open thread" → POST consumes → redirected to `/admin/qa.html?thread=<id>&scope=thread-admin` with banner.
+13. Nami replies from thread-admin session → student SSE stream receives message within 2 seconds.
+14. Nami's reply navigates to `/admin/customers.html` → 401 (scope insufficient).
+15. Two DMs in 3 min → only 1 email sent (coalesce).
+16. Message ordering under concurrent reply: two admin replies within 100ms → student sees both, ordered by (createdAt, id).
+17. Forwarded deep-link email: reuse a consumed link → 302 to /admin/?error.
+18. Existing course Q&A flow still works (no regression).
 
-## 13. Risks
+## 13. Deploy sequence
 
-- **SSE scale** — single-process Express, Map-based in-memory client sets. Won't survive multiple replicas. Current deployment is single-container → fine. If we horizontally scale later: add Redis pub/sub.
-- **R2 orphan accrual** — garbage-collect cron is the mitigation. Until deployed: small leak.
-- **Reply-by-email** — Nami might reply from Gmail expecting it to thread back. For Phase 3, that goes to the student's email only (no DB thread update). Document in the email footer.
-- **Deep-link email forwarded** — 15 min TTL + one-time use mitigates; still, Nami should treat these as bearer tokens.
-- **SSE long connections vs nginx idle timeout** — `proxy_read_timeout 3600;` on the stream locations as a safety net.
+1. Backup DB.
+2. Apply `migrations/003_chat_sse_attachments.sql`.
+3. Deploy NamiBarden container with new routes + nginx config.
+4. Nginx reload inside container (automatic via entrypoint or explicit `nginx -s reload` if needed).
+5. Smoke tests per §12 E2E.
+6. Install host crontab entry for GC: `0 4 * * * docker exec namibarden node scripts/gc-qa-attachments.js --live >> /var/log/nb-gc.log 2>&1`.
 
-## 14. Open questions for consensus
+## 14. Follow-ups (out of Phase 3 scope)
 
-1. Should the DM-Nami general channel allow multiple concurrent threads per customer (like Slack DMs with multiple topics), or should we coalesce to one-thread-per-customer?
-2. Attachment max size: 5 MB image, 10 MB PDF / audio — too restrictive? Gil may want 20+ MB for audio voice notes.
-3. Deep-link: one-time vs reusable-within-TTL? Current spec: one-time. Reusable makes email forwarding safer but still bearer-risky.
-4. Should student SSE stream be keyed by `customer_id` (excludes guest access-token threads) or by `access_token` (covers both)? Spec says both. Codex to sanity-check the implementation complexity.
-5. Reply-by-email inbound processing: worth planning for Phase 3.5, or is pure "click-to-open-thread" enough forever?
+- Reply-by-email inbound processing (Phase 3.5).
+- Redis pub/sub for multi-replica SSE (Phase 6+).
+- Video attachments.
+- Read receipts beyond unread_for_* booleans.
