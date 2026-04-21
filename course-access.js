@@ -8,8 +8,10 @@ function createCourseAccess({ pool, logger, jwt, jwtSecret, ttlMs = 120000 }) {
         issuer: 'namibarden-admin',
         audience: 'course-watch-impersonation'
       });
-      if (decoded.kind !== 'admin-impersonate') return null;
-      if (!decoded.customerId || !decoded.courseId) return null;
+      if (!['admin-impersonate', 'admin-impersonate-access'].includes(decoded.kind)) return null;
+      if (!decoded.courseId) return null;
+      if (decoded.kind === 'admin-impersonate' && !decoded.customerId) return null;
+      if (decoded.kind === 'admin-impersonate-access' && !decoded.accessToken) return null;
       return decoded;
     } catch {
       return null;
@@ -39,11 +41,17 @@ function createCourseAccess({ pool, logger, jwt, jwtSecret, ttlMs = 120000 }) {
         return false;
       }
 
-      const adminResult = await pool.query(
-        `SELECT id FROM nb_course_access
-         WHERE customer_id = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
-        [impersonation.customerId, courseId]
-      );
+      const adminResult = impersonation.kind === 'admin-impersonate-access'
+        ? await pool.query(
+          `SELECT id FROM nb_course_access
+           WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
+          [impersonation.accessToken, courseId]
+        )
+        : await pool.query(
+          `SELECT id FROM nb_course_access
+           WHERE customer_id = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())`,
+          [impersonation.customerId, courseId]
+        );
       return adminResult.rows.length > 0;
     } catch (err) {
       logger.error({ err }, 'verifyCourseAccess DB error');
@@ -65,13 +73,21 @@ function createCourseAccess({ pool, logger, jwt, jwtSecret, ttlMs = 120000 }) {
       const impersonation = decodeAdminImpersonationToken(token);
       if (!impersonation) return [];
 
-      const adminResult = await pool.query(
-        `SELECT access_token, course_id, email, customer_id
-         FROM nb_course_access
-         WHERE customer_id = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())
-         ORDER BY purchased_at ASC`,
-        [impersonation.customerId, impersonation.courseId]
-      );
+      const adminResult = impersonation.kind === 'admin-impersonate-access'
+        ? await pool.query(
+          `SELECT access_token, course_id, email, customer_id
+           FROM nb_course_access
+           WHERE access_token = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())
+           ORDER BY purchased_at ASC`,
+          [impersonation.accessToken, impersonation.courseId]
+        )
+        : await pool.query(
+          `SELECT access_token, course_id, email, customer_id
+           FROM nb_course_access
+           WHERE customer_id = $1 AND course_id = $2 AND (expires_at IS NULL OR expires_at > NOW())
+           ORDER BY purchased_at ASC`,
+          [impersonation.customerId, impersonation.courseId]
+        );
       return adminResult.rows;
     } catch (err) {
       logger.error({ err }, 'getCourseAccessRowsForToken DB error');

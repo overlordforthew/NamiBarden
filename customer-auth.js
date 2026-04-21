@@ -50,6 +50,11 @@ function createCustomerAuth({
     return jwt.sign({ role: 'customer', customerId, email }, jwtSecret, { expiresIn: '30d' });
   }
 
+  function normalizeMagicReturnTo(returnTo) {
+    if (returnTo === '/messages') return '/messages';
+    return '/my-courses';
+  }
+
   function recordLastLogin(customerId) {
     pool.query(
       `UPDATE nb_customers SET last_login_at=NOW(), updated_at=NOW() WHERE id=$1`,
@@ -303,7 +308,7 @@ function createCustomerAuth({
         return res.status(429).json({ error: 'リクエストが多すぎます。しばらくしてからお試しください。' });
       }
 
-      const { email } = req.body;
+      const { email, returnTo } = req.body;
       if (!email?.trim()) return res.status(400).json({ error: 'Email required' });
 
       const emailLower = normalizeEmail(email);
@@ -319,7 +324,7 @@ function createCustomerAuth({
 
       const customer = result.rows[0];
       const magicToken = jwt.sign(
-        { role: 'magic-link', customerId: customer.id, email: customer.email },
+        { role: 'magic-link', customerId: customer.id, email: customer.email, returnTo: normalizeMagicReturnTo(returnTo) },
         jwtSecret,
         { expiresIn: '15m' }
       );
@@ -352,7 +357,7 @@ function createCustomerAuth({
       const authToken = issueCustomerToken(decoded.customerId, decoded.email);
       setAuthCookie(res, 'nb_auth_token', authToken, 30 * 24 * 60 * 60 * 1000);
       recordLastLogin(decoded.customerId);
-      res.redirect('/my-courses');
+      res.redirect(normalizeMagicReturnTo(decoded.returnTo));
     } catch {
       res.redirect('/login?error=expired-link');
     }

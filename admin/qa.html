@@ -29,6 +29,15 @@
     .reply-form textarea{width:100%;min-height:160px;padding:14px 16px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:0.93rem;resize:vertical;background:var(--white);}
     .reply-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center;}
     .reply-actions .spacer{flex:1;}
+    .thread-scope-banner{display:none;margin-bottom:18px;padding:12px 16px;border:1px solid rgba(196,168,130,.35);background:rgba(196,168,130,.12);border-radius:6px;color:var(--text);}
+    .thread-scope-banner.active{display:block;}
+    .channel-filters{display:flex;gap:8px;flex-wrap:wrap;}
+    .upload-zone{margin-top:12px;border:1px dashed var(--border);border-radius:6px;background:var(--cream);padding:14px;color:var(--text-light);font-size:.84rem;}
+    .upload-zone.dragover{border-color:var(--gold);background:rgba(196,168,130,.12);}
+    .upload-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+    .upload-chip,.attachment-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;background:var(--white);padding:5px 10px;font-size:.78rem;color:var(--text-light);text-decoration:none;}
+    .attachment-img{display:block;max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:6px;margin-top:8px;}
+    .message-attachments{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
   </style>
 </head>
 <body>
@@ -48,6 +57,7 @@
   </nav>
 
   <main class="main-content">
+    <div id="threadScopeBanner" class="thread-scope-banner">Signed in for this thread only (15 min). Log in fully to access the admin panel.</div>
     <!-- Inbox view -->
     <div id="listView">
       <div class="page-header">
@@ -57,6 +67,7 @@
       <div class="summary-strip" id="summaryStrip"></div>
 
       <div class="toolbar">
+        <div class="channel-filters" id="channelFilters"></div>
         <input type="text" id="searchInput" placeholder="Search email or subject..." style="min-width:250px">
       </div>
 
@@ -84,7 +95,7 @@
     <div id="detailView" class="qa-detail">
       <div class="page-header">
         <h1 id="detailSubject">Thread</h1>
-        <button class="btn" onclick="showList()">← Back to inbox</button>
+        <button id="backToInboxBtn" class="btn" onclick="showList()">← Back to inbox</button>
       </div>
       <div class="card">
         <div class="card-body">
@@ -92,7 +103,13 @@
           <div class="messages-list" id="messagesList"></div>
 
           <form id="replyForm" onsubmit="submitReply(event)">
-            <textarea id="replyBody" placeholder="ナミからの返信を入力してください..." required maxlength="4000"></textarea>
+            <textarea id="replyBody" placeholder="ナミからの返信を入力してください..." maxlength="4000"></textarea>
+            <div id="uploadZone" class="upload-zone">
+              <input id="attachmentInput" type="file" multiple accept="image/*,application/pdf,audio/*" style="display:none">
+              <button type="button" class="btn btn-sm" onclick="document.getElementById('attachmentInput').click()">Add attachments</button>
+              <span>Drag up to 5 images, PDFs, or audio files here.</span>
+              <div id="uploadList" class="upload-list"></div>
+            </div>
             <div class="reply-actions">
               <button type="submit" class="btn btn-primary">送信する</button>
               <button type="button" class="btn" onclick="setStatus('answered')">Mark Answered</button>
@@ -109,45 +126,112 @@
 
   <script src="/admin/admin.js"></script>
   <script>
-    if (!requireAuth()) throw 'auth';
-    initSidebar();
-
     const COURSE_LABEL = {
       'course-1': 'Course 1',
       'course-2': 'Course 2',
       'course-bundle': 'Bundle'
     };
 
+    const urlParams = new URLSearchParams(location.search);
+    const isThreadScoped = urlParams.get('scope') === 'thread-admin';
     let currentStatus = '';
+    let currentChannel = '';
     let currentThreadId = null;
+    let pendingUploads = [];
+    let adminStream = null;
+    let lastSeenMessageId = Number(localStorage.getItem('nb-admin-qa-last-id') || '0');
+
+    if (!isThreadScoped) {
+      if (!requireAuth()) throw 'auth';
+      initSidebar();
+    } else {
+      document.getElementById('threadScopeBanner').classList.add('active');
+      document.getElementById('backToInboxBtn').style.display = 'none';
+      document.querySelectorAll('.sidebar a').forEach((link) => {
+        const href = link.getAttribute('href');
+        if (href !== '/admin/qa.html' && !link.closest('.sidebar-logout')) link.style.display = 'none';
+      });
+    }
+
+    function node(tag, className, text) {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      if (text != null) el.textContent = text;
+      return el;
+    }
+
+    async function adminApi(path, opts = {}) {
+      const headers = { ...(opts.headers || {}) };
+      if (opts.body && !(opts.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(opts.body);
+      }
+      const res = await fetch(`${API}${path}`, { ...opts, headers, credentials: 'same-origin' });
+      if (res.status === 401 || res.status === 403) throw new Error('Unauthorized');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
 
     async function loadInbox() {
+      if (isThreadScoped) return;
       const search = document.getElementById('searchInput').value;
       const params = new URLSearchParams();
       if (currentStatus) params.set('status', currentStatus);
+      if (currentChannel) params.set('channel', currentChannel);
       if (search) params.set('search', search);
+      if (lastSeenMessageId) params.set('since', lastSeenMessageId);
 
       try {
-        const data = await api(`/qa?${params}`);
+        const data = await adminApi(`/qa?${params}`);
         renderSummary(data.summary);
+        renderChannelFilters(data.summary);
         renderThreads(data.threads);
+        for (const msg of data.replayMessages || []) rememberMessageId(msg.id);
       } catch (e) { console.error(e); }
+    }
+
+    function rememberMessageId(id) {
+      if (!id) return;
+      lastSeenMessageId = Math.max(lastSeenMessageId, Number(id));
+      localStorage.setItem('nb-admin-qa-last-id', String(lastSeenMessageId));
     }
 
     function renderSummary(summary) {
       const strip = document.getElementById('summaryStrip');
+      strip.textContent = '';
       const items = [
         { key: '',         label: 'All' },
         { key: 'open',     label: 'Open', count: summary.open },
         { key: 'answered', label: 'Answered', count: summary.answered },
         { key: 'archived', label: 'Archived', count: summary.archived }
       ];
-      strip.innerHTML = items.map(it => {
-        const active = currentStatus === it.key ? ' active' : '';
-        const count = typeof it.count === 'number' ? `<span class="count">${it.count}</span>` : '';
-        const unread = it.key === 'open' && summary.unread > 0 ? `<span class="unread-badge">${summary.unread}</span>` : '';
-        return `<button class="summary-chip${active}" onclick="setStatusFilter('${it.key}')">${it.label}${count}${unread}</button>`;
-      }).join('');
+      for (const item of items) {
+        const btn = node('button', `summary-chip${currentStatus === item.key ? ' active' : ''}`, item.label);
+        btn.type = 'button';
+        btn.addEventListener('click', () => setStatusFilter(item.key));
+        if (typeof item.count === 'number') btn.appendChild(node('span', 'count', item.count));
+        if (item.key === 'open' && summary.unread > 0) btn.appendChild(node('span', 'unread-badge', summary.unread));
+        strip.appendChild(btn);
+      }
+    }
+
+    function renderChannelFilters(summary) {
+      const wrap = document.getElementById('channelFilters');
+      wrap.textContent = '';
+      [
+        { key: '', label: 'All' },
+        { key: 'dm', label: `DM ${summary.dm || 0}` },
+        { key: 'course', label: `Course ${summary.course || 0}` }
+      ].forEach((item) => {
+        const btn = node('button', `summary-chip${currentChannel === item.key ? ' active' : ''}`, item.label);
+        btn.type = 'button';
+        btn.addEventListener('click', () => {
+          currentChannel = item.key;
+          loadInbox();
+        });
+        wrap.appendChild(btn);
+      });
     }
 
     function setStatusFilter(status) {
@@ -157,50 +241,77 @@
 
     function renderThreads(threads) {
       const tb = document.getElementById('threadsTable');
+      tb.textContent = '';
       if (!threads || !threads.length) {
-        tb.innerHTML = '<tr><td colspan="7" class="empty">No questions yet</td></tr>';
+        const tr = document.createElement('tr');
+        const td = node('td', 'empty', 'No questions yet');
+        td.colSpan = 7;
+        tr.appendChild(td);
+        tb.appendChild(tr);
         return;
       }
-      tb.innerHTML = threads.map(t => {
-        const dot = t.unread ? '<span class="unread-badge" style="background:#C06060;padding:0;min-width:8px;width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;"></span>' : '';
+      threads.forEach((t) => {
         const courseLabel = t.courseId ? (COURSE_LABEL[t.courseId] || t.courseId) : '';
-        const contextBits = [courseLabel, t.lessonId].filter(Boolean).join(' · ');
-        const from = t.name ? `${escapeHtml(t.name)}<div style="font-size:0.78rem;color:var(--text-light)">${escapeHtml(t.email)}</div>` : escapeHtml(t.email);
-        return `<tr class="thread-row${t.unread ? ' unread' : ''}" onclick="showThread(${t.id})">
-          <td>${dot}${from}</td>
-          <td>${escapeHtml(t.subject || '(no subject)')}</td>
-          <td style="font-size:0.82rem;color:var(--text-light)">${escapeHtml(contextBits) || '—'}</td>
-          <td><span class="status-pill status-${t.status}">${t.status}</span></td>
-          <td>${t.messageCount}</td>
-          <td>${formatDateTime(t.lastMessageAt)}</td>
-          <td><button class="btn btn-sm" onclick="event.stopPropagation();showThread(${t.id})">Open</button></td>
-        </tr>`;
-      }).join('');
+        const contextBits = t.channel === 'dm' ? 'DM' : [courseLabel, t.lessonId].filter(Boolean).join(' - ');
+        const tr = node('tr', `thread-row${t.unread ? ' unread' : ''}`);
+        tr.addEventListener('click', () => showThread(t.id));
+        const fromTd = document.createElement('td');
+        if (t.unread) fromTd.appendChild(node('span', 'unread-badge', ''));
+        fromTd.appendChild(document.createTextNode(t.name || t.email || 'Unknown'));
+        if (t.name && t.email) fromTd.appendChild(node('div', '', t.email));
+        tr.appendChild(fromTd);
+        tr.appendChild(node('td', '', t.subject || '(no subject)'));
+        const contextTd = node('td', '', contextBits || '-');
+        contextTd.style.fontSize = '0.82rem';
+        contextTd.style.color = 'var(--text-light)';
+        tr.appendChild(contextTd);
+        const statusTd = document.createElement('td');
+        statusTd.appendChild(node('span', `status-pill status-${t.status}`, t.status));
+        tr.appendChild(statusTd);
+        tr.appendChild(node('td', '', t.messageCount));
+        tr.appendChild(node('td', '', formatDateTime(t.lastMessageAt)));
+        const actionTd = document.createElement('td');
+        const openBtn = node('button', 'btn btn-sm', 'Open');
+        openBtn.type = 'button';
+        openBtn.addEventListener('click', (event) => { event.stopPropagation(); showThread(t.id); });
+        actionTd.appendChild(openBtn);
+        tr.appendChild(actionTd);
+        tb.appendChild(tr);
+      });
     }
 
     async function showThread(id) {
       currentThreadId = id;
       try {
-        const data = await api(`/qa/${id}`);
+        const data = await adminApi(`/qa/${id}`);
         const t = data.thread;
         document.getElementById('detailSubject').textContent = t.subject || '(no subject)';
 
-        const metaParts = [];
-        metaParts.push(`<span>From: <strong>${escapeHtml(t.name || t.email)}</strong> &lt;${escapeHtml(t.email)}&gt;</span>`);
-        if (t.courseName) metaParts.push(`<span>Course: ${escapeHtml(t.courseName)}</span>`);
-        if (t.lessonTitle) metaParts.push(`<span>Lesson: ${escapeHtml(t.lessonTitle)}</span>`);
-        metaParts.push(`<span>Status: <span class="status-pill status-${t.status}">${t.status}</span></span>`);
-        metaParts.push(`<span>Opened: ${formatDateTime(t.createdAt)}</span>`);
-        document.getElementById('threadMeta').innerHTML = metaParts.join('');
+        const meta = document.getElementById('threadMeta');
+        meta.textContent = '';
+        meta.appendChild(node('span', '', `From: ${t.name || t.email || 'Unknown'} <${t.email || ''}>`));
+        meta.appendChild(node('span', '', `Channel: ${t.channel === 'dm' ? 'DM' : 'Course'}`));
+        if (t.courseName) meta.appendChild(node('span', '', `Course: ${t.courseName}`));
+        if (t.lessonTitle) meta.appendChild(node('span', '', `Lesson: ${t.lessonTitle}`));
+        const status = node('span', '', 'Status: ');
+        status.appendChild(node('span', `status-pill status-${t.status}`, t.status));
+        meta.appendChild(status);
+        meta.appendChild(node('span', '', `Opened: ${formatDateTime(t.createdAt)}`));
 
         const msgList = document.getElementById('messagesList');
-        msgList.innerHTML = (data.messages || []).map(m => {
+        msgList.textContent = '';
+        (data.messages || []).forEach((m) => {
           const isNami = m.sender === 'nami';
-          return `<div class="msg ${isNami ? 'nami' : 'student'}">
-            <div class="msg-meta"><span>${isNami ? 'ナミ' : escapeHtml(t.name || t.email)}</span><span>${formatDateTime(m.created_at)}</span></div>
-            <div>${escapeHtml(m.body)}</div>
-          </div>`;
-        }).join('');
+          const card = node('div', `msg ${isNami ? 'nami' : 'student'}`);
+          const msgMeta = node('div', 'msg-meta');
+          msgMeta.appendChild(node('span', '', isNami ? 'ナミ' : (t.name || t.email || 'Student')));
+          msgMeta.appendChild(node('span', '', formatDateTime(m.created_at)));
+          card.appendChild(msgMeta);
+          card.appendChild(node('div', '', m.body || ''));
+          renderMessageAttachments(card, m.attachments || []);
+          msgList.appendChild(card);
+          rememberMessageId(m.id);
+        });
 
         const watchLink = document.getElementById('viewAsStudent');
         if (t.openAsStudentUrl) {
@@ -211,13 +322,47 @@
         }
 
         document.getElementById('replyBody').value = '';
+        pendingUploads = [];
+        renderPendingUploads();
 
         document.getElementById('listView').style.display = 'none';
         document.getElementById('detailView').classList.add('active');
       } catch (e) { alert(e.message); }
     }
 
+    function renderMessageAttachments(container, attachments) {
+      if (!attachments.length) return;
+      const wrap = node('div', 'message-attachments');
+      attachments.forEach((attachment) => {
+        if ((attachment.detectedMime || '').startsWith('image/')) {
+          const link = document.createElement('a');
+          link.href = attachment.viewUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          const img = document.createElement('img');
+          img.className = 'attachment-img';
+          img.src = attachment.viewUrl;
+          img.alt = attachment.originalFilename || 'attachment';
+          link.appendChild(img);
+          wrap.appendChild(link);
+        } else if ((attachment.detectedMime || '').startsWith('audio/')) {
+          const audio = document.createElement('audio');
+          audio.controls = true;
+          audio.src = attachment.viewUrl;
+          wrap.appendChild(audio);
+        } else {
+          const link = node('a', 'attachment-chip', attachment.originalFilename || 'Attachment');
+          link.href = attachment.viewUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          wrap.appendChild(link);
+        }
+      });
+      container.appendChild(wrap);
+    }
+
     function showList() {
+      if (isThreadScoped) return;
       document.getElementById('detailView').classList.remove('active');
       document.getElementById('listView').style.display = '';
       currentThreadId = null;
@@ -228,12 +373,17 @@
       e.preventDefault();
       if (!currentThreadId) return;
       const body = document.getElementById('replyBody').value.trim();
-      if (!body) return;
+      if (!body && pendingUploads.length === 0) return;
       const btn = e.target.querySelector('button[type="submit"]');
       btn.disabled = true;
       btn.textContent = '送信中...';
       try {
-        await api(`/qa/${currentThreadId}/reply`, { method: 'POST', body: { body } });
+        await adminApi(`/qa/${currentThreadId}/reply`, {
+          method: 'POST',
+          body: { body, attachments: pendingUploads.map((item) => item.uploadId) }
+        });
+        pendingUploads = [];
+        renderPendingUploads();
         await showThread(currentThreadId);
       } catch (err) {
         alert(err.message);
@@ -246,9 +396,64 @@
     async function setStatus(status) {
       if (!currentThreadId) return;
       try {
-        await api(`/qa/${currentThreadId}/status`, { method: 'POST', body: { status } });
+        await adminApi(`/qa/${currentThreadId}/status`, { method: 'POST', body: { status } });
         await showThread(currentThreadId);
       } catch (err) { alert(err.message); }
+    }
+
+    function renderPendingUploads() {
+      const list = document.getElementById('uploadList');
+      list.textContent = '';
+      pendingUploads.forEach((item, idx) => {
+        const chip = node('span', 'upload-chip', item.name || item.previewMime);
+        const remove = node('button', 'btn btn-sm', 'x');
+        remove.type = 'button';
+        remove.addEventListener('click', () => {
+          pendingUploads.splice(idx, 1);
+          renderPendingUploads();
+        });
+        chip.appendChild(remove);
+        list.appendChild(chip);
+      });
+    }
+
+    async function uploadAttachment(file) {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/chat/attachments', {
+        method: 'POST',
+        body: form,
+        credentials: 'same-origin'
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      pendingUploads.push({ ...data, name: file.name });
+      renderPendingUploads();
+    }
+
+    async function uploadFiles(files) {
+      const selected = Array.from(files || []);
+      if (pendingUploads.length + selected.length > 5) {
+        alert('Maximum 5 files per message.');
+        return;
+      }
+      for (const file of selected) await uploadAttachment(file);
+    }
+
+    function startAdminStream() {
+      if (isThreadScoped || adminStream) return;
+      const url = lastSeenMessageId ? `/api/admin/qa/stream?since=${encodeURIComponent(lastSeenMessageId)}` : '/api/admin/qa/stream';
+      adminStream = new EventSource(url);
+      adminStream.addEventListener('open', () => loadInbox());
+      adminStream.addEventListener('message', (event) => {
+        const payload = JSON.parse(event.data);
+        rememberMessageId(payload.id || payload.messageId);
+        loadInbox();
+        if (currentThreadId && Number(payload.threadId) === Number(currentThreadId)) showThread(currentThreadId);
+      });
+      ['thread-created', 'thread-updated', 'status-changed', 'attachment-committed', 'resync-required'].forEach((eventName) => {
+        adminStream.addEventListener(eventName, () => loadInbox());
+      });
     }
 
     let searchTimer;
@@ -258,14 +463,29 @@
     });
 
     // Deep-link support: /admin/qa.html?thread=123 and /admin/qa.html#thread-123
-    const urlParams = new URLSearchParams(location.search);
     const hashThread = (location.hash || '').match(/^#thread-(\d+)$/);
     const threadParam = parseInt(urlParams.get('thread') || (hashThread && hashThread[1]), 10);
+    document.getElementById('attachmentInput').addEventListener('change', (event) => {
+      uploadFiles(event.target.files).catch((err) => alert(err.message));
+      event.target.value = '';
+    });
+    const uploadZone = document.getElementById('uploadZone');
+    uploadZone.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (event) => {
+      event.preventDefault();
+      uploadZone.classList.remove('dragover');
+      uploadFiles(event.dataTransfer.files).catch((err) => alert(err.message));
+    });
     if (threadParam) {
       showThread(threadParam);
     } else {
       loadInbox();
     }
+    startAdminStream();
   </script>
 </body>
 </html>

@@ -7,7 +7,7 @@ const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const { stringify } = require('csv-stringify/sync');
 const crypto = require('crypto');
-const { GetObjectCommand } = require('@aws-sdk/client-s3');
+const { GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const logger = require('./logger');
 const { loadAppConfig } = require('./app-config');
@@ -20,6 +20,7 @@ const { createAdminRoutes } = require('./admin-routes');
 const { createPublicRoutes } = require('./public-routes');
 const { createCourseRoutes } = require('./course-routes');
 const { createCourseEngagement } = require('./course-engagement');
+const { createChatRoutes, createChatSseHub, createChatAuthHelpers } = require('./chat-routes');
 const { createStripeRoutes } = require('./stripe-routes');
 const { createCourseReminders } = require('./course-reminders');
 const { createAuthUtils } = require('./auth-utils');
@@ -34,6 +35,11 @@ const COURSES = require('./course-catalog');
 const uuidv4 = () => crypto.randomUUID();
 const NAMI_JID = '84393251371@s.whatsapp.net';
 const PIXEL = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+
+async function detectFileTypeFromBuffer(buffer) {
+  const mod = await import('file-type');
+  return mod.fileTypeFromBuffer(buffer);
+}
 
 let config;
 try {
@@ -94,6 +100,16 @@ const {
   jwt,
   jwtSecret: config.auth.jwtSecret,
   isProd: config.isProd
+});
+
+const chatAuth = createChatAuthHelpers({
+  jwt,
+  jwtSecret: config.auth.jwtSecret
+});
+
+const chatEvents = createChatSseHub({
+  pool,
+  logger
 });
 
 const {
@@ -226,6 +242,31 @@ createAdminObservability({
   authMiddleware
 });
 
+const chatServices = createChatRoutes({
+  app,
+  pool,
+  logger,
+  jwt,
+  jwtSecret: config.auth.jwtSecret,
+  rateLimit,
+  getIP,
+  multer,
+  r2: config.r2.client,
+  r2Bucket: config.r2.bucket,
+  PutObjectCommand,
+  GetObjectCommand,
+  getSignedUrl,
+  transporter,
+  smtpFrom: config.smtp.from,
+  siteUrl: config.siteUrl,
+  namiAlertEmail: config.alerts.namiEmail,
+  courses: COURSES,
+  getCourseAccessRowsForToken,
+  fileTypeFromBuffer: detectFileTypeFromBuffer,
+  chatEvents,
+  chatAuth
+});
+
 createAdminRoutes({
   app,
   pool,
@@ -249,7 +290,9 @@ createAdminRoutes({
   uuidv4,
   injectTracking,
   sendWhatsApp,
-  namiJid: NAMI_JID
+  namiJid: NAMI_JID,
+  chatEvents,
+  chatAuth
 });
 
 createPublicRoutes({
@@ -309,7 +352,10 @@ const courseEngagement = createCourseEngagement({
   getCourseAccessRowsForToken,
   courses: COURSES,
   sendWhatsApp,
-  namiJid: NAMI_JID
+  namiJid: NAMI_JID,
+  chatEvents,
+  chatServices,
+  chatAuth
 });
 
 const courseReminders = createCourseReminders({
@@ -394,12 +440,6 @@ initializeApp({
     logger.info('Course reminder scheduler started');
   } catch (err) {
     logger.error({ err }, 'Course reminder init failed');
-  }
-  try {
-    await courseEngagement.ensureTables();
-    logger.info('Course engagement tables ready');
-  } catch (err) {
-    logger.error({ err }, 'Course engagement init failed');
   }
   startServer({
     app,

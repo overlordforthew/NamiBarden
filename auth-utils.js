@@ -17,6 +17,7 @@ function createAuthUtils({ jwt, jwtSecret, isProd }) {
     try {
       const decoded = jwt.verify(token, jwtSecret);
       if (decoded.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+      if (decoded.scope) return res.status(403).json({ error: 'Forbidden' });
       req.admin = decoded;
       next();
     } catch {

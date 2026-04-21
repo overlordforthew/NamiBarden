@@ -65,6 +65,7 @@ function loadAppConfig({ env, logger }) {
     R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET,
     LUMINA_BRIDGE_SECRET, LUMINA_URL, LUMINA_ALLOWED_HOSTS: LUMINA_ALLOWED_HOSTS_ENV,
     ALERT_EMAIL_TO: ALERT_EMAIL_TO_ENV, ALERT_WHATSAPP_JID: ALERT_WHATSAPP_JID_ENV,
+    NAMI_ALERT_EMAIL: NAMI_ALERT_EMAIL_ENV,
     ALERT_NOTIFY_COOLDOWN_MINUTES,
     NODE_ENV
   } = env;
@@ -143,6 +144,7 @@ function loadAppConfig({ env, logger }) {
     },
     alerts: {
       emailTo: ALERT_EMAIL_TO_ENV || SMTP_USER || SMTP_FROM || '',
+      namiEmail: NAMI_ALERT_EMAIL_ENV || 'namibarden@gmail.com',
       whatsappJid: ALERT_WHATSAPP_JID_ENV || '',
       notifyCooldownMs: Math.max(parseInt(ALERT_NOTIFY_COOLDOWN_MINUTES || '60', 10) || 60, 5) * 60 * 1000
     }

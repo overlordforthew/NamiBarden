@@ -1,6 +1,12 @@
+const crypto = require('crypto');
+
 const COMPLETION_THRESHOLD = 0.9; // 90% watched counts as completed
 const MAX_QUESTION_LENGTH = 4000;
 const MAX_SUBJECT_LENGTH = 200;
+
+function sha256Hex(value) {
+  return crypto.createHash('sha256').update(String(value || '')).digest('hex');
+}
 
 function createCourseEngagement({
   app,
@@ -17,64 +23,11 @@ function createCourseEngagement({
   getCourseAccessRowsForToken,
   courses,
   sendWhatsApp,
-  namiJid
+  namiJid,
+  chatEvents,
+  chatServices,
+  chatAuth
 }) {
-  async function ensureTables() {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS nb_lesson_progress (
-        id SERIAL PRIMARY KEY,
-        access_token VARCHAR(64) NOT NULL,
-        course_id VARCHAR(50) NOT NULL,
-        lesson_id VARCHAR(100) NOT NULL,
-        email VARCHAR(255) NOT NULL,
-        customer_id INTEGER REFERENCES nb_customers(id) ON DELETE SET NULL,
-        position_seconds REAL DEFAULT 0,
-        duration_seconds REAL DEFAULT 0,
-        completed BOOLEAN DEFAULT FALSE,
-        completed_at TIMESTAMP,
-        first_watched_at TIMESTAMP DEFAULT NOW(),
-        last_watched_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(access_token, course_id, lesson_id)
-      )
-    `);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_lesson_progress_token ON nb_lesson_progress(access_token, course_id)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_lesson_progress_email ON nb_lesson_progress(email)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_lesson_progress_last ON nb_lesson_progress(last_watched_at DESC)`);
-
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS nb_qa_threads (
-        id SERIAL PRIMARY KEY,
-        access_token VARCHAR(64) NOT NULL,
-        customer_id INTEGER REFERENCES nb_customers(id) ON DELETE SET NULL,
-        email VARCHAR(255) NOT NULL,
-        name VARCHAR(255),
-        course_id VARCHAR(50),
-        lesson_id VARCHAR(100),
-        subject VARCHAR(255),
-        status VARCHAR(20) NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'answered', 'archived')),
-        unread_for_admin BOOLEAN NOT NULL DEFAULT TRUE,
-        unread_for_student BOOLEAN NOT NULL DEFAULT FALSE,
-        last_message_at TIMESTAMP DEFAULT NOW(),
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_qa_threads_token ON nb_qa_threads(access_token)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_qa_threads_status_last ON nb_qa_threads(status, last_message_at DESC)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_qa_threads_email ON nb_qa_threads(email)`);
-
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS nb_qa_messages (
-        id SERIAL PRIMARY KEY,
-        thread_id INTEGER NOT NULL REFERENCES nb_qa_threads(id) ON DELETE CASCADE,
-        sender VARCHAR(20) NOT NULL CHECK (sender IN ('student', 'nami')),
-        body TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_qa_messages_thread ON nb_qa_messages(thread_id, created_at)`);
-  }
-
   // Returns { accessToken, courseId, email, customerId, impersonated } or null.
   // Resolves both raw access_tokens and admin-impersonation JWTs via course-access.js.
   async function resolveAccessForCourse(token, courseId) {
@@ -103,6 +56,76 @@ function createCourseEngagement({
       impersonated: first.access_token !== token,
       accessTokens: Array.from(new Set(rows.map((r) => r.access_token)))
     };
+  }
+
+  function qaAdminAuth(req, res, next) {
+    const threadId = parseInt(req.params.id, 10);
+    if (!threadId) return res.status(400).json({ error: 'Invalid id' });
+    const full = chatAuth?.verifyFullAdmin ? chatAuth.verifyFullAdmin(req) : null;
+    if (full) {
+      req.admin = full;
+      req.qaAdminScope = { full: true, uploadId: 'admin' };
+      return next();
+    }
+    const scoped = chatAuth?.verifyThreadAdmin ? chatAuth.verifyThreadAdmin(req, threadId) : null;
+    if (scoped) {
+      req.admin = scoped;
+      req.qaAdminScope = { full: false, threadId, uploadId: `thread:${threadId}` };
+      return next();
+    }
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  async function loadMessagesWithAttachments(threadId) {
+    const messages = (await pool.query(
+      `SELECT id, sender, body, created_at
+       FROM nb_qa_messages
+       WHERE thread_id = $1
+       ORDER BY created_at ASC, id ASC`,
+      [threadId]
+    )).rows;
+    if (messages.length === 0) return [];
+    const ids = messages.map((row) => row.id);
+    const attachments = (await pool.query(
+      `SELECT id, message_id, detected_mime, size_bytes, duration_seconds, original_filename
+       FROM nb_qa_attachments
+       WHERE message_id = ANY($1::int[])
+       ORDER BY id ASC`,
+      [ids]
+    )).rows;
+    const byMessage = new Map();
+    for (const row of attachments) {
+      if (!byMessage.has(row.message_id)) byMessage.set(row.message_id, []);
+      byMessage.get(row.message_id).push({
+        id: row.id,
+        detectedMime: row.detected_mime,
+        sizeBytes: Number(row.size_bytes) || 0,
+        durationSeconds: row.duration_seconds == null ? null : Number(row.duration_seconds),
+        originalFilename: row.original_filename || null,
+        viewUrl: `/api/chat/attachments/${row.id}/view`
+      });
+    }
+    return messages.map((row) => ({
+      ...row,
+      attachments: byMessage.get(row.id) || []
+    }));
+  }
+
+  function emitCourseMessage({ thread, messageId, body, sender, createdAt, attachmentCount = 0 }) {
+    if (!chatEvents?.emitMessage) return;
+    chatEvents.emitMessage({
+      id: messageId,
+      messageId,
+      threadId: thread.id,
+      body,
+      sender,
+      createdAt,
+      hasAttachments: attachmentCount > 0,
+      attachmentCount,
+      customerId: thread.customer_id,
+      accessToken: thread.access_token,
+      channel: thread.channel || 'course'
+    });
   }
 
   // ─── Student progress ─────────────────────────────────────────
@@ -258,10 +281,7 @@ function createCourseEngagement({
       );
       if (thread.rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
-      const msgs = await pool.query(
-        `SELECT id, sender, body, created_at FROM nb_qa_messages WHERE thread_id = $1 ORDER BY created_at ASC`,
-        [threadId]
-      );
+      const msgs = await loadMessagesWithAttachments(threadId);
 
       // Admin-impersonation reads don't clear student unread state
       if (!identity.impersonated) {
@@ -271,7 +291,7 @@ function createCourseEngagement({
       res.json({
         ok: true,
         thread: thread.rows[0],
-        messages: msgs.rows
+        messages: msgs
       });
     } catch (e) {
       logger.error({ err: e }, 'Student QA read error');
@@ -300,46 +320,58 @@ function createCourseEngagement({
         return res.status(403).json({ error: 'Admin impersonation is read-only' });
       }
 
-      if (courseId && !await verifyCourseAccess(token, courseId)) {
+      const effectiveCourseId = courseId || identity.courseId;
+      if (!effectiveCourseId) return res.status(400).json({ error: 'Course required' });
+
+      if (effectiveCourseId && !await verifyCourseAccess(token, effectiveCourseId)) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
-      const course = courses[courseId];
+      const course = courses[effectiveCourseId];
       const lesson = course?.lessons?.find((l) => l.id === lessonId);
       const derivedSubject = (subject || '').trim().slice(0, MAX_SUBJECT_LENGTH) ||
         (lesson ? `${course.name} — ${lesson.title}` : 'コースへの質問');
 
-      const threadRes = await pool.query(
-        `INSERT INTO nb_qa_threads
-           (access_token, customer_id, email, name, course_id, lesson_id, subject, status, unread_for_admin, last_message_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'open', TRUE, NOW())
-         RETURNING id`,
-        [identity.accessToken, identity.customerId || null, identity.email, (name || '').trim() || null,
-         courseId || null, lessonId || null, derivedSubject]
-      );
-      const threadId = threadRes.rows[0].id;
-
-      await pool.query(
-        `INSERT INTO nb_qa_messages (thread_id, sender, body) VALUES ($1, 'student', $2)`,
-        [threadId, trimmedBody]
-      );
+      const client = await pool.connect();
+      let thread;
+      let message;
+      try {
+        await client.query('BEGIN');
+        thread = (await client.query(
+          `INSERT INTO nb_qa_threads
+             (access_token, customer_id, email, name, course_id, lesson_id, subject, channel,
+              status, unread_for_admin, last_message_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, 'course', 'open', TRUE, NOW())
+           RETURNING *`,
+          [identity.accessToken, identity.customerId || null, identity.email, (name || '').trim() || null,
+           effectiveCourseId, lessonId || null, derivedSubject]
+        )).rows[0];
+        message = (await client.query(
+          `INSERT INTO nb_qa_messages (thread_id, sender, body)
+           VALUES ($1, 'student', $2)
+           RETURNING id, created_at`,
+          [thread.id, trimmedBody]
+        )).rows[0];
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw err;
+      } finally {
+        client.release();
+      }
+      const threadId = thread.id;
 
       // Notify Nami via email + WhatsApp (non-blocking)
       const contextLine = lesson ? `${course.name} — ${lesson.title}` : course?.name || '(コース未指定)';
       const adminUrl = `${siteUrl}/admin/qa.html?thread=${threadId}`;
-      transporter.sendMail({
-        from: smtpFrom,
-        to: 'namibarden@gmail.com',
-        replyTo: identity.email,
-        subject: `[コース質問] ${derivedSubject}`,
-        html: `<div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#2C2419;">
-          <h2 style="font-size:1.2rem;margin:0 0 12px;">新しい質問が届きました</h2>
-          <p style="color:#8B7E6E;font-size:0.9rem;margin:0 0 6px;">${escapeHtml(contextLine)}</p>
-          <p style="color:#8B7E6E;font-size:0.85rem;margin:0 0 16px;">${escapeHtml(identity.email)}</p>
-          <div style="background:#FAF7F2;padding:20px;border-left:3px solid #A8895E;white-space:pre-wrap;line-height:1.8;">${escapeHtml(trimmedBody)}</div>
-          <p style="margin:24px 0 0;"><a href="${adminUrl}" style="display:inline-block;padding:10px 24px;background:#A8895E;color:#fff;text-decoration:none;border-radius:2px;">管理画面で返信する →</a></p>
-        </div>`
-      }).catch((err) => logger.error({ err }, 'QA admin notify email failed'));
+      emitCourseMessage({ thread, messageId: message.id, body: trimmedBody, sender: 'student', createdAt: message.created_at });
+      chatEvents?.emitAdminEvent?.('thread-created', { threadId, channel: 'course' });
+      chatServices?.maybeSendNamiAlertEmail?.({
+        threadId,
+        messageId: message.id,
+        body: trimmedBody,
+        attachmentCount: 0
+      }).catch((err) => logger.error({ err, threadId }, 'QA admin notify email failed'));
 
       if (sendWhatsApp && namiJid) {
         sendWhatsApp(namiJid, `💬 生徒からの新しい質問\n${identity.email}\n${contextLine}\n\n${trimmedBody.slice(0, 200)}${trimmedBody.length > 200 ? '...' : ''}\n\n${adminUrl}`)
@@ -355,10 +387,6 @@ function createCourseEngagement({
 
   app.post('/api/courses/questions/:threadId/reply', async (req, res) => {
     try {
-      const ip = getIP(req);
-      if (!rateLimit(`qa-student-reply:${ip}`, 20, 3600000)) {
-        return res.status(429).json({ error: 'Too many requests' });
-      }
       const { token, body } = req.body || {};
       const threadId = parseInt(req.params.threadId, 10);
       if (!token) return res.status(401).json({ error: 'Token required' });
@@ -370,34 +398,47 @@ function createCourseEngagement({
       const identity = await resolveTokenIdentity(token);
       if (!identity) return res.status(403).json({ error: 'Invalid token' });
       if (identity.impersonated) return res.status(403).json({ error: 'Admin impersonation is read-only' });
+      if (!rateLimit(`qa-course-reply-token:${sha256Hex(identity.accessToken)}`, 30, 3600000)) {
+        return res.status(429).json({ error: 'Too many requests' });
+      }
 
       const thread = await pool.query(
-        `SELECT id, subject, email FROM nb_qa_threads WHERE id = $1 AND access_token = ANY($2::varchar[])`,
+        `SELECT * FROM nb_qa_threads WHERE id = $1 AND access_token = ANY($2::varchar[])`,
         [threadId, identity.accessTokens]
       );
       if (thread.rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
-      await pool.query(
-        `INSERT INTO nb_qa_messages (thread_id, sender, body) VALUES ($1, 'student', $2)`,
-        [threadId, trimmed]
-      );
-      await pool.query(
-        `UPDATE nb_qa_threads SET status = 'open', unread_for_admin = TRUE, last_message_at = NOW() WHERE id = $1`,
-        [threadId]
-      );
+      const client = await pool.connect();
+      let message;
+      try {
+        await client.query('BEGIN');
+        message = (await client.query(
+          `INSERT INTO nb_qa_messages (thread_id, sender, body)
+           VALUES ($1, 'student', $2)
+           RETURNING id, created_at`,
+          [threadId, trimmed]
+        )).rows[0];
+        await client.query(
+          `UPDATE nb_qa_threads SET status = 'open', unread_for_admin = TRUE, last_message_at = NOW() WHERE id = $1`,
+          [threadId]
+        );
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw err;
+      } finally {
+        client.release();
+      }
 
       const adminUrl = `${siteUrl}/admin/qa.html?thread=${threadId}`;
-      transporter.sendMail({
-        from: smtpFrom,
-        to: 'namibarden@gmail.com',
-        replyTo: thread.rows[0].email,
-        subject: `[再質問] ${thread.rows[0].subject || ''}`,
-        html: `<div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#2C2419;">
-          <p>生徒から追加のメッセージが届きました：</p>
-          <div style="background:#FAF7F2;padding:20px;border-left:3px solid #A8895E;white-space:pre-wrap;line-height:1.8;">${escapeHtml(trimmed)}</div>
-          <p style="margin:20px 0 0;"><a href="${adminUrl}">管理画面で返信する →</a></p>
-        </div>`
-      }).catch((err) => logger.error({ err }, 'QA admin reply notify failed'));
+      emitCourseMessage({ thread: thread.rows[0], messageId: message.id, body: trimmed, sender: 'student', createdAt: message.created_at });
+      chatEvents?.emitAdminEvent?.('thread-updated', { threadId, channel: thread.rows[0].channel || 'course', unreadForAdmin: true });
+      chatServices?.maybeSendNamiAlertEmail?.({
+        threadId,
+        messageId: message.id,
+        body: trimmed,
+        attachmentCount: 0
+      }).catch((err) => logger.error({ err, threadId }, 'QA admin reply notify failed'));
 
       res.json({ ok: true });
     } catch (e) {
@@ -537,13 +578,17 @@ function createCourseEngagement({
   // ─── Admin: Q&A ───────────────────────────────────────────────
   app.get('/api/admin/qa', authMiddleware, async (req, res) => {
     try {
-      const { status, search } = req.query;
+      const { status, search, channel, since } = req.query;
       const conditions = [];
       const params = [];
       let idx = 1;
       if (status && ['open', 'answered', 'archived'].includes(status)) {
         conditions.push(`t.status = $${idx++}`);
         params.push(status);
+      }
+      if (channel && ['dm', 'course'].includes(channel)) {
+        conditions.push(`t.channel = $${idx++}`);
+        params.push(channel);
       }
       if (search) {
         conditions.push(`(t.email ILIKE $${idx} OR t.subject ILIKE $${idx})`);
@@ -553,7 +598,7 @@ function createCourseEngagement({
       const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
       const threads = (await pool.query(
-        `SELECT t.id, t.email, t.name, t.course_id, t.lesson_id, t.subject, t.status,
+        `SELECT t.id, t.email, t.name, t.channel, t.course_id, t.lesson_id, t.subject, t.status,
                 t.unread_for_admin, t.last_message_at, t.created_at,
                 (SELECT COUNT(*) FROM nb_qa_messages m WHERE m.thread_id = t.id) AS message_count
          FROM nb_qa_threads t
@@ -568,19 +613,50 @@ function createCourseEngagement({
            COUNT(*) FILTER (WHERE status = 'open') AS open_count,
            COUNT(*) FILTER (WHERE status = 'answered') AS answered_count,
            COUNT(*) FILTER (WHERE status = 'archived') AS archived_count,
+           COUNT(*) FILTER (WHERE channel = 'dm') AS dm_count,
+           COUNT(*) FILTER (WHERE channel = 'course') AS course_count,
            COUNT(*) FILTER (WHERE unread_for_admin) AS unread_count
          FROM nb_qa_threads`
       )).rows[0];
+
+      const sinceId = parseInt(since, 10);
+      const replayMessages = Number.isFinite(sinceId) && sinceId > 0 ? (await pool.query(
+        `SELECT m.id, m.thread_id, m.sender, m.body, m.created_at, t.channel,
+                COUNT(a.id) AS attachment_count
+         FROM nb_qa_messages m
+         JOIN nb_qa_threads t ON t.id = m.thread_id
+         LEFT JOIN nb_qa_attachments a ON a.message_id = m.id
+         WHERE m.id > $1
+         GROUP BY m.id, t.channel
+         ORDER BY m.id ASC
+         LIMIT 100`,
+        [sinceId]
+      )).rows.map((row) => ({
+        id: Number(row.id),
+        messageId: Number(row.id),
+        threadId: Number(row.thread_id),
+        body: row.body || '',
+        sender: row.sender,
+        senderRole: row.sender,
+        createdAt: row.created_at,
+        channel: row.channel || 'course',
+        hasAttachments: Number(row.attachment_count) > 0,
+        attachmentCount: Number(row.attachment_count) || 0
+      })) : [];
 
       res.json({
         summary: {
           open: Number(summary.open_count) || 0,
           answered: Number(summary.answered_count) || 0,
           archived: Number(summary.archived_count) || 0,
+          dm: Number(summary.dm_count) || 0,
+          course: Number(summary.course_count) || 0,
           unread: Number(summary.unread_count) || 0
         },
+        replayMessages,
         threads: threads.map((t) => ({
           id: t.id,
+          channel: t.channel || 'course',
           email: t.email,
           name: t.name,
           courseId: t.course_id,
@@ -599,25 +675,22 @@ function createCourseEngagement({
     }
   });
 
-  app.get('/api/admin/qa/:id', authMiddleware, async (req, res) => {
+  app.get('/api/admin/qa/:id', qaAdminAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (!id) return res.status(400).json({ error: 'Invalid id' });
 
       const thread = (await pool.query(
-        `SELECT id, customer_id, email, name, course_id, lesson_id, subject, status,
+        `SELECT id, customer_id, email, name, channel, course_id, lesson_id, subject, status,
                 unread_for_admin, last_message_at, created_at
          FROM nb_qa_threads WHERE id = $1`,
         [id]
       )).rows[0];
       if (!thread) return res.status(404).json({ error: 'Not found' });
 
-      const messages = (await pool.query(
-        `SELECT id, sender, body, created_at FROM nb_qa_messages WHERE thread_id = $1 ORDER BY created_at ASC`,
-        [id]
-      )).rows;
+      const messages = await loadMessagesWithAttachments(id);
 
-      await pool.query(`UPDATE nb_qa_threads SET unread_for_admin = FALSE WHERE id = $1`, [id]);
+      await pool.query(`UPDATE nb_qa_threads SET unread_for_admin = FALSE, last_admin_notified_at = NULL WHERE id = $1`, [id]);
 
       const course = courses[thread.course_id];
       const lesson = course?.lessons?.find((l) => l.id === thread.lesson_id);
@@ -629,7 +702,10 @@ function createCourseEngagement({
           name: thread.name,
           openAsStudentUrl: thread.customer_id && thread.course_id
             ? `/api/admin/customers/${thread.customer_id}/open-as-student?course=${encodeURIComponent(thread.course_id)}`
+            : thread.course_id
+            ? `/api/admin/qa/${thread.id}/open-as-student`
             : null,
+          channel: thread.channel || 'course',
           courseId: thread.course_id,
           courseName: course?.name || null,
           lessonId: thread.lesson_id,
@@ -647,30 +723,65 @@ function createCourseEngagement({
     }
   });
 
-  app.post('/api/admin/qa/:id/reply', authMiddleware, async (req, res) => {
+  app.post('/api/admin/qa/:id/reply', qaAdminAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (!id) return res.status(400).json({ error: 'Invalid id' });
       const trimmed = (req.body?.body || '').trim();
-      if (!trimmed) return res.status(400).json({ error: 'Message required' });
+      const attachments = Array.isArray(req.body?.attachments) ? req.body.attachments : [];
+      if (!trimmed && attachments.length === 0) return res.status(400).json({ error: 'Message required' });
       if (trimmed.length > MAX_QUESTION_LENGTH) return res.status(400).json({ error: 'Message too long' });
+      if (attachments.length > 5) return res.status(400).json({ error: 'Maximum 5 attachments per message' });
 
       const thread = (await pool.query(
-        `SELECT id, access_token, email, name, subject, course_id, lesson_id FROM nb_qa_threads WHERE id = $1`,
+        `SELECT id, channel, access_token, email, name, subject, course_id, lesson_id FROM nb_qa_threads WHERE id = $1`,
         [id]
       )).rows[0];
       if (!thread) return res.status(404).json({ error: 'Not found' });
 
-      await pool.query(
-        `INSERT INTO nb_qa_messages (thread_id, sender, body) VALUES ($1, 'nami', $2)`,
-        [id, trimmed]
-      );
-      await pool.query(
-        `UPDATE nb_qa_threads SET status = 'answered', unread_for_student = TRUE, last_message_at = NOW() WHERE id = $1`,
-        [id]
-      );
+      let result;
+      if (chatServices?.insertMessageWithTransaction) {
+        result = await chatServices.insertMessageWithTransaction({
+          threadId: id,
+          identity: {
+            kind: 'admin',
+            role: 'nami',
+            full: !!req.qaAdminScope?.full,
+            threadId: id,
+            uploadId: req.qaAdminScope?.uploadId || 'admin'
+          },
+          body: trimmed,
+          uploadIds: attachments
+        });
+      } else {
+        if (attachments.length > 0) return res.status(503).json({ error: 'Attachment service not configured' });
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          const msg = await client.query(
+            `INSERT INTO nb_qa_messages (thread_id, sender, body)
+             VALUES ($1, 'nami', $2)
+             RETURNING id, created_at`,
+            [id, trimmed]
+          );
+          await client.query(
+            `UPDATE nb_qa_threads SET status = 'answered', unread_for_student = TRUE, last_message_at = NOW() WHERE id = $1`,
+            [id]
+          );
+          await client.query('COMMIT');
+          result = { messageId: msg.rows[0].id, createdAt: msg.rows[0].created_at, attachments: [] };
+          emitCourseMessage({ thread, messageId: result.messageId, body: trimmed, sender: 'nami', createdAt: result.createdAt });
+        } catch (err) {
+          await client.query('ROLLBACK').catch(() => {});
+          throw err;
+        } finally {
+          client.release();
+        }
+      }
 
-      const watchUrl = `${siteUrl}/watch?token=${thread.access_token}${thread.course_id ? `&course=${thread.course_id}` : ''}`;
+      const watchUrl = thread.channel === 'dm'
+        ? `${siteUrl}/messages`
+        : `${siteUrl}/watch?token=${thread.access_token}${thread.course_id ? `&course=${thread.course_id}` : ''}`;
       const course = courses[thread.course_id];
       const lesson = course?.lessons?.find((l) => l.id === thread.lesson_id);
       const contextLine = lesson ? `${course.name} — ${lesson.title}` : course?.name || '';
@@ -700,7 +811,7 @@ function createCourseEngagement({
     }
   });
 
-  app.post('/api/admin/qa/:id/status', authMiddleware, async (req, res) => {
+  app.post('/api/admin/qa/:id/status', qaAdminAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (!id) return res.status(400).json({ error: 'Invalid id' });
@@ -713,6 +824,7 @@ function createCourseEngagement({
         [status, id]
       );
       if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+      chatEvents?.emitAdminEvent?.('status-changed', { threadId: id, status });
       res.json({ ok: true });
     } catch (e) {
       logger.error({ err: e }, 'Admin QA status error');
@@ -720,7 +832,7 @@ function createCourseEngagement({
     }
   });
 
-  return { ensureTables };
+  return {};
 }
 
 module.exports = { createCourseEngagement };

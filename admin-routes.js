@@ -1,4 +1,6 @@
 const { once } = require('events');
+const crypto = require('crypto');
+const express = require('express');
 const courses = require('./course-catalog');
 const { getCourseLessonCount } = require('./course-catalog');
 
@@ -20,6 +22,19 @@ function toInt(value, fallback, min, max) {
 
 function parseBool(value) {
   return String(value).toLowerCase() === 'true';
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sha256Hex(value) {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
 function normalizeLuminaStatus(rawStatus, cancelAt, currentPeriodEnd) {
@@ -315,7 +330,9 @@ function createAdminRoutes({
   uuidv4,
   injectTracking,
   sendWhatsApp,
-  namiJid
+  namiJid,
+  chatEvents,
+  chatAuth
 }) {
   app.post('/api/admin/login', async (req, res) => {
     try {
@@ -342,13 +359,159 @@ function createAdminRoutes({
     }
   });
 
-  app.post('/api/admin/logout', (_req, res) => {
+  app.post('/api/admin/logout', (req, res) => {
     clearAuthCookie(res, 'nb_admin_token');
+    for (const name of Object.keys(req.cookies || {})) {
+      if (/^nb_thread_admin_\d+$/.test(name)) clearAuthCookie(res, name);
+    }
     res.json({ ok: true });
   });
 
   app.get('/api/admin/check', authMiddleware, (_req, res) => {
     res.json({ ok: true });
+  });
+
+  app.get('/api/admin/qa/stream', authMiddleware, async (req, res) => {
+    try {
+      if (!chatEvents?.openAdminStream) return res.status(503).json({ error: 'Chat stream not configured' });
+      await chatEvents.openAdminStream(req, res);
+    } catch (e) {
+      logger.error({ err: e }, 'Admin QA stream error');
+      if (!res.headersSent) res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.post('/api/admin/qa/:id/deep-link', authMiddleware, async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id, 10);
+      if (!threadId) return res.status(400).json({ error: 'Invalid thread id' });
+      if (!rateLimit(`admin-thread-link:${threadId}`, 1, 30000)) {
+        return res.status(429).json({ error: 'Please wait before issuing another link' });
+      }
+      const thread = (await pool.query(
+        'SELECT id FROM nb_qa_threads WHERE id = $1',
+        [threadId]
+      )).rows[0];
+      if (!thread) return res.status(404).json({ error: 'Thread not found' });
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const result = await pool.query(
+        `INSERT INTO nb_admin_thread_link_tokens (token_hash, thread_id, expires_at, created_reason)
+         VALUES ($1, $2, NOW() + INTERVAL '15 minutes', $3)
+         RETURNING expires_at`,
+        [sha256Hex(token), threadId, (req.body?.reason || '').slice(0, 100) || null]
+      );
+      const baseUrl = (siteUrl || 'https://namibarden.com').replace(/\/+$/, '');
+      res.json({
+        url: `${baseUrl}/api/admin/link-thread?token=${token}`,
+        expiresAt: result.rows[0].expires_at
+      });
+    } catch (e) {
+      logger.error({ err: e }, 'Admin thread deep-link issue error');
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.get('/api/admin/link-thread', (req, res) => {
+    const token = String(req.query.token || '');
+    if (!/^[a-f0-9]{64}$/i.test(token)) return res.redirect(302, '/admin/?error=invalid_link');
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.send(`<!doctype html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noindex,nofollow">
+        <title>Open thread - Nami Barden</title>
+        <style>
+          body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#faf7f2;color:#2c2419;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:24px}
+          main{max-width:520px;background:#fffdf8;border:1px solid #eadfce;border-radius:8px;padding:32px;box-shadow:0 16px 44px rgba(53,44,38,.08)}
+          h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;margin:0 0 14px;font-size:28px}
+          p{line-height:1.7;color:#5f5348;margin:0 0 18px}
+          button{border:0;background:#352c26;color:#fff;padding:12px 18px;border-radius:6px;font-weight:700;cursor:pointer}
+        </style>
+      </head>
+      <body>
+        <main>
+          <h1>Open this thread as Nami</h1>
+          <p>This one-time link signs you in for this thread only for 15 minutes. It is not a full admin login.</p>
+          <form method="post" action="/api/admin/link-thread">
+            <input type="hidden" name="token" value="${escapeHtml(token)}">
+            <button type="submit">Open thread</button>
+          </form>
+        </main>
+      </body>
+      </html>`);
+  });
+
+  app.post('/api/admin/link-thread', express.urlencoded({ extended: false }), async (req, res) => {
+    try {
+      const token = String(req.body?.token || '');
+      if (!/^[a-f0-9]{64}$/i.test(token)) return res.redirect(302, '/admin/?error=invalid_link');
+      const result = await pool.query(
+        `UPDATE nb_admin_thread_link_tokens
+         SET consumed_at = NOW(), consumed_ip = $2
+         WHERE token_hash = $1 AND consumed_at IS NULL AND expires_at > NOW()
+         RETURNING thread_id`,
+        [sha256Hex(token), getIP(req)]
+      );
+      if (result.rows.length === 0) return res.redirect(302, '/admin/?error=invalid_link');
+      const threadId = Number(result.rows[0].thread_id);
+      const scopedToken = jwt.sign(
+        { role: 'admin', scope: 'thread-admin', threadId },
+        jwtSecret,
+        { expiresIn: '15m', audience: `thread-admin:${threadId}` }
+      );
+      setAuthCookie(res, `nb_thread_admin_${threadId}`, scopedToken, 15 * 60 * 1000);
+      res.redirect(302, `/admin/qa.html?thread=${encodeURIComponent(threadId)}&scope=thread-admin`);
+    } catch (e) {
+      logger.error({ err: e }, 'Admin thread deep-link consume error');
+      res.redirect(302, '/admin/?error=invalid_link');
+    }
+  });
+
+  function requireQaAdminForThread(req, res, next) {
+    const threadId = parseInt(req.params.id, 10);
+    if (!threadId) return res.status(400).json({ error: 'Invalid thread id' });
+    const full = chatAuth?.verifyFullAdmin ? chatAuth.verifyFullAdmin(req) : null;
+    if (full) {
+      req.admin = full;
+      return next();
+    }
+    const scoped = chatAuth?.verifyThreadAdmin ? chatAuth.verifyThreadAdmin(req, threadId) : null;
+    if (scoped) {
+      req.admin = scoped;
+      return next();
+    }
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  app.get('/api/admin/qa/:id/open-as-student', requireQaAdminForThread, async (req, res) => {
+    try {
+      const threadId = parseInt(req.params.id, 10);
+      const thread = (await pool.query(
+        `SELECT id, channel, access_token, course_id
+         FROM nb_qa_threads
+         WHERE id = $1`,
+        [threadId]
+      )).rows[0];
+      if (!thread || thread.channel === 'dm' || !thread.access_token || !thread.course_id) {
+        return res.status(404).json({ error: 'Course thread not found' });
+      }
+      const token = jwt.sign(
+        { kind: 'admin-impersonate-access', accessToken: thread.access_token, courseId: thread.course_id },
+        jwtSecret,
+        {
+          expiresIn: '5m',
+          issuer: 'namibarden-admin',
+          audience: 'course-watch-impersonation'
+        }
+      );
+      res.redirect(302, `/watch?token=${encodeURIComponent(token)}&course=${encodeURIComponent(thread.course_id)}`);
+    } catch (e) {
+      logger.error({ err: e }, 'QA open as student error');
+      res.status(500).json({ error: 'Server error' });
+    }
   });
 
   app.get('/api/admin/customers', authMiddleware, async (req, res) => {
