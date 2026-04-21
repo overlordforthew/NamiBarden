@@ -13,9 +13,11 @@ COPY server.js logger.js app-config.js request-services.js whatsapp-sender.js ap
 COPY scripts/ ./scripts/
 COPY migrations/ ./migrations/
 COPY public/ /usr/share/nginx/html/
-RUN chmod -R a+rX /usr/share/nginx/html
 COPY admin/ /usr/share/nginx/html/admin/
-RUN chmod -R a+rX /usr/share/nginx/html/admin
+# Explicit octal — `chmod -R a+rX` silently left some files at 640 on prior
+# builds, which broke nginx static serving. 755 for dirs, 644 for files.
+RUN find /usr/share/nginx/html -type d -exec chmod 755 {} + \
+ && find /usr/share/nginx/html -type f -exec chmod 644 {} +
 COPY nginx-main.conf /etc/nginx/nginx.conf
 COPY security-headers.conf /etc/nginx/security-headers.conf
 COPY nginx.conf /etc/nginx/http.d/default.conf
