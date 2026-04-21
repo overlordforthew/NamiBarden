@@ -43,7 +43,7 @@ function createStripeRoutes({
   getLuminaCheckoutCopy,
   buildCourse2UpsellBlockHtml,
   verifyFlashToken,
-  flashPrice
+  getPricing
 }) {
 function buildLuminaCheckoutUrl(rawUrl, billingState) {
   if (!isAllowedLuminaReturnUrl(rawUrl)) return null;
@@ -178,14 +178,14 @@ app.post('/api/stripe/create-checkout-session', async (req, res) => {
       },
       'course-2-upgrade': {
         name: COURSES['course-2'].name + (en ? ' (Upgrade)' : '（コース1受講者限定）'),
-        description: en ? 'Special price for Course 1 students (save ¥2,800)' : 'コース1受講者特別価格（¥2,800おトク）',
-        amount: 7000,
+        description: en ? 'Special price for Course 1 students' : 'コース1受講者特別価格',
+        amount: getPricing().upsellPrice,
         mode: 'payment'
       },
       'course-2-flash': {
         name: COURSES['course-2'].name + (en ? ' (Flash 48h)' : '（48時間限定フラッシュ価格）'),
         description: en ? '48-hour flash deal for Course 1 students' : '48時間限定フラッシュ価格（コース1受講者限定）',
-        amount: flashPrice,
+        amount: getPricing().flashPrice,
         mode: 'payment'
       },
       'single-session': {

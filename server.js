@@ -23,6 +23,7 @@ const { createCourseEngagement } = require('./course-engagement');
 const { createChatRoutes, createChatSseHub, createChatAuthHelpers } = require('./chat-routes');
 const { createStripeRoutes } = require('./stripe-routes');
 const { createCourseReminders } = require('./course-reminders');
+const reminderConfig = require('./course-reminder-config');
 const { createAuthUtils } = require('./auth-utils');
 const { createHealthRoutes } = require('./health-routes');
 const { createSiteHelpers } = require('./site-helpers');
@@ -412,7 +413,7 @@ createStripeRoutes({
   getLuminaCheckoutCopy,
   buildCourse2UpsellBlockHtml: courseReminders.buildCourse2UpsellBlockHtml,
   verifyFlashToken: courseReminders.verifyFlashToken,
-  flashPrice: courseReminders.constants.FLASH_PRICE
+  getPricing: reminderConfig.getActivePricing
 });
 
 registerGlobalErrorHandling({
@@ -436,6 +437,7 @@ initializeApp({
 }).then(async () => {
   try {
     await courseReminders.ensureReminderTable();
+    await reminderConfig.ensureSeeded(pool);
     courseReminders.startScheduler();
     logger.info('Course reminder scheduler started');
   } catch (err) {
