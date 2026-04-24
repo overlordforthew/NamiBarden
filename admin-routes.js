@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const express = require('express');
 const courses = require('./course-catalog');
 const { getCourseLessonCount } = require('./course-catalog');
+const { sha256Hex } = require('./crypto-helpers');
 const {
   GRANULARITY_SQL,
   COMPLETION_BUCKETS,
@@ -49,19 +50,6 @@ function toInt(value, fallback, min, max) {
 
 function parseBool(value) {
   return String(value).toLowerCase() === 'true';
-}
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function sha256Hex(value) {
-  return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
 function normalizeLuminaStatus(rawStatus, cancelAt, currentPeriodEnd) {
@@ -325,6 +313,63 @@ function mapRevenueRows(paymentRows, refundRows) {
   return Array.from(byBucket.values())
     .sort((a, b) => a.bucket.localeCompare(b.bucket))
     .map((row) => ({ ...row, net: row.gross - row.refunds }));
+}
+
+function validateCampaignPayload({ subject, html_body, text_body, segment }) {
+  const normalized = {
+    subject: (subject || '').trim(),
+    html_body: (html_body || '').trim(),
+    text_body: text_body == null ? '' : text_body,
+    segment: segment || 'all'
+  };
+
+  if (!normalized.subject) {
+    const err = new Error('Subject is required');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!normalized.html_body) {
+    const err = new Error('HTML body is required');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (normalized.subject.length > 500) {
+    const err = new Error('Subject too long (max 500)');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (normalized.html_body.length > 500_000) {
+    const err = new Error('HTML body too large (max 500 KB)');
+    err.statusCode = 413;
+    throw err;
+  }
+  if (normalized.text_body && normalized.text_body.length > 500_000) {
+    const err = new Error('Text body too large (max 500 KB)');
+    err.statusCode = 413;
+    throw err;
+  }
+
+  return normalized;
+}
+
+async function insertRecipientsChunked(client, campaignId, subs) {
+  const CHUNK = 500;
+  if (!subs.length) return;
+  for (let i = 0; i < subs.length; i += CHUNK) {
+    const slice = subs.slice(i, i + CHUNK);
+    const values = slice
+      .map((_, idx) => {
+        const base = idx * 4;
+        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
+      })
+      .join(', ');
+    const params = slice.flatMap((s) => [campaignId, s.id, s.email, uuidv4()]);
+    await client.query(
+      `INSERT INTO nb_campaign_recipients (campaign_id, subscriber_id, email, tracking_id)
+       VALUES ${values}`,
+      params
+    );
+  }
 }
 
 function totalsForRevenue(rows) {
