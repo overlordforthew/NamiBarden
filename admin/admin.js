@@ -105,3 +105,25 @@ function logout() {
   fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' })
     .finally(function() { window.location.href = '/admin/'; });
 }
+
+// Wires any sidebar `<a id="logoutLink">` (or `.logout-link`) to logout without
+// needing an inline `onclick`, so we can tighten CSP to drop 'unsafe-inline'
+// from script-src.
+function initLogoutLink() {
+  const links = document.querySelectorAll('#logoutLink, .logout-link');
+  links.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+  });
+}
+
+// Standard bootstrap every authenticated admin page calls instead of the old
+// `if (!requireAuth()) throw 'auth'; initSidebar();` pair. Also wires the
+// sidebar logout link.
+function initAdminPage() {
+  if (!requireAuth()) throw 'auth';
+  initSidebar();
+  initLogoutLink();
+}

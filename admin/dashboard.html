@@ -22,7 +22,7 @@
     <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/></svg><span>Alerts</span></a>
     <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
     <div class="sidebar-logout">
-      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+      <a href="#" id="logoutLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
     </div>
   </nav>
 
@@ -106,76 +106,7 @@
     </div>
   </main>
 
-  <script src="/admin/admin.js"></script>
-  <script>
-    if (!requireAuth()) throw 'auth';
-    initSidebar();
-
-    function severityBadge(severity) {
-      return `<span class="badge badge-${severity || 'info'}">${escapeHtml(severity || 'info')}</span>`;
-    }
-
-    (async function() {
-      try {
-        const data = await api('/stats');
-        document.getElementById('statActive').textContent = data.subscribers.active;
-        document.getElementById('statContacts').textContent = data.contacts.total;
-        document.getElementById('statCampaigns').textContent = data.campaigns.sent;
-        document.getElementById('statOpens').textContent = data.campaigns.total_opens;
-        document.getElementById('statAlerts').textContent = data.alerts.open || '0';
-        document.getElementById('statCriticalAlerts').textContent = `${data.alerts.critical_open || 0} critical`;
-
-        const chart = document.getElementById('growthChart');
-        if (data.growth.length > 0) {
-          const max = Math.max(...data.growth.map(g => parseInt(g.count, 10)), 1);
-          data.growth.forEach(g => {
-            const bar = document.createElement('div');
-            bar.className = 'chart-bar';
-            bar.style.height = ((parseInt(g.count, 10) / max) * 100) + '%';
-            bar.setAttribute('data-tooltip', `${g.date.slice(5)}: ${g.count}`);
-            chart.appendChild(bar);
-          });
-        } else {
-          chart.innerHTML = '<div class="empty" style="width:100%"><p>No data yet</p></div>';
-        }
-
-        const st = document.getElementById('sourcesTable');
-        if (data.sources.length > 0) {
-          st.innerHTML = data.sources.map(s => `<tr><td>${escapeHtml(s.source)}</td><td>${s.count}</td></tr>`).join('');
-        } else {
-          st.innerHTML = '<tr><td colspan="2" style="text-align:center; color:var(--text-light)">No subscribers yet</td></tr>';
-        }
-
-        const ct = document.getElementById('campaignsTable');
-        if (data.recentCampaigns.length > 0) {
-          ct.innerHTML = data.recentCampaigns.map(c => `<tr>
-            <td><a href="/admin/campaigns.html?id=${c.id}" style="color:var(--gold-dark)">${escapeHtml(c.subject)}</a></td>
-            <td>${statusBadge(c.status)}</td>
-            <td>${c.sent_count || 0}</td>
-            <td>${c.open_count || 0}</td>
-            <td>${c.click_count || 0}</td>
-            <td>${formatDate(c.sent_at)}</td>
-          </tr>`).join('');
-        } else {
-          ct.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-light)">No campaigns yet</td></tr>';
-        }
-
-        const at = document.getElementById('alertsTable');
-        if (data.recentAlerts.length > 0) {
-          at.innerHTML = data.recentAlerts.map(a => `<tr>
-            <td>${escapeHtml(a.title)}</td>
-            <td>${escapeHtml(a.source)}</td>
-            <td>${severityBadge(a.severity)}</td>
-            <td>${statusBadge(a.status)}</td>
-            <td>${formatDateTime(a.lastSeen)}</td>
-          </tr>`).join('');
-        } else {
-          at.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-light)">No alerts recorded</td></tr>';
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-  </script>
+  <script src="/admin/admin.js?v=2"></script>
+  <script src="/admin/js/dashboard.js?v=2"></script>
 </body>
 </html>
