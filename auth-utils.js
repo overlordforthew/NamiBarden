@@ -1,6 +1,7 @@
 function createAuthUtils({ jwt, jwtSecret, isProd }) {
-  function setAuthCookie(res, name, token, maxAgeMs) {
-    const opts = [`${name}=${token}`, 'HttpOnly', 'Path=/', 'SameSite=Lax', `Max-Age=${Math.floor(maxAgeMs / 1000)}`];
+  function setAuthCookie(res, name, token, maxAgeMs, options = {}) {
+    const sameSite = options.sameSite || 'Lax';
+    const opts = [`${name}=${token}`, 'HttpOnly', 'Path=/', `SameSite=${sameSite}`, `Max-Age=${Math.floor(maxAgeMs / 1000)}`];
     if (isProd) opts.push('Secure');
     res.append('Set-Cookie', opts.join('; '));
   }

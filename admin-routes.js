@@ -1007,6 +1007,7 @@ function createAdminRoutes({
   setAuthCookie,
   clearAuthCookie,
   getIP,
+  dbHealth,
   rateLimit,
   stringify,
   parse,
@@ -1016,6 +1017,7 @@ function createAdminRoutes({
   transporter,
   smtpFrom,
   siteUrl,
+  escapeHtml,
   uuidv4,
   injectTracking,
   sendWhatsApp,
@@ -1040,7 +1042,7 @@ function createAdminRoutes({
 
       if (!valid) return res.status(401).json({ error: 'Invalid password' });
       const token = jwt.sign({ role: 'admin' }, jwtSecret, { expiresIn: '24h' });
-      setAuthCookie(res, 'nb_admin_token', token, 24 * 60 * 60 * 1000);
+      setAuthCookie(res, 'nb_admin_token', token, 24 * 60 * 60 * 1000, { sameSite: 'Strict' });
       res.json({ ok: true });
     } catch (e) {
       logger.error({ err: e }, 'Admin login error');
@@ -1104,6 +1106,8 @@ function createAdminRoutes({
   app.get('/api/admin/link-thread', (req, res) => {
     const token = String(req.query.token || '');
     if (!/^[a-f0-9]{64}$/i.test(token)) return res.redirect(302, '/admin/?error=invalid_link');
+    res.set('Content-Security-Policy',
+      "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'");
     res.set('Content-Type', 'text/html; charset=utf-8');
     res.send(`<!doctype html>
       <html lang="en">
@@ -1196,6 +1200,14 @@ function createAdminRoutes({
           audience: 'course-watch-impersonation'
         }
       );
+      logger.info({
+        event: 'admin_impersonate',
+        adminId: req.admin?.sub || 'root',
+        customerId: null,
+        courseId: thread.course_id,
+        threadId,
+        ip: getIP(req)
+      }, 'Admin impersonation token minted');
       res.redirect(302, `/watch?token=${encodeURIComponent(token)}&course=${encodeURIComponent(thread.course_id)}`);
     } catch (e) {
       logger.error({ err: e }, 'QA open as student error');
@@ -1541,6 +1553,14 @@ function createAdminRoutes({
           audience: 'course-watch-impersonation'
         }
       );
+      logger.info({
+        event: 'admin_impersonate',
+        adminId: req.admin?.sub || 'root',
+        customerId,
+        courseId,
+        threadId: null,
+        ip: getIP(req)
+      }, 'Admin impersonation token minted');
       res.redirect(302, `/watch?token=${encodeURIComponent(token)}&course=${encodeURIComponent(courseId)}`);
     } catch (e) {
       logger.error({ err: e }, 'Open as student error');

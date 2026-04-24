@@ -22,7 +22,9 @@ async function api(path, opts = {}) {
   try {
     res = await fetch(`${API}${path}`, { ...opts, headers, credentials: 'same-origin' });
   } catch (e) {
-    throw new Error('Network error — check your connection and try again');
+    const wrapped = new Error('Network error — check your connection');
+    wrapped.cause = e;
+    throw wrapped;
   }
   if (res.status === 401) { window.location.href = '/admin/'; return; }
   const data = await res.json().catch(() => ({}));
@@ -32,6 +34,13 @@ async function api(path, opts = {}) {
 
 function statusBadge(status) {
   return `<span class="badge badge-${status}">${status}</span>`;
+}
+
+function statusBadgeNode(status) {
+  const span = document.createElement('span');
+  span.className = `badge badge-${status}`;
+  span.textContent = status;
+  return span;
 }
 
 function formatDate(d) {
