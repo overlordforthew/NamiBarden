@@ -14,7 +14,7 @@ let adminStream = null;
 let lastSeenMessageId = Number(localStorage.getItem('nb-admin-qa-last-id') || '0');
 
 if (!isThreadScoped) {
-initAdminPage();
+  initAdminPage();
 } else {
   document.getElementById('threadScopeBanner').classList.add('active');
   document.getElementById('backToInboxBtn').style.display = 'none';
@@ -22,6 +22,9 @@ initAdminPage();
     const href = link.getAttribute('href');
     if (href !== '/admin/qa.html' && !link.closest('.sidebar-logout')) link.style.display = 'none';
   });
+  // Thread-scoped sessions still show the Logout link in the sidebar, so
+  // wire it up even though we skip the full initAdminPage() bootstrap.
+  initLogoutLink();
 }
 
 function node(tag, className, text) {

@@ -2516,8 +2516,14 @@ function createAdminRoutes({
     // Rollup from the recipients table so sent_count / bounce_count reflect
     // the true delivered state even if the loop crashed mid-way.
     try {
+      // Count sent + opened + clicked as delivered — the tracking pixel/link
+      // routes mutate recipient.status forward from 'sent' once the subscriber
+      // opens or clicks, so filtering on status='sent' alone undercounts the
+      // true delivery on any campaign where early opens land during a long
+      // send. 'unsubscribed' is also counted as delivered (they got the email
+      // in order to click unsubscribe).
       const rollup = await pool.query(
-        `SELECT COUNT(*) FILTER (WHERE status = 'sent') AS sent,
+        `SELECT COUNT(*) FILTER (WHERE status IN ('sent', 'opened', 'clicked', 'unsubscribed')) AS sent,
                 COUNT(*) FILTER (WHERE status = 'bounced') AS bounced,
                 COUNT(*) FILTER (WHERE status IN ('pending', 'sending')) AS stuck,
                 COUNT(*) AS total
@@ -2526,7 +2532,15 @@ function createAdminRoutes({
         [current.id]
       );
       const { sent, bounced, stuck, total } = rollup.rows[0];
-      const finalStatus = loopErr ? 'failed' : (Number(stuck) > 0 ? 'sending' : 'sent');
+      // If there are zero recipient rows at all, the send handler crashed
+      // after claiming the campaign ('sending') but before committing the
+      // recipient INSERT. Flipping to 'sent' in that case would silently
+      // declare victory over an empty delivery — mark 'failed' so /resume
+      // (or a fresh /send after manual reset) is required.
+      const finalStatus = loopErr ? 'failed'
+        : Number(total) === 0 ? 'failed'
+        : Number(stuck) > 0 ? 'sending'
+        : 'sent';
       await pool.query(
         `UPDATE nb_campaigns
             SET status = $1,
@@ -2619,19 +2633,24 @@ function createAdminRoutes({
     const campaignId = parseInt(req.params.id, 10);
     if (!campaignId) return res.status(400).json({ error: 'Invalid campaign id' });
     try {
-      // Atomic claim: only one concurrent POST can flip draft/failed → sending.
-      // The old SELECT FOR UPDATE released the lock between statements, which
-      // is why a double-click could double-send.
+      // Atomic claim: only one concurrent POST can flip draft → sending. Note
+      // 'failed' is excluded on purpose — if a prior attempt failed it already
+      // materialised recipient rows, and a fresh /send would INSERT a second
+      // full set, double-sending to everyone on the list. Failed campaigns
+      // retry through POST /campaigns/:id/resume instead.
       const claim = await pool.query(
         `UPDATE nb_campaigns
             SET status = 'sending', sent_at = NOW(), updated_at = NOW()
-          WHERE id = $1 AND status IN ('draft', 'failed')
+          WHERE id = $1 AND status = 'draft'
           RETURNING *`,
         [campaignId]
       );
       if (claim.rows.length === 0) {
         const exists = await pool.query('SELECT status FROM nb_campaigns WHERE id = $1', [campaignId]);
         if (exists.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
+        if (exists.rows[0].status === 'failed') {
+          return res.status(409).json({ error: 'Campaign previously failed — use /resume to retry in place' });
+        }
         return res.status(409).json({ error: `Campaign is already ${exists.rows[0].status}` });
       }
       const current = claim.rows[0];
