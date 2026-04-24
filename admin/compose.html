@@ -172,10 +172,9 @@
       updateDirtyBadge();
     }
     function renderPreview() {
-      const doc = previewEl.contentDocument || previewEl.contentWindow.document;
-      doc.open();
-      doc.write(currentHtmlBody());
-      doc.close();
+      // srcdoc works with sandbox="" where doc.open()/write() from the parent
+      // is blocked by the same-origin guard.
+      previewEl.srcdoc = currentHtmlBody();
     }
     [subjectEl, bodyEl, segmentEl].forEach(function(el) {
       el.addEventListener('input', schedulePreview);
