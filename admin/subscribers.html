@@ -126,28 +126,67 @@
       try {
         const data = await api(`/subscribers?${params}`);
         const tb = document.getElementById('subscribersTable');
+        tb.textContent = '';
         if (data.subscribers.length === 0) {
-          tb.innerHTML = '<tr><td colspan="7" class="empty">No subscribers found</td></tr>';
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 7;
+          td.className = 'empty';
+          td.textContent = 'No subscribers found';
+          tr.appendChild(td);
+          tb.appendChild(tr);
         } else {
-          tb.innerHTML = data.subscribers.map(s => `<tr>
-            <td>${escapeHtml(s.email)}</td>
-            <td>${escapeHtml(s.name || '')}</td>
-            <td>${escapeHtml(s.source)}</td>
-            <td>${statusBadge(s.status)}</td>
-            <td>${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(' ') || '—'}</td>
-            <td>${formatDate(s.created_at)}</td>
-            <td>
-              <div class="btn-group">
-                <button class="btn btn-sm" onclick="editTags(${s.id}, '${escapeHtml(s.email)}', ${JSON.stringify(s.tags || []).replace(/"/g, '&quot;')})">Tags</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteSub(${s.id}, '${escapeHtml(s.email)}')">Del</button>
-              </div>
-            </td>
-          </tr>`).join('');
+          for (const s of data.subscribers) tb.appendChild(renderSubscriberRow(s));
         }
         renderPagination(document.getElementById('pagination'), data.page, data.total, limit, loadSubscribers);
       } catch (e) {
         console.error(e);
       }
+    }
+
+    function renderSubscriberRow(s) {
+      const tr = document.createElement('tr');
+      const td = (content) => {
+        const el = document.createElement('td');
+        if (content instanceof Node) el.appendChild(content);
+        else el.textContent = content == null ? '' : String(content);
+        return el;
+      };
+      tr.appendChild(td(s.email));
+      tr.appendChild(td(s.name || ''));
+      tr.appendChild(td(s.source));
+      const statusTd = document.createElement('td');
+      statusTd.appendChild(statusBadgeNode(s.status));
+      tr.appendChild(statusTd);
+      const tagsTd = document.createElement('td');
+      const tags = s.tags || [];
+      if (tags.length === 0) tagsTd.textContent = '—';
+      else tags.forEach((t, i) => {
+        const span = document.createElement('span');
+        span.className = 'tag';
+        span.textContent = t;
+        tagsTd.appendChild(span);
+        if (i < tags.length - 1) tagsTd.appendChild(document.createTextNode(' '));
+      });
+      tr.appendChild(tagsTd);
+      tr.appendChild(td(formatDate(s.created_at)));
+      const actions = document.createElement('td');
+      const group = document.createElement('div');
+      group.className = 'btn-group';
+      const tagsBtn = document.createElement('button');
+      tagsBtn.type = 'button';
+      tagsBtn.className = 'btn btn-sm';
+      tagsBtn.textContent = 'Tags';
+      tagsBtn.addEventListener('click', () => editTags(s.id, s.email, s.tags || []));
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'btn btn-sm btn-danger';
+      delBtn.textContent = 'Del';
+      delBtn.addEventListener('click', () => deleteSub(s.id, s.email));
+      group.append(tagsBtn, delBtn);
+      actions.appendChild(group);
+      tr.appendChild(actions);
+      return tr;
     }
 
     // Debounced search

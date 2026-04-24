@@ -142,13 +142,14 @@ function buildCustomerFilters(query, options = {}) {
   let idx = 1;
 
   if (query.search) {
+    const search = String(query.search).slice(0, 200);
     conditions.push(`(s.email ILIKE $${idx} OR s.name ILIKE $${idx})`);
-    params.push(`%${query.search}%`);
+    params.push(`%${search}%`);
     idx++;
   }
   if (query.tag) {
     conditions.push(`$${idx++} = ANY(s.tags)`);
-    params.push(String(query.tag).trim().toLowerCase());
+    params.push(String(query.tag).trim().toLowerCase().slice(0, 100));
   }
   idx = addLuminaFilter(conditions, params, idx, query.lumina);
   if (query.course) {
@@ -352,7 +353,10 @@ function validateCampaignPayload({ subject, html_body, text_body, segment }) {
   return normalized;
 }
 
-async function insertRecipientsChunked(client, campaignId, subs) {
+async function insertRecipientsChunked(client, campaignId, subs, makeTrackingId) {
+  // Batched INSERT: Postgres caps $-placeholders at 65,535 per statement, so
+  // the previous "one giant VALUES" approach broke at ~16,384 subscribers.
+  // 500 rows × 4 params = 2,000 placeholders stays well under that.
   const CHUNK = 500;
   if (!subs.length) return;
   for (let i = 0; i < subs.length; i += CHUNK) {
@@ -363,7 +367,7 @@ async function insertRecipientsChunked(client, campaignId, subs) {
         return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4})`;
       })
       .join(', ');
-    const params = slice.flatMap((s) => [campaignId, s.id, s.email, uuidv4()]);
+    const params = slice.flatMap((s) => [campaignId, s.id, s.email, makeTrackingId()]);
     await client.query(
       `INSERT INTO nb_campaign_recipients (campaign_id, subscriber_id, email, tracking_id)
        VALUES ${values}`,
@@ -2111,6 +2115,7 @@ function createAdminRoutes({
 
   app.get('/api/admin/stats', authMiddleware, async (_req, res) => {
     try {
+      if (dbHealth?.degraded) return res.status(503).json({ error: 'Database degraded' });
       const [subs, contacts, campaigns, recent, sources, growth, alertSummary, recentAlerts] = await Promise.all([
         pool.query(`SELECT
           COUNT(*) FILTER (WHERE status = 'active') AS active,
@@ -2184,21 +2189,24 @@ function createAdminRoutes({
       let idx = 1;
 
       if (status) {
+        if (!['active', 'unsubscribed', 'bounced'].includes(String(status))) {
+          return res.status(400).json({ error: 'Invalid status' });
+        }
         conditions.push(`status = $${idx++}`);
         params.push(status);
       }
       if (source) {
         conditions.push(`source = $${idx++}`);
-        params.push(source);
+        params.push(String(source).slice(0, 100));
       }
       if (search) {
         conditions.push(`(email ILIKE $${idx} OR name ILIKE $${idx})`);
-        params.push(`%${search}%`);
+        params.push(`%${String(search).slice(0, 200)}%`);
         idx++;
       }
       if (tag) {
         conditions.push(`$${idx++} = ANY(tags)`);
-        params.push(tag);
+        params.push(String(tag).trim().toLowerCase().slice(0, 100));
       }
 
       const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -2225,6 +2233,9 @@ function createAdminRoutes({
   app.get('/api/admin/subscribers/export', authMiddleware, async (req, res) => {
     try {
       const { status } = req.query;
+      if (status && !['active', 'unsubscribed', 'bounced'].includes(String(status))) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
       const where = status ? 'WHERE status = $1' : '';
       const params = status ? [status] : [];
       const result = await pool.query(
@@ -2232,7 +2243,17 @@ function createAdminRoutes({
          FROM nb_subscribers ${where} ORDER BY created_at DESC LIMIT 50000`,
         params
       );
-      const csv = stringify(result.rows, { header: true });
+      // escapeCsvRow defends against =/+/-/@-prefixed formula injection in
+      // Excel for fields like name that a malicious subscriber can shape.
+      const safeRows = result.rows.map((row) => escapeCsvRow({
+        email: row.email,
+        name: row.name || '',
+        source: row.source || '',
+        status: row.status,
+        tags: row.tags || '',
+        created_at: row.created_at
+      }));
+      const csv = stringify(safeRows, { header: true });
       res.set({ 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename=subscribers.csv' });
       res.send(csv);
     } catch (e) {
@@ -2287,17 +2308,18 @@ function createAdminRoutes({
 
   app.post('/api/admin/subscribers/:id/tags', authMiddleware, async (req, res) => {
     try {
-      const { tags } = req.body;
-      if (!Array.isArray(tags)) return res.status(400).json({ error: 'Tags must be an array' });
+      const subscriberId = parseInt(req.params.id, 10);
+      if (!subscriberId) return res.status(400).json({ error: 'Invalid subscriber id' });
+      const tags = normalizeCustomerTags(req.body?.tags);
       const result = await pool.query(
         'UPDATE nb_subscribers SET tags = $1, updated_at = NOW() WHERE id = $2 RETURNING id, tags',
-        [tags, req.params.id]
+        [tags, subscriberId]
       );
       if (result.rows.length === 0) return res.status(404).json({ error: 'Subscriber not found' });
       res.json(result.rows[0]);
     } catch (e) {
       logger.error({ err: e }, 'Tags error');
-      res.status(500).json({ error: 'Server error' });
+      res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Server error' });
     }
   });
 
@@ -2393,110 +2415,73 @@ function createAdminRoutes({
     }
   });
 
-  app.post('/api/admin/campaigns', authMiddleware, async (req, res) => {
-    try {
-      const { subject, html_body, text_body, segment } = req.body;
-      if (!subject?.trim()) return res.status(400).json({ error: 'Subject required' });
-      if (!html_body?.trim()) return res.status(400).json({ error: 'HTML body required' });
-
-      const result = await pool.query(
-        `INSERT INTO nb_campaigns (subject, html_body, text_body, segment)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [subject.trim(), html_body, text_body || null, segment || 'all']
-      );
-      res.json(result.rows[0]);
-    } catch (e) {
-      logger.error({ err: e }, 'Create campaign error');
-      res.status(500).json({ error: 'Server error' });
+  // Segments named after nb_subscribers.source values (contact_form,
+  // pdf_download, newsletter, import) filter on source; anything else filters
+  // on tags. 'all' and empty skip segment filtering entirely.
+  const SOURCE_SEGMENTS = new Set(['contact_form', 'pdf_download', 'newsletter', 'import']);
+  function buildSegmentClause(segment, startIdx) {
+    if (!segment || segment === 'all') return { sql: '', params: [] };
+    if (SOURCE_SEGMENTS.has(segment)) {
+      return { sql: ` AND source = $${startIdx}`, params: [segment] };
     }
-  });
+    return { sql: ` AND $${startIdx} = ANY(tags)`, params: [segment] };
+  }
 
-  app.post('/api/admin/campaigns/:id/test', authMiddleware, async (req, res) => {
+  async function querySegmentSubscribers(segment) {
+    const segClause = buildSegmentClause(segment, 1);
+    const result = await pool.query(
+      `SELECT id, email, name, unsubscribe_token
+         FROM nb_subscribers
+        WHERE status = 'active'${segClause.sql}`,
+      segClause.params
+    );
+    return result.rows;
+  }
+
+  // Runs the per-recipient send loop for a campaign that's already in
+  // 'sending' state with recipient rows materialised. Claims each row via
+  // atomic pending→sending transition so a concurrent resume/restart can't
+  // double-send. Detached from the HTTP handler — callers must not await it
+  // on the request path.
+  async function sendCampaignLoop(current) {
+    let loopErr = null;
     try {
-      const { email } = req.body;
-      if (!email) return res.status(400).json({ error: 'Test email required' });
-
-      const campaign = await pool.query('SELECT * FROM nb_campaigns WHERE id = $1', [req.params.id]);
-      if (campaign.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
-      const current = campaign.rows[0];
-      const testTrackingId = `test-${uuidv4()}`;
-      const html = injectTracking(current.html_body, testTrackingId, 'test-token');
-
-      await transporter.sendMail({
-        from: smtpFrom,
-        to: email,
-        subject: `[TEST] ${current.subject}`,
-        html,
-        text: current.text_body || '',
-        headers: { 'List-Unsubscribe': `<${siteUrl}/api/unsubscribe/test-token>` }
-      });
-
-      res.json({ ok: true, message: `Test sent to ${email}` });
-    } catch (e) {
-      logger.error({ err: e }, 'Test send error');
-      res.status(500).json({ error: 'Failed to send test email' });
-    }
-  });
-
-  app.post('/api/admin/campaigns/:id/send', authMiddleware, async (req, res) => {
-    try {
-      // Use advisory lock to prevent race condition on concurrent send requests
-      const lockResult = await pool.query(
-        `SELECT * FROM nb_campaigns WHERE id = $1 AND status IN ('draft', 'failed') FOR UPDATE SKIP LOCKED`,
-        [req.params.id]
-      );
-      if (lockResult.rows.length === 0) {
-        // Either not found, already sent, or another request holds the lock
-        const exists = await pool.query('SELECT status FROM nb_campaigns WHERE id = $1', [req.params.id]);
-        if (exists.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
-        return res.status(409).json({ error: `Campaign is already ${exists.rows[0].status}` });
-      }
-      const current = lockResult.rows[0];
-
-      let subQuery = "SELECT id, email, name, unsubscribe_token FROM nb_subscribers WHERE status = 'active'";
-      const params = [];
-      if (current.segment && current.segment !== 'all') {
-        subQuery += ' AND $1 = ANY(tags)';
-        params.push(current.segment);
-      }
-      const subs = await pool.query(subQuery, params);
-      if (subs.rows.length === 0) return res.status(400).json({ error: 'No active subscribers match this segment' });
-
-      const recipientValues = [];
-      const recipientParams = [];
-      let paramIndex = 1;
-      for (const sub of subs.rows) {
-        const trackingId = uuidv4();
-        recipientValues.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
-        recipientParams.push(current.id, sub.id, sub.email, trackingId);
-      }
-      await pool.query(
-        `INSERT INTO nb_campaign_recipients (campaign_id, subscriber_id, email, tracking_id) VALUES ${recipientValues.join(', ')}`,
-        recipientParams
+      const pending = await pool.query(
+        `SELECT r.id, r.subscriber_id, r.email, r.tracking_id,
+                s.unsubscribe_token, s.status AS sub_status
+           FROM nb_campaign_recipients r
+           JOIN nb_subscribers s ON r.subscriber_id = s.id
+          WHERE r.campaign_id = $1 AND r.status = 'pending'
+          ORDER BY r.id ASC`,
+        [current.id]
       );
 
-      await pool.query(
-        "UPDATE nb_campaigns SET status = 'sending', total_count = $1, sent_at = NOW(), updated_at = NOW() WHERE id = $2",
-        [subs.rows.length, current.id]
-      );
-
-      res.json({ ok: true, total: subs.rows.length, message: 'Campaign sending started' });
-
-      let recipients;
-      try {
-        recipients = await pool.query(
-          'SELECT r.id, r.email, r.tracking_id, s.unsubscribe_token FROM nb_campaign_recipients r JOIN nb_subscribers s ON r.subscriber_id = s.id WHERE r.campaign_id = $1',
-          [current.id]
+      for (const recipient of pending.rows) {
+        // Atomic claim: only proceed if we can flip pending→sending. Losing
+        // the race (e.g., second resume worker) just skips silently.
+        const claim = await pool.query(
+          `UPDATE nb_campaign_recipients
+             SET status = 'sending'
+           WHERE id = $1 AND status = 'pending'
+           RETURNING id`,
+          [recipient.id]
         );
-      } catch (recipientQueryErr) {
-        logger.error({ err: recipientQueryErr, campaignId: current.id }, 'Campaign: failed to load recipients for sending');
-        await pool.query("UPDATE nb_campaigns SET status = 'failed', updated_at = NOW() WHERE id = $1", [current.id]).catch(() => {});
-        sendWhatsApp(namiJid, `Campaign "${current.subject}" failed to load recipients. Status set to failed.`).catch((e) => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
-        return;
-      }
+        if (claim.rows.length === 0) continue;
 
-      let sentCount = 0;
-      for (const recipient of recipients.rows) {
+        // Re-check subscriber status in case they unsubscribed between the
+        // initial snapshot and now.
+        const sub = await pool.query(
+          'SELECT status FROM nb_subscribers WHERE id = $1',
+          [recipient.subscriber_id]
+        );
+        if (sub.rows[0]?.status !== 'active') {
+          await pool.query(
+            "UPDATE nb_campaign_recipients SET status = 'skipped' WHERE id = $1",
+            [recipient.id]
+          ).catch(() => {});
+          continue;
+        }
+
         try {
           const html = injectTracking(current.html_body, recipient.tracking_id, recipient.unsubscribe_token);
           await transporter.sendMail({
@@ -2510,39 +2495,226 @@ function createAdminRoutes({
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
             }
           });
-          await pool.query("UPDATE nb_campaign_recipients SET status = 'sent' WHERE id = $1", [recipient.id]).catch((dbErr) => {
-            logger.error({ err: dbErr, recipientId: recipient.id }, 'Campaign: failed to mark recipient as sent');
-          });
-          sentCount++;
+          await pool.query(
+            "UPDATE nb_campaign_recipients SET status = 'sent' WHERE id = $1",
+            [recipient.id]
+          ).catch((dbErr) => logger.error({ err: dbErr, recipientId: recipient.id }, 'Campaign: failed to mark recipient as sent'));
           await new Promise((resolve) => setTimeout(resolve, 100));
-        } catch (e) {
-          logger.error({ err: e, email: recipient.email }, 'Failed to send campaign email');
-          try {
-            await pool.query(
-              "UPDATE nb_campaign_recipients SET status = 'bounced', bounced_at = NOW() WHERE id = $1",
-              [recipient.id]
-            );
-            await pool.query('UPDATE nb_campaigns SET bounce_count = bounce_count + 1 WHERE id = $1', [current.id]);
-          } catch (dbErr) {
-            logger.error({ err: dbErr, recipientId: recipient.id }, 'Campaign: failed to record bounce in DB');
-          }
+        } catch (err) {
+          logger.error({ err, email: recipient.email, campaignId: current.id }, 'Failed to send campaign email');
+          await pool.query(
+            "UPDATE nb_campaign_recipients SET status = 'bounced', bounced_at = NOW() WHERE id = $1",
+            [recipient.id]
+          ).catch(() => {});
         }
       }
+    } catch (err) {
+      loopErr = err;
+      logger.error({ err, campaignId: current.id }, 'Campaign send loop error');
+    }
 
-      try {
-        await pool.query(
-          "UPDATE nb_campaigns SET status = 'sent', sent_count = $1, updated_at = NOW() WHERE id = $2",
-          [sentCount, current.id]
-        );
-        sendWhatsApp(namiJid, `Campaign sent: "${current.subject}"\n${sentCount}/${subs.rows.length} emails delivered`).catch((e) => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
-      } catch (finalizeErr) {
-        logger.error({ err: finalizeErr, campaignId: current.id, sentCount }, 'Campaign finalization DB error - emails were sent but status not updated');
-        sendWhatsApp(namiJid, `Campaign "${current.subject}" sent ${sentCount} emails but failed to update status in DB. Check logs.`).catch((e) => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
+    // Rollup from the recipients table so sent_count / bounce_count reflect
+    // the true delivered state even if the loop crashed mid-way.
+    try {
+      const rollup = await pool.query(
+        `SELECT COUNT(*) FILTER (WHERE status = 'sent') AS sent,
+                COUNT(*) FILTER (WHERE status = 'bounced') AS bounced,
+                COUNT(*) FILTER (WHERE status IN ('pending', 'sending')) AS stuck,
+                COUNT(*) AS total
+           FROM nb_campaign_recipients
+          WHERE campaign_id = $1`,
+        [current.id]
+      );
+      const { sent, bounced, stuck, total } = rollup.rows[0];
+      const finalStatus = loopErr ? 'failed' : (Number(stuck) > 0 ? 'sending' : 'sent');
+      await pool.query(
+        `UPDATE nb_campaigns
+            SET status = $1,
+                sent_count = $2,
+                bounce_count = $3,
+                updated_at = NOW()
+          WHERE id = $4`,
+        [finalStatus, sent, bounced, current.id]
+      );
+      if (finalStatus === 'sent') {
+        sendWhatsApp(namiJid, `Campaign sent: "${current.subject}"\n${sent}/${total} emails delivered`)
+          .catch((e) => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
+      } else if (finalStatus === 'failed') {
+        sendWhatsApp(namiJid, `Campaign "${current.subject}" crashed mid-send — ${sent}/${total} delivered, ${stuck} stuck. Use /resume to retry.`)
+          .catch((e) => logger.error({ err: e }, 'WhatsApp fire-and-forget error'));
       }
+    } catch (finalizeErr) {
+      logger.error({ err: finalizeErr, campaignId: current.id }, 'Campaign finalization DB error');
+    }
+  }
+
+  app.post('/api/admin/campaigns', authMiddleware, async (req, res) => {
+    try {
+      const payload = validateCampaignPayload(req.body || {});
+      const result = await pool.query(
+        `INSERT INTO nb_campaigns (subject, html_body, text_body, segment)
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [payload.subject, payload.html_body, payload.text_body || null, payload.segment]
+      );
+      res.json(result.rows[0]);
+    } catch (e) {
+      if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
+      logger.error({ err: e }, 'Create campaign error');
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.put('/api/admin/campaigns/:id', authMiddleware, async (req, res) => {
+    try {
+      const campaignId = parseInt(req.params.id, 10);
+      if (!campaignId) return res.status(400).json({ error: 'Invalid campaign id' });
+      const payload = validateCampaignPayload(req.body || {});
+      const result = await pool.query(
+        `UPDATE nb_campaigns
+            SET subject = $1, html_body = $2, text_body = $3, segment = $4, updated_at = NOW()
+          WHERE id = $5 AND status = 'draft'
+          RETURNING *`,
+        [payload.subject, payload.html_body, payload.text_body || null, payload.segment, campaignId]
+      );
+      if (result.rows.length === 0) {
+        const exists = await pool.query('SELECT status FROM nb_campaigns WHERE id = $1', [campaignId]);
+        if (exists.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
+        return res.status(409).json({ error: `Cannot edit campaign in status '${exists.rows[0].status}'` });
+      }
+      res.json(result.rows[0]);
+    } catch (e) {
+      if (e.statusCode) return res.status(e.statusCode).json({ error: e.message });
+      logger.error({ err: e }, 'Update campaign error');
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
+  app.post('/api/admin/campaigns/:id/test', authMiddleware, async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ error: 'Test email required' });
+
+      const campaign = await pool.query('SELECT * FROM nb_campaigns WHERE id = $1', [req.params.id]);
+      if (campaign.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
+      const current = campaign.rows[0];
+
+      // Test sends skip tracking injection — pixel and unsub link would 404
+      // for a synthetic tracking id, which is worse than not tracking.
+      await transporter.sendMail({
+        from: smtpFrom,
+        to: email,
+        subject: `[TEST] ${current.subject}`,
+        html: current.html_body,
+        text: current.text_body || ''
+      });
+
+      res.json({ ok: true, message: `Test sent to ${email}` });
+    } catch (e) {
+      logger.error({ err: e }, 'Test send error');
+      res.status(500).json({ error: 'Failed to send test email' });
+    }
+  });
+
+  app.post('/api/admin/campaigns/:id/send', authMiddleware, async (req, res) => {
+    const campaignId = parseInt(req.params.id, 10);
+    if (!campaignId) return res.status(400).json({ error: 'Invalid campaign id' });
+    try {
+      // Atomic claim: only one concurrent POST can flip draft/failed → sending.
+      // The old SELECT FOR UPDATE released the lock between statements, which
+      // is why a double-click could double-send.
+      const claim = await pool.query(
+        `UPDATE nb_campaigns
+            SET status = 'sending', sent_at = NOW(), updated_at = NOW()
+          WHERE id = $1 AND status IN ('draft', 'failed')
+          RETURNING *`,
+        [campaignId]
+      );
+      if (claim.rows.length === 0) {
+        const exists = await pool.query('SELECT status FROM nb_campaigns WHERE id = $1', [campaignId]);
+        if (exists.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
+        return res.status(409).json({ error: `Campaign is already ${exists.rows[0].status}` });
+      }
+      const current = claim.rows[0];
+
+      let subs;
+      try {
+        subs = await querySegmentSubscribers(current.segment);
+      } catch (err) {
+        await pool.query("UPDATE nb_campaigns SET status = 'draft', updated_at = NOW() WHERE id = $1", [campaignId]).catch(() => {});
+        throw err;
+      }
+      if (subs.length === 0) {
+        // Roll back — the campaign is still a draft worth editing.
+        await pool.query("UPDATE nb_campaigns SET status = 'draft', sent_at = NULL, updated_at = NOW() WHERE id = $1", [campaignId]);
+        return res.status(400).json({ error: 'No active subscribers match this segment' });
+      }
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await insertRecipientsChunked(client, current.id, subs, uuidv4);
+        await client.query(
+          'UPDATE nb_campaigns SET total_count = $1, updated_at = NOW() WHERE id = $2',
+          [subs.length, current.id]
+        );
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        await pool.query(
+          "UPDATE nb_campaigns SET status = 'failed', updated_at = NOW() WHERE id = $1",
+          [current.id]
+        ).catch(() => {});
+        logger.error({ err, campaignId: current.id }, 'Campaign recipient INSERT failed');
+        return res.status(500).json({ error: 'Failed to insert recipients' });
+      } finally {
+        client.release();
+      }
+
+      res.json({ ok: true, total: subs.length, message: 'Campaign sending started' });
+      // Detach the send loop from the response. A crash mid-loop leaves
+      // pending rows that /resume can pick up.
+      sendCampaignLoop(current).catch((err) =>
+        logger.error({ err, campaignId: current.id }, 'Campaign send loop unhandled')
+      );
     } catch (e) {
       logger.error({ err: e }, 'Send campaign error');
-      await pool.query("UPDATE nb_campaigns SET status = 'failed', updated_at = NOW() WHERE id = $1", [req.params.id]).catch(() => {});
+      await pool.query(
+        "UPDATE nb_campaigns SET status = 'failed', updated_at = NOW() WHERE id = $1",
+        [campaignId]
+      ).catch(() => {});
       if (!res.headersSent) res.status(500).json({ error: 'Failed to send campaign' });
+    }
+  });
+
+  app.post('/api/admin/campaigns/:id/resume', authMiddleware, async (req, res) => {
+    const campaignId = parseInt(req.params.id, 10);
+    if (!campaignId) return res.status(400).json({ error: 'Invalid campaign id' });
+    try {
+      // Flip failed → sending so the claim semantics still apply. 'sending'
+      // stays 'sending' so we don't spawn two loops for the same campaign.
+      const flipped = await pool.query(
+        `UPDATE nb_campaigns
+            SET status = 'sending', updated_at = NOW()
+          WHERE id = $1 AND status IN ('sending', 'failed')
+          RETURNING *`,
+        [campaignId]
+      );
+      if (flipped.rows.length === 0) {
+        const exists = await pool.query('SELECT status FROM nb_campaigns WHERE id = $1', [campaignId]);
+        if (exists.rows.length === 0) return res.status(404).json({ error: 'Campaign not found' });
+        return res.status(409).json({ error: `Cannot resume campaign in status '${exists.rows[0].status}'` });
+      }
+      const pendingCount = await pool.query(
+        "SELECT COUNT(*)::int AS c FROM nb_campaign_recipients WHERE campaign_id = $1 AND status = 'pending'",
+        [campaignId]
+      );
+      res.json({ ok: true, pending: pendingCount.rows[0].c });
+      sendCampaignLoop(flipped.rows[0]).catch((err) =>
+        logger.error({ err, campaignId }, 'Campaign resume loop unhandled')
+      );
+    } catch (e) {
+      logger.error({ err: e }, 'Resume campaign error');
+      if (!res.headersSent) res.status(500).json({ error: 'Failed to resume campaign' });
     }
   });
 }
