@@ -582,3 +582,53 @@ SELECT currency, COUNT(*) AS payment_count, SUM(amount) AS total_minor_units
 FROM nb_payments
 WHERE status = 'succeeded' AND currency <> 'jpy'
 GROUP BY currency;
+
+-- ─── Email rules engine (drip-style course/lifecycle messages) ────────────
+CREATE OR REPLACE FUNCTION nb_email_rules_touch_updated_at() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$;
+
+CREATE TABLE IF NOT EXISTS nb_email_rules (
+  rule_key VARCHAR(64) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  enabled BOOLEAN DEFAULT TRUE NOT NULL,
+  delay_days INTEGER NOT NULL CHECK (delay_days >= 0 AND delay_days <= 365),
+  subject TEXT NOT NULL,
+  body_html TEXT NOT NULL,
+  config JSONB DEFAULT '{}'::jsonb NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_by VARCHAR(255)
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_rules_enabled ON nb_email_rules(enabled) WHERE enabled;
+
+DROP TRIGGER IF EXISTS trg_email_rules_touch_updated_at ON nb_email_rules;
+CREATE TRIGGER trg_email_rules_touch_updated_at
+  BEFORE UPDATE ON nb_email_rules
+  FOR EACH ROW EXECUTE FUNCTION nb_email_rules_touch_updated_at();
+
+-- ─── Lumina migration audit (one-time data-cleanup audit, kept for history) ──
+CREATE TABLE IF NOT EXISTS nb_lumina_migration_audit (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES nb_customers(id),
+  email VARCHAR(255),
+  old_status VARCHAR(50),
+  old_plan_code VARCHAR(100),
+  old_stripe_subscription_id VARCHAR(255),
+  old_current_period_end TIMESTAMP,
+  old_subscription_row JSONB,
+  stripe_cancel_result TEXT,
+  prorated_refund_jpy INTEGER,
+  refund_stripe_charge_id VARCHAR(255),
+  new_status VARCHAR(50) DEFAULT 'lifetime',
+  email_sent BOOLEAN DEFAULT FALSE,
+  error_message TEXT,
+  migrated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_lumina_migration_audit_customer ON nb_lumina_migration_audit(customer_id);

@@ -100,7 +100,7 @@ const {
 } = createAuthUtils({
   jwt,
   jwtSecret: config.auth.jwtSecret,
-  isProd: config.isProd
+  secureCookies: config.cookieSecure
 });
 
 const chatAuth = createChatAuthHelpers({

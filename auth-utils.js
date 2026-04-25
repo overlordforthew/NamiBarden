@@ -1,14 +1,18 @@
-function createAuthUtils({ jwt, jwtSecret, isProd }) {
+function createAuthUtils({ jwt, jwtSecret, isProd, secureCookies }) {
+  // Back-compat: callers passing isProd still get the old behavior.
+  // Callers passing secureCookies (e.g., staging) override it.
+  const useSecure = typeof secureCookies === 'boolean' ? secureCookies : !!isProd;
+
   function setAuthCookie(res, name, token, maxAgeMs, options = {}) {
     const sameSite = options.sameSite || 'Lax';
     const opts = [`${name}=${token}`, 'HttpOnly', 'Path=/', `SameSite=${sameSite}`, `Max-Age=${Math.floor(maxAgeMs / 1000)}`];
-    if (isProd) opts.push('Secure');
+    if (useSecure) opts.push('Secure');
     res.append('Set-Cookie', opts.join('; '));
   }
 
   function clearAuthCookie(res, name) {
     const opts = [`${name}=`, 'HttpOnly', 'Path=/', 'SameSite=Lax', 'Max-Age=0'];
-    if (isProd) opts.push('Secure');
+    if (useSecure) opts.push('Secure');
     res.append('Set-Cookie', opts.join('; '));
   }
 
