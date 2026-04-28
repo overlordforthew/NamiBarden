@@ -31,7 +31,12 @@ function createPool() {
 }
 
 async function bustLuminaCache(email) {
-  const luminaUrl = (process.env.LUMINA_URL || 'https://lumina.namibarden.com').replace(/\/+$/, '');
+  const rawLuminaUrl = process.env.LUMINA_URL
+    || (process.env.NODE_ENV === 'production' ? 'https://lumina.namibarden.com' : null);
+  if (!rawLuminaUrl) {
+    throw new Error('revoke-lumina-lifetime: LUMINA_URL must be set explicitly when NODE_ENV != production');
+  }
+  const luminaUrl = rawLuminaUrl.replace(/\/+$/, '');
   const bridgeSecret = process.env.LUMINA_BRIDGE_SECRET || process.env.NAMI_LUMINA_BRIDGE_SECRET || '';
   if (!bridgeSecret) {
     console.warn('Cache bust skipped: LUMINA_BRIDGE_SECRET is not configured');
@@ -126,6 +131,13 @@ async function main() {
   if (args.unknown || !args.email || !args.reason) {
     console.error(usage());
     process.exit(1);
+  }
+
+  // Preflight: fail before any DB mutation if the cache-bust target can't
+  // be resolved. Prevents partial-success runs where revoke() commits but
+  // bustLuminaCache() throws on missing non-prod LUMINA_URL.
+  if (!process.env.LUMINA_URL && process.env.NODE_ENV !== 'production') {
+    throw new Error('revoke-lumina-lifetime: LUMINA_URL must be set explicitly when NODE_ENV != production (preflight)');
   }
 
   const pool = createPool();

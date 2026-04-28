@@ -1,8 +1,10 @@
 #!/bin/sh
 set -e
 
-# Ensure nginx can read all static files (guards against broken perms from docker cp)
-chmod -R a+rX /usr/share/nginx/html
+# Ensure nginx (uid 100) can read all static files. Guards against broken
+# perms from docker cp or editors that save files with 640.
+find /usr/share/nginx/html -type d -exec chmod 755 {} +
+find /usr/share/nginx/html -type f -exec chmod 644 {} +
 
 # Start nginx in background
 nginx -g 'daemon off;' &

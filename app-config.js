@@ -70,13 +70,39 @@ function loadAppConfig({ env, logger }) {
     NODE_ENV
   } = env;
 
+  const isProdEnv = NODE_ENV === 'production';
+
+  // Live-key guard: a non-production environment with any *_live_* Stripe key
+  // would hit prod Stripe. Covers sk_live_, rk_live_, and any future variants.
+  if (!isProdEnv && STRIPE_SECRET_KEY && /_live_/.test(STRIPE_SECRET_KEY)) {
+    throw new Error(`STRIPE_SECRET_KEY is a live-mode key but NODE_ENV=${NODE_ENV || '<unset>'}; refusing to boot. Use a test-mode key (sk_test_* or rk_test_*) in non-production.`);
+  }
+
+  // Cookie Secure flag: COOKIE_SECURE env wins (accepts true|1|yes|on, false|0|no|off);
+  // unrecognized values throw so silent downgrades can't happen; absent → isProd.
+  const cookieSecureRaw = (env.COOKIE_SECURE || '').toLowerCase().trim();
+  let cookieSecure;
+  if (cookieSecureRaw === '') cookieSecure = isProdEnv;
+  else if (['true', '1', 'yes', 'on'].includes(cookieSecureRaw)) cookieSecure = true;
+  else if (['false', '0', 'no', 'off'].includes(cookieSecureRaw)) cookieSecure = false;
+  else throw new Error(`COOKIE_SECURE must be one of true|false|1|0|yes|no|on|off (got "${env.COOKIE_SECURE}")`);
+
   const siteUrl = SITE_URL || '';
-  const luminaSiteUrl = (LUMINA_URL || 'https://lumina.namibarden.com').replace(/\/+$/, '');
+  // Lumina URL: only fall back to the prod Lumina URL when we're actually in
+  // production. In non-prod, leave it pointing at an explicitly-broken sentinel
+  // so any code path that tries to redirect to Lumina fails loudly instead of
+  // silently bouncing the user to prod.
+  const luminaSiteUrl = (
+    LUMINA_URL || (isProdEnv ? 'https://lumina.namibarden.com' : 'https://lumina-not-configured-on-staging.invalid')
+  ).replace(/\/+$/, '');
+  // Allowed hosts: in prod include the prod Lumina host as a baseline. In
+  // non-prod, only allow hosts derived from explicit configuration — so a
+  // staging frontend can't smuggle a prod Lumina URL past the validator.
   const luminaAllowedHosts = Array.from(new Set(
     [
       'namibarden.com',
       'www.namibarden.com',
-      'lumina.namibarden.com',
+      ...(isProdEnv ? ['lumina.namibarden.com'] : []),
       ...(LUMINA_ALLOWED_HOSTS_ENV || '').split(',').map((host) => host.trim()).filter(Boolean)
     ].concat(
       [siteUrl, luminaSiteUrl].map((rawUrl) => {
@@ -93,8 +119,20 @@ function loadAppConfig({ env, logger }) {
     port: 3100,
     publicRoot: '/usr/share/nginx/html',
     journalPdfPath: path.join('/usr/share/nginx/html', 'gifts', '5day-journal.pdf'),
-    isProd: NODE_ENV === 'production',
-    redirectAllowlist: REDIRECT_ALLOWLIST,
+    isProd: isProdEnv,
+    cookieSecure,
+    // Always include the configured SITE_URL hostname so non-prod sites
+    // (staging) can use their own redirect-allowlist without manual edits.
+    redirectAllowlist: (() => {
+      try {
+        const siteHost = siteUrl ? new URL(siteUrl).hostname : null;
+        return siteHost && !REDIRECT_ALLOWLIST.includes(siteHost)
+          ? [...REDIRECT_ALLOWLIST, siteHost]
+          : REDIRECT_ALLOWLIST;
+      } catch {
+        return REDIRECT_ALLOWLIST;
+      }
+    })(),
     db: {
       host: DB_HOST,
       port: DB_PORT || 5432,

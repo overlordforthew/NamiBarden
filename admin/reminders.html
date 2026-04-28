@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Email Rules - Nami Barden Admin</title>
+  <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 20px;
+    }
+    .rule-card {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .rule-card.disabled { opacity: 0.75; }
+    .rule-card .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .rule-card h3 {
+      font-size: 1.05rem;
+      color: var(--text-dark);
+      line-height: 1.35;
+    }
+    .rule-card .desc {
+      font-size: 0.86rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+    .rule-trigger {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      background: var(--cream);
+      padding: 10px 12px;
+      border-radius: 8px;
+      border-left: 3px solid var(--gold);
+    }
+    .rule-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .rule-stat {
+      background: var(--cream);
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+    .rule-stat .label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-light);
+    }
+    .rule-stat .value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 2px;
+      color: var(--text-dark);
+    }
+    .rule-subject {
+      font-size: 0.84rem;
+      color: var(--text-dark);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #faf8f4;
+      padding: 10px 12px;
+      border-radius: 6px;
+      word-break: break-word;
+    }
+    .rule-subject .label {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+      font-family: inherit;
+    }
+    .rule-config {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .rule-config .chip {
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text-dark);
+    }
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 22px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #ccc;
+      transition: .2s;
+      border-radius: 22px;
+    }
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      top: 3px;
+      background: var(--white);
+      transition: .2s;
+      border-radius: 50%;
+    }
+    .toggle input:checked + .slider { background: var(--gold); }
+    .toggle input:checked + .slider::before { transform: translateX(16px); }
+
+    /* Drawer / overlay */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 200;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .drawer-overlay.hidden { display: none; }
+    .drawer {
+      background: var(--cream);
+      width: min(1100px, 100%);
+      height: 100%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer-head {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .drawer-head h2 { font-size: 1.1rem; }
+    .drawer-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(380px, 1fr) minmax(380px, 1fr);
+      gap: 24px;
+      padding: 24px 28px;
+    }
+    @media (max-width: 960px) {
+      .drawer-body { grid-template-columns: 1fr; }
+    }
+    .drawer-foot {
+      padding: 16px 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--white);
+      position: sticky;
+      bottom: 0;
+    }
+    .edit-form .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .edit-form textarea#fieldBody {
+      min-height: 400px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+    .preview-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .preview-subject-box {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+    }
+    .preview-subject-box .label {
+      font-size: 0.7rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 4px;
+    }
+    #previewFrame {
+      width: 100%;
+      min-height: 480px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .variable-docs {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .variable-docs h4 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    .variable-docs ul { list-style: none; font-size: 0.85rem; }
+    .variable-docs li {
+      margin-bottom: 6px;
+      display: flex;
+      gap: 10px;
+    }
+    .variable-docs code {
+      background: var(--cream);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      color: var(--gold-dark);
+    }
+    .unknown-vars {
+      background: #fff4e5;
+      border: 1px solid #f0c27b;
+      color: #8a4b00;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+    }
+    .unknown-vars.hidden { display: none; }
+    .error-banner {
+      background: #fdebec;
+      border: 1px solid #f5b5b7;
+      color: #8b1a1f;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+    }
+    .error-banner.hidden { display: none; }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text-dark);
+      color: var(--white);
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      z-index: 300;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .status-bar {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      padding: 18px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .status-bar .info {
+      font-size: 0.88rem;
+      color: var(--text-light);
+    }
+    .status-bar .info strong { color: var(--text-dark); }
+    .field-help {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    .config-section {
+      background: #faf8f4;
+      padding: 14px 16px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+    }
+    .config-section.hidden { display: none; }
+    .config-section h4 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h2>Nami Barden</h2><small>Newsletter Admin</small></div>
+    <a href="/admin/dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg><span>Dashboard</span></a>
+    <a href="/admin/reports.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 16V9m4 7V7m4 9v-4"/></svg><span>Reports</span></a>
+    <a href="/admin/customers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 11c1.657 0 3-1.567 3-3.5S17.657 4 16 4s-3 1.567-3 3.5S14.343 11 16 11zM8 11c1.657 0 3-1.567 3-3.5S9.657 4 8 4 5 5.567 5 7.5 6.343 11 8 11zM2 20c.5-3 2.5-5 6-5s5.5 2 6 5M10 20c.4-2.4 2-4 6-4 3.2 0 5 1.5 6 4"/></svg><span>Customers</span></a>
+    <a href="/admin/matrix.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h16M4 12h16M4 19h16M9 5v14M15 5v14"/></svg><span>Matrix</span></a>
+    <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
+    <a href="/admin/students.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg><span>Students</span></a>
+    <a href="/admin/qa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>Q&A</span></a>
+    <a href="/admin/reminders.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>Email Rules</span></a>
+    <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
+    <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
+    <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/></svg><span>Alerts</span></a>
+    <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
+    <div class="sidebar-logout">
+      <a href="#" id="logoutLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Email Rules</h1>
+        <p style="color:var(--text-light); margin-top:4px; font-size:0.9rem;">Automated lifecycle emails for Course 1 &amp; Course 2 students. Scheduler runs hourly.</p>
+      </div>
+    </div>
+
+    <div class="status-bar" style="margin-bottom:24px;">
+      <div class="info">
+        <strong id="statRuleCount">—</strong> rules configured · <strong id="statEnabledCount">—</strong> enabled · <strong id="statEligibleCount">—</strong> eligible right now
+      </div>
+      <button class="btn btn-primary" id="runNowBtn">Run scheduler now</button>
+    </div>
+
+    <div id="rulesContainer" class="rules-grid"></div>
+  </main>
+
+  <!-- Edit drawer -->
+  <div id="editOverlay" class="drawer-overlay hidden" role="dialog" aria-modal="true">
+    <div class="drawer">
+      <header class="drawer-head">
+        <div>
+          <h2 id="editTitle">Edit rule</h2>
+          <div style="color:var(--text-light); font-size:0.82rem; margin-top:2px;" id="editRuleKey"></div>
+        </div>
+        <button class="btn" id="editCloseBtn">Close</button>
+      </header>
+
+      <div class="drawer-body">
+        <div class="edit-form">
+          <div id="editError" class="error-banner hidden" style="margin-bottom:14px;"></div>
+
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:10px;">
+              <span class="toggle">
+                <input type="checkbox" id="fieldEnabled">
+                <span class="slider"></span>
+              </span>
+              <span>Enabled — the scheduler will send this email when eligibility matches.</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="fieldDelayDays">Delay days</label>
+            <input type="number" id="fieldDelayDays" min="0" max="365" step="1">
+            <div class="field-help" id="delayHelp">Integer 0–365. For post-purchase rules this is days since Course 1 purchase; for inactivity rules this is days since last lesson activity.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="fieldSubject">Subject line</label>
+            <input type="text" id="fieldSubject" maxlength="500">
+            <div class="field-help">Up to 500 chars. Placeholders like <code>{{course_name}}</code> work here too.</div>
+          </div>
+
+          <div class="form-group">
+            <label for="fieldBody">Body HTML</label>
+            <textarea id="fieldBody" maxlength="50000"></textarea>
+            <div class="field-help">HTML with <code>{{placeholder}}</code> tokens. See the variable list in the preview pane.</div>
+          </div>
+
+          <div id="configUpsell" class="form-group config-section hidden">
+            <h4>Pricing — Course 2 upsell</h4>
+            <div class="form-row">
+              <div>
+                <label for="cfgUpsellPrice">Upsell price (¥)</label>
+                <input type="number" id="cfgUpsellPrice" min="100" max="1000000" step="100">
+              </div>
+              <div>
+                <label for="cfgOriginalPrice">Original price (¥)</label>
+                <input type="number" id="cfgOriginalPrice" min="100" max="1000000" step="100">
+              </div>
+            </div>
+            <div class="field-help">These prices flow into Stripe checkout for the Course 2 upgrade SKU.</div>
+          </div>
+
+          <div id="configFlash" class="form-group config-section hidden">
+            <h4>Pricing — Flash sale (48h)</h4>
+            <div class="form-row">
+              <div>
+                <label for="cfgFlashPrice">Flash price (¥)</label>
+                <input type="number" id="cfgFlashPrice" min="100" max="1000000" step="100">
+              </div>
+              <div>
+                <label for="cfgFlashWindow">Flash window (hours)</label>
+                <input type="number" id="cfgFlashWindow" min="1" max="336" step="1">
+              </div>
+            </div>
+            <div class="form-row" style="margin-top:12px;">
+              <div>
+                <label for="cfgFlashUpsellPrice">Upsell price shown (¥)</label>
+                <input type="number" id="cfgFlashUpsellPrice" min="100" max="1000000" step="100">
+              </div>
+              <div>
+                <label for="cfgFlashOriginalPrice">Original price shown (¥)</label>
+                <input type="number" id="cfgFlashOriginalPrice" min="100" max="1000000" step="100">
+              </div>
+            </div>
+            <div class="field-help">Flash price flows into Stripe for the course-2-flash SKU. Window is also enforced by the JWT expiry on the flash link.</div>
+          </div>
+        </div>
+
+        <div class="preview-pane">
+          <div class="preview-subject-box">
+            <div class="label">Subject preview</div>
+            <div id="previewSubject" style="font-weight:500;">—</div>
+          </div>
+          <div id="unknownVarsBox" class="unknown-vars hidden"></div>
+          <iframe id="previewFrame" sandbox="" title="Email preview"></iframe>
+          <div class="variable-docs">
+            <h4>Available placeholders</h4>
+            <ul id="variableList"></ul>
+            <div class="field-help" style="margin-top:8px;">Values are HTML-escaped on send. Missing placeholders render empty in the email.</div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="drawer-foot">
+        <div>
+          <button class="btn btn-danger" id="resetBtn">Reset to defaults</button>
+        </div>
+        <div class="btn-group">
+          <button class="btn" id="editCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="saveBtn">Save changes</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Test-send drawer -->
+  <div id="testOverlay" class="drawer-overlay hidden" role="dialog" aria-modal="true">
+    <div class="drawer" style="width:min(540px, 100%);">
+      <header class="drawer-head">
+        <h2>Send a test</h2>
+        <button class="btn" id="testCloseBtn">Close</button>
+      </header>
+      <div style="padding:24px 28px; display:flex; flex-direction:column; gap:16px;">
+        <div id="testError" class="error-banner hidden"></div>
+        <div>
+          <label for="testEmail">Recipient email</label>
+          <input type="email" id="testEmail" placeholder="you@example.com">
+          <div class="field-help">Sends the current SAVED version of this rule. Make any edits and save first if you want to test them.</div>
+        </div>
+        <div>
+          <label for="testName">Recipient name (placeholder for <code>{{name}}</code>)</label>
+          <input type="text" id="testName" value="ナミ">
+        </div>
+        <div id="testRuleKey" style="color:var(--text-light); font-size:0.82rem;"></div>
+      </div>
+      <footer class="drawer-foot">
+        <div></div>
+        <div class="btn-group">
+          <button class="btn" id="testCancelBtn">Cancel</button>
+          <button class="btn btn-primary" id="testSendBtn">Send test</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/admin/admin.js?v=2"></script>
+  <script src="/admin/js/reminders.js?v=2"></script>
+</body>
+</html>

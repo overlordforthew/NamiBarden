@@ -1,0 +1,86 @@
+name: namibarden-staging
+
+services:
+  namibarden-staging:
+    build: .
+    container_name: namibarden-staging
+    restart: unless-stopped
+    depends_on:
+      namibarden-staging-db:
+        condition: service_healthy
+    env_file: .env.staging
+    networks:
+      - coolify
+      - namibarden-staging-internal
+    labels:
+      # Sentinel — compose interpolation will fail loudly if .env.staging wasn't loaded
+      - "namibarden.staging-guard=${IS_STAGING_ENV:?must use --env-file .env.staging when targeting docker-compose.staging.yml}"
+      - "traefik.enable=true"
+      # Middleware: HTTP → HTTPS redirect, applied with tailscale-only on the http router
+      - "traefik.http.middlewares.namibarden-staging-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.namibarden-staging-redirect-https.redirectscheme.permanent=true"
+      - "traefik.http.routers.namibarden-staging-https.rule=Host(`staging.namibarden.com`)"
+      - "traefik.http.routers.namibarden-staging-https.entryPoints=https"
+      - "traefik.http.routers.namibarden-staging-https.tls=true"
+      - "traefik.http.routers.namibarden-staging-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.namibarden-staging-https.middlewares=tailscale-only@file"
+      - "traefik.http.routers.namibarden-staging-http.rule=Host(`staging.namibarden.com`)"
+      - "traefik.http.routers.namibarden-staging-http.entryPoints=http"
+      - "traefik.http.routers.namibarden-staging-http.middlewares=tailscale-only@file,namibarden-staging-redirect-https"
+      - "traefik.http.services.namibarden-staging.loadbalancer.server.port=80"
+      - "traefik.docker.network=coolify"
+
+  namibarden-staging-db:
+    image: postgres:17-alpine
+    container_name: namibarden-staging-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: namibarden
+      POSTGRES_USER: namibarden
+      # The IS_STAGING_ENV sentinel on the app service blocks compose-up if
+      # --env-file .env.staging was forgotten, so this interpolation is safe.
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env.staging}
+    volumes:
+      - namibarden-staging-pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./seed-staging.sql:/docker-entrypoint-initdb.d/02-seed-staging.sql
+    networks:
+      - namibarden-staging-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U namibarden"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  namibarden-staging-mail:
+    image: axllent/mailpit:latest
+    container_name: namibarden-staging-mail
+    restart: unless-stopped
+    networks:
+      - coolify
+      - namibarden-staging-internal
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - namibarden-staging-mail-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.namibarden-staging-mail.rule=Host(`mail.staging.namibarden.com`)"
+      - "traefik.http.routers.namibarden-staging-mail.entryPoints=https"
+      - "traefik.http.routers.namibarden-staging-mail.tls=true"
+      - "traefik.http.routers.namibarden-staging-mail.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.namibarden-staging-mail.middlewares=tailscale-only@file"
+      - "traefik.http.services.namibarden-staging-mail.loadbalancer.server.port=8025"
+      - "traefik.docker.network=coolify"
+
+volumes:
+  namibarden-staging-pgdata:
+  namibarden-staging-mail-data:
+
+networks:
+  coolify:
+    external: true
+  namibarden-staging-internal:
+    name: namibarden-staging-internal
+    driver: bridge

@@ -1,4 +1,6 @@
 function registerBaseMiddleware({ app, express }) {
+  app.disable('x-powered-by');
+
   app.use((req, res, next) => {
     req.cookies = {};
     const cookieHeader = req.headers.cookie;

@@ -7,14 +7,58 @@ CREATE INDEX IF NOT EXISTS idx_payments_charge_id ON nb_payments(stripe_charge_i
 
 -- 1b) Convert created_at to TIMESTAMPTZ so JST bucketing works correctly.
 -- Existing TIMESTAMP values are already UTC (postgres NOW() default); add UTC tz on conversion.
+-- nb_customer_summary view depends on nb_payments.created_at; drop + recreate it around the ALTER.
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name='nb_payments' AND column_name='created_at' AND data_type='timestamp without time zone'
   ) THEN
+    DROP VIEW IF EXISTS nb_customer_summary;
     ALTER TABLE nb_payments
       ALTER COLUMN created_at TYPE TIMESTAMPTZ USING created_at AT TIME ZONE 'UTC';
+    CREATE VIEW nb_customer_summary AS
+    SELECT
+      c.id, c.email, c.name, c.created_at, c.updated_at, c.last_login_at,
+      c.notes, c.tags, c.stripe_customer_id,
+      COALESCE(p.total_paid_jpy, 0) AS total_paid_jpy,
+      COALESCE(p.payment_count, 0) AS payment_count,
+      p.last_payment_at,
+      COALESCE(ca.course_count, 0) AS course_count,
+      COALESCE(ca.course_ids, ARRAY[]::varchar[]) AS course_ids,
+      l.lumina_status, l.lumina_plan_code, l.lumina_granted_at,
+      COALESCE(q.thread_count, 0) AS qa_thread_count,
+      COALESCE(q.unread_for_admin_count, 0) AS qa_unread_for_admin_count,
+      COALESCE(GREATEST(c.last_login_at, act.last_activity_at), c.last_login_at, act.last_activity_at) AS last_activity_at,
+      act.last_activity_at AS last_course_activity_at
+    FROM nb_customers c
+    LEFT JOIN LATERAL (
+      SELECT SUM(CASE WHEN currency='jpy' THEN amount ELSE 0 END) AS total_paid_jpy,
+             COUNT(*) AS payment_count,
+             MAX(created_at) AS last_payment_at
+      FROM nb_payments WHERE customer_id = c.id AND status='succeeded'
+    ) p ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COUNT(DISTINCT course_id) AS course_count,
+             array_agg(DISTINCT course_id ORDER BY course_id) AS course_ids
+      FROM nb_course_access WHERE customer_id = c.id
+    ) ca ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT status AS lumina_status, plan_code AS lumina_plan_code, lifetime_granted_at AS lumina_granted_at
+      FROM nb_app_entitlements WHERE customer_id = c.id AND app_slug='lumina'
+    ) l ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*) AS thread_count,
+             COUNT(*) FILTER (WHERE unread_for_admin) AS unread_for_admin_count
+      FROM nb_qa_threads t
+      WHERE t.customer_id = c.id
+         OR t.access_token IN (SELECT access_token FROM nb_course_access WHERE customer_id = c.id)
+    ) q ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT MAX(lp.last_watched_at) AS last_activity_at
+      FROM nb_lesson_progress lp
+      WHERE lp.customer_id = c.id
+    ) act ON TRUE;
   END IF;
 END $$;
 

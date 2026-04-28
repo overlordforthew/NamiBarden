@@ -104,8 +104,13 @@ function createEmailSender(pool) {
     normalizeEmail,
     escapeHtml,
     siteUrl: process.env.SITE_URL || 'https://namibarden.com',
-    luminaSiteUrl: (process.env.LUMINA_URL || 'https://lumina.namibarden.com').replace(/\/+$/, ''),
-    luminaAllowedHosts: ['namibarden.com', 'www.namibarden.com', 'lumina.namibarden.com'],
+    luminaSiteUrl: (() => {
+      const url = process.env.LUMINA_URL;
+      if (url) return url.replace(/\/+$/, '');
+      if (process.env.NODE_ENV === 'production') return 'https://lumina.namibarden.com';
+      throw new Error('migrate-lumina-to-lifetime: LUMINA_URL must be set explicitly when NODE_ENV != production');
+    })(),
+    luminaAllowedHosts: ['namibarden.com', 'www.namibarden.com', ...(process.env.NODE_ENV === 'production' ? ['lumina.namibarden.com'] : [])],
     luminaBridgeSecret: process.env.LUMINA_BRIDGE_SECRET || '',
     smtpUser,
     smtpPass,

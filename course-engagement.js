@@ -1,12 +1,6 @@
-const crypto = require('crypto');
-
 const COMPLETION_THRESHOLD = 0.9; // 90% watched counts as completed
 const MAX_QUESTION_LENGTH = 4000;
 const MAX_SUBJECT_LENGTH = 200;
-
-function sha256Hex(value) {
-  return crypto.createHash('sha256').update(String(value || '')).digest('hex');
-}
 
 function createCourseEngagement({
   app,
@@ -690,7 +684,9 @@ function createCourseEngagement({
 
       const messages = await loadMessagesWithAttachments(id);
 
-      await pool.query(`UPDATE nb_qa_threads SET unread_for_admin = FALSE, last_admin_notified_at = NULL WHERE id = $1`, [id]);
+      if (req.qaAdminScope?.full) {
+        await pool.query(`UPDATE nb_qa_threads SET unread_for_admin = FALSE, last_admin_notified_at = NULL WHERE id = $1`, [id]);
+      }
 
       const course = courses[thread.course_id];
       const lesson = course?.lessons?.find((l) => l.id === thread.lesson_id);

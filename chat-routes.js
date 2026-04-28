@@ -1046,16 +1046,23 @@ function createChatRoutes({
         }));
 
         const sender = identity.kind === 'admin' ? 'nami' : 'student';
+        // Thread scope: full admins get NULL (globally viewable by a full
+        // admin). Thread-scoped admins get their threadId so the view route
+        // can enforce per-thread isolation on pending rows.
+        const uploaderThreadId = identity.kind === 'admin' && !identity.full && identity.threadId
+          ? Number(identity.threadId)
+          : null;
         const pending = (await pool.query(
           `INSERT INTO nb_qa_pending_attachments
-             (uploader, uploader_customer_id, uploader_access_token, r2_key, detected_mime,
+             (uploader, uploader_customer_id, uploader_access_token, uploader_thread_id, r2_key, detected_mime,
               declared_mime, size_bytes, sha256, original_filename, expires_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW() + INTERVAL '1 hour')
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW() + INTERVAL '1 hour')
            RETURNING id`,
           [
             sender,
             identity.kind === 'customer' ? identity.customerId : null,
             identity.kind === 'token' ? identity.accessToken : null,
+            uploaderThreadId,
             key,
             detectedMime,
             declaredMime,
@@ -1104,14 +1111,22 @@ function createChatRoutes({
       if (!identity) return res.status(401).json({ error: 'Unauthorized' });
 
       const pending = (await pool.query(
-        `SELECT id, uploader, uploader_customer_id, uploader_access_token, r2_key
+        `SELECT id, uploader, uploader_customer_id, uploader_access_token, uploader_thread_id, r2_key
          FROM nb_qa_pending_attachments
          WHERE id = $1 AND expires_at > NOW()`,
         [id]
       )).rows[0];
       if (pending) {
+        // A thread-scoped admin cookie may only view its own thread's pending
+        // uploads. Full admin covers everything; customer/token routes stay
+        // keyed to the original uploader.
+        const adminAllowed = identity.kind === 'admin' && pending.uploader === 'nami' && (
+          identity.full === true ||
+          (pending.uploader_thread_id != null &&
+           Number(identity.threadId) === Number(pending.uploader_thread_id))
+        );
         const pendingAllowed =
-          (identity.kind === 'admin' && pending.uploader === 'nami') ||
+          adminAllowed ||
           (identity.kind === 'customer' && Number(pending.uploader_customer_id) === Number(identity.customerId)) ||
           (identity.kind === 'token' && identity.accessTokens.includes(pending.uploader_access_token));
         if (!pendingAllowed) return res.status(403).json({ error: 'Forbidden' });

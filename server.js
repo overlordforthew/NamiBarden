@@ -23,6 +23,7 @@ const { createCourseEngagement } = require('./course-engagement');
 const { createChatRoutes, createChatSseHub, createChatAuthHelpers } = require('./chat-routes');
 const { createStripeRoutes } = require('./stripe-routes');
 const { createCourseReminders } = require('./course-reminders');
+const reminderConfig = require('./course-reminder-config');
 const { createAuthUtils } = require('./auth-utils');
 const { createHealthRoutes } = require('./health-routes');
 const { createSiteHelpers } = require('./site-helpers');
@@ -99,7 +100,7 @@ const {
 } = createAuthUtils({
   jwt,
   jwtSecret: config.auth.jwtSecret,
-  isProd: config.isProd
+  secureCookies: config.cookieSecure
 });
 
 const chatAuth = createChatAuthHelpers({
@@ -278,6 +279,7 @@ createAdminRoutes({
   setAuthCookie,
   clearAuthCookie,
   getIP,
+  dbHealth,
   rateLimit,
   stringify,
   parse,
@@ -287,6 +289,7 @@ createAdminRoutes({
   transporter,
   smtpFrom: config.smtp.from,
   siteUrl: config.siteUrl,
+  escapeHtml,
   uuidv4,
   injectTracking,
   sendWhatsApp,
@@ -369,7 +372,8 @@ const courseReminders = createCourseReminders({
   smtpFrom: config.smtp.from,
   escapeHtml,
   authMiddleware,
-  courses: COURSES
+  courses: COURSES,
+  getIP
 });
 
 createStripeRoutes({
@@ -412,7 +416,7 @@ createStripeRoutes({
   getLuminaCheckoutCopy,
   buildCourse2UpsellBlockHtml: courseReminders.buildCourse2UpsellBlockHtml,
   verifyFlashToken: courseReminders.verifyFlashToken,
-  flashPrice: courseReminders.constants.FLASH_PRICE
+  getPricing: reminderConfig.getActivePricing
 });
 
 registerGlobalErrorHandling({
@@ -436,6 +440,7 @@ initializeApp({
 }).then(async () => {
   try {
     await courseReminders.ensureReminderTable();
+    await reminderConfig.ensureSeeded(pool);
     courseReminders.startScheduler();
     logger.info('Course reminder scheduler started');
   } catch (err) {

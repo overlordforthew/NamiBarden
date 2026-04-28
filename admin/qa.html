@@ -47,12 +47,13 @@
     <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
     <a href="/admin/students.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg><span>Students</span></a>
     <a href="/admin/qa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>Q&A</span></a>
+    <a href="/admin/reminders.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>Email Rules</span></a>
     <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
     <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
     <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/></svg><span>Alerts</span></a>
     <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
     <div class="sidebar-logout">
-      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+      <a href="#" id="logoutLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
     </div>
   </nav>
 
@@ -95,26 +96,26 @@
     <div id="detailView" class="qa-detail">
       <div class="page-header">
         <h1 id="detailSubject">Thread</h1>
-        <button id="backToInboxBtn" class="btn" onclick="showList()">← Back to inbox</button>
+        <button id="backToInboxBtn" class="btn" type="button">← Back to inbox</button>
       </div>
       <div class="card">
         <div class="card-body">
           <div class="thread-meta" id="threadMeta"></div>
           <div class="messages-list" id="messagesList"></div>
 
-          <form id="replyForm" onsubmit="submitReply(event)">
+          <form id="replyForm">
             <textarea id="replyBody" placeholder="ナミからの返信を入力してください..." maxlength="4000"></textarea>
             <div id="uploadZone" class="upload-zone">
               <input id="attachmentInput" type="file" multiple accept="image/*,application/pdf,audio/*" style="display:none">
-              <button type="button" class="btn btn-sm" onclick="document.getElementById('attachmentInput').click()">Add attachments</button>
+              <button type="button" class="btn btn-sm" id="attachPickBtn">Add attachments</button>
               <span>Drag up to 5 images, PDFs, or audio files here.</span>
               <div id="uploadList" class="upload-list"></div>
             </div>
             <div class="reply-actions">
               <button type="submit" class="btn btn-primary">送信する</button>
-              <button type="button" class="btn" onclick="setStatus('answered')">Mark Answered</button>
-              <button type="button" class="btn" onclick="setStatus('archived')">Archive</button>
-              <button type="button" class="btn" onclick="setStatus('open')">Reopen</button>
+              <button type="button" class="btn" data-status="answered">Mark Answered</button>
+              <button type="button" class="btn" data-status="archived">Archive</button>
+              <button type="button" class="btn" data-status="open">Reopen</button>
               <div class="spacer"></div>
               <a id="viewAsStudent" class="btn btn-sm" target="_blank" rel="noopener" style="display:none">Open watch page →</a>
             </div>
@@ -124,368 +125,7 @@
     </div>
   </main>
 
-  <script src="/admin/admin.js"></script>
-  <script>
-    const COURSE_LABEL = {
-      'course-1': 'Course 1',
-      'course-2': 'Course 2',
-      'course-bundle': 'Bundle'
-    };
-
-    const urlParams = new URLSearchParams(location.search);
-    const isThreadScoped = urlParams.get('scope') === 'thread-admin';
-    let currentStatus = '';
-    let currentChannel = '';
-    let currentThreadId = null;
-    let pendingUploads = [];
-    let adminStream = null;
-    let lastSeenMessageId = Number(localStorage.getItem('nb-admin-qa-last-id') || '0');
-
-    if (!isThreadScoped) {
-      if (!requireAuth()) throw 'auth';
-      initSidebar();
-    } else {
-      document.getElementById('threadScopeBanner').classList.add('active');
-      document.getElementById('backToInboxBtn').style.display = 'none';
-      document.querySelectorAll('.sidebar a').forEach((link) => {
-        const href = link.getAttribute('href');
-        if (href !== '/admin/qa.html' && !link.closest('.sidebar-logout')) link.style.display = 'none';
-      });
-    }
-
-    function node(tag, className, text) {
-      const el = document.createElement(tag);
-      if (className) el.className = className;
-      if (text != null) el.textContent = text;
-      return el;
-    }
-
-    async function adminApi(path, opts = {}) {
-      const headers = { ...(opts.headers || {}) };
-      if (opts.body && !(opts.body instanceof FormData)) {
-        headers['Content-Type'] = 'application/json';
-        opts.body = JSON.stringify(opts.body);
-      }
-      const res = await fetch(`${API}${path}`, { ...opts, headers, credentials: 'same-origin' });
-      if (res.status === 401 || res.status === 403) throw new Error('Unauthorized');
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Request failed');
-      return data;
-    }
-
-    async function loadInbox() {
-      if (isThreadScoped) return;
-      const search = document.getElementById('searchInput').value;
-      const params = new URLSearchParams();
-      if (currentStatus) params.set('status', currentStatus);
-      if (currentChannel) params.set('channel', currentChannel);
-      if (search) params.set('search', search);
-      if (lastSeenMessageId) params.set('since', lastSeenMessageId);
-
-      try {
-        const data = await adminApi(`/qa?${params}`);
-        renderSummary(data.summary);
-        renderChannelFilters(data.summary);
-        renderThreads(data.threads);
-        for (const msg of data.replayMessages || []) rememberMessageId(msg.id);
-      } catch (e) { console.error(e); }
-    }
-
-    function rememberMessageId(id) {
-      if (!id) return;
-      lastSeenMessageId = Math.max(lastSeenMessageId, Number(id));
-      localStorage.setItem('nb-admin-qa-last-id', String(lastSeenMessageId));
-    }
-
-    function renderSummary(summary) {
-      const strip = document.getElementById('summaryStrip');
-      strip.textContent = '';
-      const items = [
-        { key: '',         label: 'All' },
-        { key: 'open',     label: 'Open', count: summary.open },
-        { key: 'answered', label: 'Answered', count: summary.answered },
-        { key: 'archived', label: 'Archived', count: summary.archived }
-      ];
-      for (const item of items) {
-        const btn = node('button', `summary-chip${currentStatus === item.key ? ' active' : ''}`, item.label);
-        btn.type = 'button';
-        btn.addEventListener('click', () => setStatusFilter(item.key));
-        if (typeof item.count === 'number') btn.appendChild(node('span', 'count', item.count));
-        if (item.key === 'open' && summary.unread > 0) btn.appendChild(node('span', 'unread-badge', summary.unread));
-        strip.appendChild(btn);
-      }
-    }
-
-    function renderChannelFilters(summary) {
-      const wrap = document.getElementById('channelFilters');
-      wrap.textContent = '';
-      [
-        { key: '', label: 'All' },
-        { key: 'dm', label: `DM ${summary.dm || 0}` },
-        { key: 'course', label: `Course ${summary.course || 0}` }
-      ].forEach((item) => {
-        const btn = node('button', `summary-chip${currentChannel === item.key ? ' active' : ''}`, item.label);
-        btn.type = 'button';
-        btn.addEventListener('click', () => {
-          currentChannel = item.key;
-          loadInbox();
-        });
-        wrap.appendChild(btn);
-      });
-    }
-
-    function setStatusFilter(status) {
-      currentStatus = status;
-      loadInbox();
-    }
-
-    function renderThreads(threads) {
-      const tb = document.getElementById('threadsTable');
-      tb.textContent = '';
-      if (!threads || !threads.length) {
-        const tr = document.createElement('tr');
-        const td = node('td', 'empty', 'No questions yet');
-        td.colSpan = 7;
-        tr.appendChild(td);
-        tb.appendChild(tr);
-        return;
-      }
-      threads.forEach((t) => {
-        const courseLabel = t.courseId ? (COURSE_LABEL[t.courseId] || t.courseId) : '';
-        const contextBits = t.channel === 'dm' ? 'DM' : [courseLabel, t.lessonId].filter(Boolean).join(' - ');
-        const tr = node('tr', `thread-row${t.unread ? ' unread' : ''}`);
-        tr.addEventListener('click', () => showThread(t.id));
-        const fromTd = document.createElement('td');
-        if (t.unread) fromTd.appendChild(node('span', 'unread-badge', ''));
-        fromTd.appendChild(document.createTextNode(t.name || t.email || 'Unknown'));
-        if (t.name && t.email) fromTd.appendChild(node('div', '', t.email));
-        tr.appendChild(fromTd);
-        tr.appendChild(node('td', '', t.subject || '(no subject)'));
-        const contextTd = node('td', '', contextBits || '-');
-        contextTd.style.fontSize = '0.82rem';
-        contextTd.style.color = 'var(--text-light)';
-        tr.appendChild(contextTd);
-        const statusTd = document.createElement('td');
-        statusTd.appendChild(node('span', `status-pill status-${t.status}`, t.status));
-        tr.appendChild(statusTd);
-        tr.appendChild(node('td', '', t.messageCount));
-        tr.appendChild(node('td', '', formatDateTime(t.lastMessageAt)));
-        const actionTd = document.createElement('td');
-        const openBtn = node('button', 'btn btn-sm', 'Open');
-        openBtn.type = 'button';
-        openBtn.addEventListener('click', (event) => { event.stopPropagation(); showThread(t.id); });
-        actionTd.appendChild(openBtn);
-        tr.appendChild(actionTd);
-        tb.appendChild(tr);
-      });
-    }
-
-    async function showThread(id) {
-      currentThreadId = id;
-      try {
-        const data = await adminApi(`/qa/${id}`);
-        const t = data.thread;
-        document.getElementById('detailSubject').textContent = t.subject || '(no subject)';
-
-        const meta = document.getElementById('threadMeta');
-        meta.textContent = '';
-        meta.appendChild(node('span', '', `From: ${t.name || t.email || 'Unknown'} <${t.email || ''}>`));
-        meta.appendChild(node('span', '', `Channel: ${t.channel === 'dm' ? 'DM' : 'Course'}`));
-        if (t.courseName) meta.appendChild(node('span', '', `Course: ${t.courseName}`));
-        if (t.lessonTitle) meta.appendChild(node('span', '', `Lesson: ${t.lessonTitle}`));
-        const status = node('span', '', 'Status: ');
-        status.appendChild(node('span', `status-pill status-${t.status}`, t.status));
-        meta.appendChild(status);
-        meta.appendChild(node('span', '', `Opened: ${formatDateTime(t.createdAt)}`));
-
-        const msgList = document.getElementById('messagesList');
-        msgList.textContent = '';
-        (data.messages || []).forEach((m) => {
-          const isNami = m.sender === 'nami';
-          const card = node('div', `msg ${isNami ? 'nami' : 'student'}`);
-          const msgMeta = node('div', 'msg-meta');
-          msgMeta.appendChild(node('span', '', isNami ? 'ナミ' : (t.name || t.email || 'Student')));
-          msgMeta.appendChild(node('span', '', formatDateTime(m.created_at)));
-          card.appendChild(msgMeta);
-          card.appendChild(node('div', '', m.body || ''));
-          renderMessageAttachments(card, m.attachments || []);
-          msgList.appendChild(card);
-          rememberMessageId(m.id);
-        });
-
-        const watchLink = document.getElementById('viewAsStudent');
-        if (t.openAsStudentUrl) {
-          watchLink.href = t.openAsStudentUrl;
-          watchLink.style.display = '';
-        } else {
-          watchLink.style.display = 'none';
-        }
-
-        document.getElementById('replyBody').value = '';
-        pendingUploads = [];
-        renderPendingUploads();
-
-        document.getElementById('listView').style.display = 'none';
-        document.getElementById('detailView').classList.add('active');
-      } catch (e) { alert(e.message); }
-    }
-
-    function renderMessageAttachments(container, attachments) {
-      if (!attachments.length) return;
-      const wrap = node('div', 'message-attachments');
-      attachments.forEach((attachment) => {
-        if ((attachment.detectedMime || '').startsWith('image/')) {
-          const link = document.createElement('a');
-          link.href = attachment.viewUrl;
-          link.target = '_blank';
-          link.rel = 'noopener';
-          const img = document.createElement('img');
-          img.className = 'attachment-img';
-          img.src = attachment.viewUrl;
-          img.alt = attachment.originalFilename || 'attachment';
-          link.appendChild(img);
-          wrap.appendChild(link);
-        } else if ((attachment.detectedMime || '').startsWith('audio/')) {
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          audio.src = attachment.viewUrl;
-          wrap.appendChild(audio);
-        } else {
-          const link = node('a', 'attachment-chip', attachment.originalFilename || 'Attachment');
-          link.href = attachment.viewUrl;
-          link.target = '_blank';
-          link.rel = 'noopener';
-          wrap.appendChild(link);
-        }
-      });
-      container.appendChild(wrap);
-    }
-
-    function showList() {
-      if (isThreadScoped) return;
-      document.getElementById('detailView').classList.remove('active');
-      document.getElementById('listView').style.display = '';
-      currentThreadId = null;
-      loadInbox();
-    }
-
-    async function submitReply(e) {
-      e.preventDefault();
-      if (!currentThreadId) return;
-      const body = document.getElementById('replyBody').value.trim();
-      if (!body && pendingUploads.length === 0) return;
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.disabled = true;
-      btn.textContent = '送信中...';
-      try {
-        await adminApi(`/qa/${currentThreadId}/reply`, {
-          method: 'POST',
-          body: { body, attachments: pendingUploads.map((item) => item.uploadId) }
-        });
-        pendingUploads = [];
-        renderPendingUploads();
-        await showThread(currentThreadId);
-      } catch (err) {
-        alert(err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '送信する';
-      }
-    }
-
-    async function setStatus(status) {
-      if (!currentThreadId) return;
-      try {
-        await adminApi(`/qa/${currentThreadId}/status`, { method: 'POST', body: { status } });
-        await showThread(currentThreadId);
-      } catch (err) { alert(err.message); }
-    }
-
-    function renderPendingUploads() {
-      const list = document.getElementById('uploadList');
-      list.textContent = '';
-      pendingUploads.forEach((item, idx) => {
-        const chip = node('span', 'upload-chip', item.name || item.previewMime);
-        const remove = node('button', 'btn btn-sm', 'x');
-        remove.type = 'button';
-        remove.addEventListener('click', () => {
-          pendingUploads.splice(idx, 1);
-          renderPendingUploads();
-        });
-        chip.appendChild(remove);
-        list.appendChild(chip);
-      });
-    }
-
-    async function uploadAttachment(file) {
-      const form = new FormData();
-      form.append('file', file);
-      const res = await fetch('/api/chat/attachments', {
-        method: 'POST',
-        body: form,
-        credentials: 'same-origin'
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
-      pendingUploads.push({ ...data, name: file.name });
-      renderPendingUploads();
-    }
-
-    async function uploadFiles(files) {
-      const selected = Array.from(files || []);
-      if (pendingUploads.length + selected.length > 5) {
-        alert('Maximum 5 files per message.');
-        return;
-      }
-      for (const file of selected) await uploadAttachment(file);
-    }
-
-    function startAdminStream() {
-      if (isThreadScoped || adminStream) return;
-      const url = lastSeenMessageId ? `/api/admin/qa/stream?since=${encodeURIComponent(lastSeenMessageId)}` : '/api/admin/qa/stream';
-      adminStream = new EventSource(url);
-      adminStream.addEventListener('open', () => loadInbox());
-      adminStream.addEventListener('message', (event) => {
-        const payload = JSON.parse(event.data);
-        rememberMessageId(payload.id || payload.messageId);
-        loadInbox();
-        if (currentThreadId && Number(payload.threadId) === Number(currentThreadId)) showThread(currentThreadId);
-      });
-      ['thread-created', 'thread-updated', 'status-changed', 'attachment-committed', 'resync-required'].forEach((eventName) => {
-        adminStream.addEventListener(eventName, () => loadInbox());
-      });
-    }
-
-    let searchTimer;
-    document.getElementById('searchInput').addEventListener('input', () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(loadInbox, 300);
-    });
-
-    // Deep-link support: /admin/qa.html?thread=123 and /admin/qa.html#thread-123
-    const hashThread = (location.hash || '').match(/^#thread-(\d+)$/);
-    const threadParam = parseInt(urlParams.get('thread') || (hashThread && hashThread[1]), 10);
-    document.getElementById('attachmentInput').addEventListener('change', (event) => {
-      uploadFiles(event.target.files).catch((err) => alert(err.message));
-      event.target.value = '';
-    });
-    const uploadZone = document.getElementById('uploadZone');
-    uploadZone.addEventListener('dragover', (event) => {
-      event.preventDefault();
-      uploadZone.classList.add('dragover');
-    });
-    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-    uploadZone.addEventListener('drop', (event) => {
-      event.preventDefault();
-      uploadZone.classList.remove('dragover');
-      uploadFiles(event.dataTransfer.files).catch((err) => alert(err.message));
-    });
-    if (threadParam) {
-      showThread(threadParam);
-    } else {
-      loadInbox();
-    }
-    startAdminStream();
-  </script>
+  <script src="/admin/admin.js?v=2"></script>
+  <script src="/admin/js/qa.js?v=2"></script>
 </body>
 </html>

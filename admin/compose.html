@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Compose — Nami Barden Admin</title>
   <link rel="stylesheet" href="/admin/admin.css">
+  <style>
+    .compose-body { width:100%; min-height:420px; padding:16px; border:1px solid var(--border); border-radius:6px; background:var(--white); font-family:Helvetica,Arial,sans-serif; font-size:0.95rem; line-height:1.8; color:var(--text-dark); resize:vertical; box-sizing:border-box; }
+    .compose-body:focus { outline:none; border-color:var(--gold); }
+    .preview-frame { width:100%; min-height:420px; border:1px solid var(--border); border-radius:6px; background:#fff; }
+    .help { color:var(--text-light); font-size:0.82rem; margin-top:8px; line-height:1.6; }
+    .dirty-badge { display:none; font-size:0.78rem; color:var(--danger); margin-left:8px; }
+    .dirty-badge.show { display:inline; }
+  </style>
 </head>
 <body>
   <nav class="sidebar">
@@ -13,23 +21,23 @@
     <a href="/admin/subscribers.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Subscribers</span></a>
     <a href="/admin/students.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg><span>Students</span></a>
     <a href="/admin/qa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>Q&A</span></a>
+    <a href="/admin/reminders.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>Email Rules</span></a>
     <a href="/admin/compose.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg><span>Compose</span></a>
     <a href="/admin/campaigns.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><span>Campaigns</span></a>
     <a href="/admin/alerts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v4m0 4h.01M10.29 3.86l-7.5 13A1 1 0 003.66 18h16.68a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0z"/></svg><span>Alerts</span></a>
     <a href="/admin/lumina.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5L12 3z"/></svg><span>Lumina</span></a>
     <div class="sidebar-logout">
-      <a href="#" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
+      <a href="#" id="logoutLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg><span>Logout</span></a>
     </div>
   </nav>
 
   <main class="main-content">
     <div class="page-header">
-      <h1>Compose Newsletter</h1>
+      <h1>Compose Newsletter <span id="dirtyBadge" class="dirty-badge">• unsaved</span></h1>
       <div class="btn-group">
-        <button class="btn" onclick="loadTemplate()">Load Template</button>
-        <button class="btn" onclick="sendTest()">Send Test</button>
-        <button class="btn" onclick="saveDraft()">Save Draft</button>
-        <button class="btn btn-primary" onclick="sendCampaign()">Send Campaign</button>
+        <button class="btn" id="testBtn" type="button">Send Test</button>
+        <button class="btn" id="saveBtn" type="button">Save Draft</button>
+        <button class="btn btn-primary" id="sendBtn" type="button">Send Campaign</button>
       </div>
     </div>
 
@@ -40,33 +48,30 @@
         <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:16px;">
           <div class="form-group" style="margin:0">
             <label>Subject</label>
-            <input type="text" id="subject" placeholder="Newsletter subject line...">
+            <input type="text" id="subject" placeholder="Newsletter subject line..." maxlength="500">
           </div>
           <div class="form-group" style="margin:0">
-            <label>Segment</label>
+            <label>Send to</label>
             <select id="segment">
               <option value="all">All active subscribers</option>
               <option value="pdf_download">PDF downloaders</option>
-              <option value="contact_form">Contact form</option>
+              <option value="contact_form">Contact form signups</option>
               <option value="newsletter">Newsletter signups</option>
+              <option value="import">Imported subscribers</option>
             </select>
           </div>
         </div>
 
-        <div class="editor-container">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
           <div>
-            <label>HTML Content</label>
-            <textarea id="htmlBody" placeholder="Write your newsletter HTML here..." oninput="updatePreview()"></textarea>
+            <label>Message</label>
+            <textarea id="body" class="compose-body" placeholder="Write your email just like you'd type to a friend.&#10;&#10;Press return twice between paragraphs. Links (https://...) turn into clickable links automatically."></textarea>
+            <div class="help">Plain text. Blank line = new paragraph. URLs auto-link. A branded header and unsubscribe footer are added when the email is delivered.</div>
           </div>
           <div>
             <label>Preview</label>
-            <iframe id="preview" class="preview-frame" sandbox="" style="width:100%;border:1px solid #ddd;min-height:400px;background:#fff;"></iframe>
+            <iframe id="preview" class="preview-frame" sandbox="" title="Email preview"></iframe>
           </div>
-        </div>
-
-        <div class="form-group" style="margin-top:16px">
-          <label>Plain Text (auto-generated or custom)</label>
-          <textarea id="textBody" style="min-height:100px" placeholder="Plain text version..."></textarea>
         </div>
       </div>
     </div>
@@ -80,126 +85,14 @@
           <input type="email" id="testEmail" placeholder="test@example.com" value="overlord.gil.ai@gmail.com">
         </div>
         <div class="btn-group" style="justify-content:flex-end">
-          <button class="btn" onclick="document.getElementById('testModal').classList.remove('show')">Cancel</button>
-          <button class="btn btn-primary" onclick="doSendTest()">Send Test</button>
+          <button class="btn" type="button" id="testCancel">Cancel</button>
+          <button class="btn btn-primary" type="button" id="testConfirm">Send Test</button>
         </div>
       </div>
     </div>
   </main>
 
-  <script src="/admin/admin.js"></script>
-  <script>
-    if (!requireAuth()) throw 'auth';
-    initSidebar();
-
-    let campaignId = null;
-
-    // Check if editing existing campaign
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('id')) {
-      (async function() {
-        try {
-          const data = await api(`/campaigns/${params.get('id')}`);
-          const c = data.campaign;
-          if (c.status === 'draft') {
-            campaignId = c.id;
-            document.getElementById('subject').value = c.subject;
-            document.getElementById('htmlBody').value = c.html_body || '';
-            document.getElementById('textBody').value = c.text_body || '';
-            document.getElementById('segment').value = c.segment || 'all';
-            updatePreview();
-          }
-        } catch (e) { console.error(e); }
-      })();
-    }
-
-    function updatePreview() {
-      // Use sandboxed iframe (sandbox="") — blocks all script execution
-      const iframe = document.getElementById('preview');
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      doc.open();
-      doc.write(document.getElementById('htmlBody').value);
-      doc.close();
-    }
-
-    function loadTemplate() {
-      const subject = document.getElementById('subject');
-      const html = document.getElementById('htmlBody');
-      if (html.value && !confirm('Replace current content with template?')) return;
-
-      subject.value = 'Newsletter from Nami Barden';
-      html.value = `<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="margin:0; padding:0; background:#FAF7F2; font-family:-apple-system,system-ui,sans-serif;">
-  <div style="max-width:600px; margin:0 auto; background:#fff;">
-    <div style="padding:32px; text-align:center; background:#2C2C2C;">
-      <h1 style="color:#C4A882; margin:0; font-size:24px;">Nami Barden</h1>
-    </div>
-    <div style="padding:32px;">
-      <h2 style="color:#2C2C2C; margin-bottom:16px;">Hello!</h2>
-      <p style="color:#555; line-height:1.8;">
-        Write your newsletter content here...
-      </p>
-      <p style="margin-top:24px;">
-        <a href="https://namibarden.com" style="display:inline-block; padding:12px 28px; background:#C4A882; color:#fff; text-decoration:none; border-radius:8px;">Visit Website</a>
-      </p>
-    </div>
-    <div style="padding:24px 32px; background:#FAF7F2; text-align:center; font-size:12px; color:#999;">
-      <p>Nami Barden &mdash; Consciousness, Mindfulness & Meditation</p>
-    </div>
-  </div>
-</body>
-</html>`;
-      updatePreview();
-    }
-
-    async function saveDraft() {
-      const subject = document.getElementById('subject').value;
-      const html_body = document.getElementById('htmlBody').value;
-      const text_body = document.getElementById('textBody').value;
-      const segment = document.getElementById('segment').value;
-
-      if (!subject || !html_body) { showAlert(document.getElementById('alerts'), 'Subject and HTML body required', 'error'); return; }
-
-      try {
-        const data = await api('/campaigns', { method: 'POST', body: { subject, html_body, text_body, segment } });
-        campaignId = data.id;
-        showAlert(document.getElementById('alerts'), 'Draft saved!');
-      } catch (e) {
-        showAlert(document.getElementById('alerts'), e.message, 'error');
-      }
-    }
-
-    function sendTest() {
-      if (!campaignId) { showAlert(document.getElementById('alerts'), 'Save as draft first', 'error'); return; }
-      document.getElementById('testModal').classList.add('show');
-    }
-
-    async function doSendTest() {
-      const email = document.getElementById('testEmail').value;
-      if (!email) return;
-      try {
-        await api(`/campaigns/${campaignId}/test`, { method: 'POST', body: { email } });
-        document.getElementById('testModal').classList.remove('show');
-        showAlert(document.getElementById('alerts'), `Test sent to ${email}`);
-      } catch (e) {
-        showAlert(document.getElementById('alerts'), e.message, 'error');
-      }
-    }
-
-    async function sendCampaign() {
-      if (!campaignId) { showAlert(document.getElementById('alerts'), 'Save as draft first', 'error'); return; }
-      if (!confirm('Send this campaign to all matching subscribers? This cannot be undone.')) return;
-
-      try {
-        const data = await api(`/campaigns/${campaignId}/send`, { method: 'POST' });
-        showAlert(document.getElementById('alerts'), `Campaign sending to ${data.total} subscribers!`);
-        setTimeout(() => { window.location.href = '/admin/campaigns.html'; }, 2000);
-      } catch (e) {
-        showAlert(document.getElementById('alerts'), e.message, 'error');
-      }
-    }
-  </script>
+  <script src="/admin/admin.js?v=2"></script>
+  <script src="/admin/js/compose.js?v=2"></script>
 </body>
 </html>

@@ -2,6 +2,11 @@
   var params = new URLSearchParams(window.location.search);
   var forms = Array.prototype.slice.call(document.querySelectorAll('[data-checkout-form]'));
   var langLinks = Array.prototype.slice.call(document.querySelectorAll('[data-lang-choice]'));
+  // Default to the prod Lumina success URL. The server-side allowlist
+  // (luminaAllowedHosts) rejects this in non-prod environments, where it
+  // falls through to defaultLuminaSuccessUrl() — which is the .invalid
+  // sentinel until Lumina staging exists. So this default is safe in prod
+  // (validates → used) and safe in staging (rejected → server-side default).
   var returnUrl = params.get('return_url') || 'https://lumina.namibarden.com/?billing=success';
 
   function setLang(lang) {
